@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="dark" />
-    <meta name="theme-color" content="#1b2b33" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#eee7d9" />
     <title>testPB</title>
     <link rel="icon" href="assets/Adventurer.png" />
     <script type="module" src="/src/main.ts"></script>
@@ -15,17 +15,10 @@
         <span class="brand">testPB</span><span class="home-mark" aria-hidden="true">✦</span>
       </header>
       <section class="home-stage" aria-label="冒險者">
-        <button
-          id="view-portrait"
-          class="portrait-button"
-          type="button"
-          tabindex="-1"
-          aria-label="放大查看冒險者立繪"
-        >
+        <div class="portrait-display">
           <span class="portrait-disc" aria-hidden="true"></span>
           <img id="home-portrait" alt="冒險者立繪" draggable="false" />
-          <span class="portrait-expand" aria-hidden="true">⤢</span>
-        </button>
+        </div>
         <div class="home-details">
           <span class="eyebrow">旅途的起點</span>
           <h1>冒險者</h1>
@@ -88,25 +81,6 @@
         <button type="button" id="replay" tabindex="-1">再來一局</button>
         <button type="button" id="result-home" class="quiet-button" tabindex="-1">回主畫面</button>
       </div>
-    </div>
-    <div
-      id="portrait-viewer"
-      class="portrait-viewer"
-      role="dialog"
-      aria-modal="true"
-      aria-label="冒險者立繪"
-      hidden
-    >
-      <img id="large-portrait" alt="冒險者完整立繪" draggable="false" />
-      <button
-        id="close-portrait"
-        class="quiet-button"
-        type="button"
-        tabindex="-1"
-        aria-label="關閉立繪"
-      >
-        ✕
-      </button>
     </div>
     <noscript>請使用已啟用 JavaScript 的瀏覽器開啟。</noscript>
   </body>

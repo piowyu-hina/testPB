@@ -34,10 +34,6 @@ fs.mkdirSync(output, { recursive: true });
       [...document.images].every((image) => image.complete && image.naturalWidth > 0)
     );
     await page.screenshot({ path: path.join(output, 'home.png'), fullPage: true });
-    await page.locator('#view-portrait').click();
-    assert.equal(await page.locator('#portrait-viewer').isVisible(), true);
-    await page.screenshot({ path: path.join(output, 'portrait.png'), fullPage: true });
-    await page.locator('#close-portrait').click();
     await page.locator('#start-game').click();
     await page.locator('.card').first().waitFor();
     await page.waitForFunction(() =>
@@ -162,8 +158,6 @@ fs.mkdirSync(output, { recursive: true });
     phone.on('pageerror', (error) => errors.push(error.message));
     await phone.goto(process.env.TESTPB_URL || 'http://127.0.0.1:4173');
     await phone.screenshot({ path: path.join(output, 'home-mobile.png'), fullPage: true });
-    await phone.locator('#view-portrait').tap();
-    await phone.locator('#close-portrait').tap();
     await phone.locator('#start-game').tap();
     await phone.locator('[data-card="rush"]').tap();
     assert.equal(await phone.locator('.tile.legal').count(), 3);

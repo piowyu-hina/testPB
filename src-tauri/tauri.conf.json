@@ -19,7 +19,7 @@
       "minHeight": 540,
       "center": true,
       "resizable": true,
-      "backgroundColor": "#1b2b33"
+      "backgroundColor": "#eee7d9"
     }],
     "security": {
       "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src ipc: http://ipc.localhost; object-src 'none'; base-uri 'self'",

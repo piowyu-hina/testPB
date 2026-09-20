@@ -62,9 +62,6 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     assert.ok(await page.evaluate(() => '__TAURI_INTERNALS__' in window));
     assert.ok(page.url().includes('tauri.localhost'), `Unexpected app URL: ${page.url()}`);
     await page.screenshot({ path: path.join(output, 'tauri-home.png') });
-    await page.locator('#view-portrait').click();
-    assert.equal(await page.locator('#portrait-viewer').isVisible(), true);
-    await page.locator('#close-portrait').click();
     await page.locator('#start-game').click();
     assert.ok(
       await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight),
