@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#1b2b33">
+  <title>testPB</title>
+  <link rel="icon" href="assets/Adventurer.png">
+  <link rel="stylesheet" href="src/style.css">
+  <script defer src="data/cards.js"></script>
+  <script defer src="src/rules.js"></script>
+  <script defer src="src/game.js"></script>
+</head>
+<body>
+  <main class="game" id="game" aria-label="testPB 戰鬥房間">
+    <header class="heading"><h1>testPB</h1><span id="turn">第 1 回合</span></header>
+    <div class="status"><div id="health" class="health" aria-label="生命"></div><div id="actions" class="actions" aria-label="剩餘行動"></div></div>
+    <section class="board-shell" aria-label="棋盤"><div class="board" id="board"><div class="tiles" id="tiles"></div><div class="actors" id="actors"></div><div class="actor hero ghost" id="ghost" hidden><img src="assets/Adventurer.png" alt="落點預覽" draggable="false"></div></div></section>
+    <section class="controls" aria-label="手牌與回合">
+      <div class="hand" id="hand"></div>
+      <button type="button" class="end-turn" id="end-turn" tabindex="-1" aria-label="結束回合">
+        <span class="end-icon"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 12 26 24 10 36ZM25 12 41 24 25 36Z"/></svg></span><span id="end-label">結束回合</span>
+      </button>
+    </section>
+    <div class="hint" id="hint" aria-live="polite"></div>
+  </main>
+  <div class="modal" id="result" role="dialog" aria-modal="true" aria-labelledby="result-title" hidden><div class="result-panel"><h2 id="result-title"></h2><button type="button" id="replay" tabindex="-1">再來一局</button></div></div>
+  <noscript>請使用已啟用 JavaScript 的瀏覽器開啟。</noscript>
+</body>
+</html>
