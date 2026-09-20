@@ -8,6 +8,7 @@
 - Intermediate room clears open an exit on the top-center tile; no next-room modal/button. Show two reusable exploration cards, short and diagonal, independent of the combat deck. Movement requires their legal offsets but spends no actions or turns. Enter the exit to advance and heal. Preserve cleared-room state when visiting home. Disable browser context menus; right-click must not change selection.
 - Only the redesigned long-haired heroine is playable (HeroineHead.png / HeroinePortrait.png). No male character, character picker, or saved character selection. Portrait remains display-only.
 - Keep UI minimal. Reuse the approved PNG art; when new art is requested, use built-in imagegen with broad silhouettes and few details.
+- Judge character art by its proportions, readability, and intended game style, not color matching the current background (the user will replace it). Current home portrait is a moderately SD chestnut-haired heroine; keep the face and simple outfit. See docs/SemiSDPortrait.md. Use 2x upscaled output for portraits.
 - Card data and rules must stay separate from rendering. Preview must match the committed result.
 - Verify with npm test, npm run typecheck, browser pointer checks and a real Tauri/WebView2 window.
 - Save local Git checkpoints. Do not publish remotely or create ZIP packages unless requested.
