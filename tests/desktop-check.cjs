@@ -61,6 +61,11 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     );
     assert.ok(await page.evaluate(() => '__TAURI_INTERNALS__' in window));
     assert.ok(page.url().includes('tauri.localhost'), `Unexpected app URL: ${page.url()}`);
+    await page.screenshot({ path: path.join(output, 'tauri-home.png') });
+    await page.locator('#view-portrait').click();
+    assert.equal(await page.locator('#portrait-viewer').isVisible(), true);
+    await page.locator('#close-portrait').click();
+    await page.locator('#start-game').click();
     assert.ok(
       await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight),
       'The default desktop window should fit without scrolling.'
@@ -74,6 +79,10 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     await page.locator('.tile[data-x="2"][data-y="2"]').click();
     await idle();
     assert.equal(await page.locator('#actors .actor').count(), 4);
+    assert.equal(await page.locator('.card').count(), 2);
+    await page.locator('#back-home').click();
+    assert.equal(await page.locator('#start-label').textContent(), '繼續旅途');
+    await page.locator('#start-game').click();
     assert.equal(await page.locator('.card').count(), 2);
     await page.locator('[data-card="short"]').click();
     await page.locator('.tile[data-x="2"][data-y="1"]').click();

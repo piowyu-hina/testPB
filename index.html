@@ -10,9 +10,45 @@
     <script type="module" src="/src/main.ts"></script>
   </head>
   <body>
-    <main class="game" id="game" aria-label="testPB 戰鬥房間">
+    <main id="home" class="home" aria-label="主畫面">
+      <header class="home-header">
+        <span class="brand">testPB</span><span class="home-mark" aria-hidden="true">✦</span>
+      </header>
+      <section class="home-stage" aria-label="冒險者">
+        <button
+          id="view-portrait"
+          class="portrait-button"
+          type="button"
+          tabindex="-1"
+          aria-label="放大查看冒險者立繪"
+        >
+          <span class="portrait-disc" aria-hidden="true"></span>
+          <img id="home-portrait" alt="冒險者立繪" draggable="false" />
+          <span class="portrait-expand" aria-hidden="true">⤢</span>
+        </button>
+        <div class="home-details">
+          <span class="eyebrow">旅途的起點</span>
+          <h1>冒險者</h1>
+          <div class="hero-token">
+            <img id="hero-token" alt="棋盤上的冒險者" draggable="false" /><span>你的棋子</span>
+          </div>
+          <button id="start-game" class="primary-button" type="button" tabindex="-1">
+            <span id="start-label">出發</span><span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </section>
+    </main>
+    <main class="game" id="game" aria-label="testPB 戰鬥房間" hidden>
       <header class="heading">
-        <h1>testPB</h1>
+        <button
+          type="button"
+          id="back-home"
+          class="quiet-button"
+          tabindex="-1"
+          aria-label="返回主畫面"
+        >
+          ‹ 主畫面
+        </button>
         <span id="turn">第 1 回合</span>
       </header>
       <div class="status">
@@ -50,7 +86,27 @@
       <div class="result-panel">
         <h2 id="result-title"></h2>
         <button type="button" id="replay" tabindex="-1">再來一局</button>
+        <button type="button" id="result-home" class="quiet-button" tabindex="-1">回主畫面</button>
       </div>
+    </div>
+    <div
+      id="portrait-viewer"
+      class="portrait-viewer"
+      role="dialog"
+      aria-modal="true"
+      aria-label="冒險者立繪"
+      hidden
+    >
+      <img id="large-portrait" alt="冒險者完整立繪" draggable="false" />
+      <button
+        id="close-portrait"
+        class="quiet-button"
+        type="button"
+        tabindex="-1"
+        aria-label="關閉立繪"
+      >
+        ✕
+      </button>
     </div>
     <noscript>請使用已啟用 JavaScript 的瀏覽器開啟。</noscript>
   </body>

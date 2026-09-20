@@ -5,7 +5,7 @@ import { element as $, onClick } from '../ui/dom';
 import { place, animate, pause, travel } from '../ui/animations';
 import { diagram } from '../ui/cardDiagram';
 
-export function mountBattle(): void {
+export function mountBattle(onHome: () => void) {
   const elements = {
     game: $('game'),
     board: $('board'),
@@ -103,6 +103,10 @@ export function mountBattle(): void {
         card.dataset.index = String(index);
         card.setAttribute('aria-label', definition.name);
         card.innerHTML = diagram(definition);
+        const label = document.createElement('span');
+        label.className = 'card-name';
+        label.textContent = definition.name;
+        card.append(label);
         card.addEventListener('pointerenter', () => {
           if (!busy)
             elements.hint.textContent =
@@ -149,6 +153,7 @@ export function mountBattle(): void {
       tile.classList.toggle('odd', (point[0] + point[1]) % 2 === 1);
       tile.classList.toggle('danger', damage > 0);
       tile.classList.toggle('legal', legal);
+      tile.classList.toggle('capture', legal && Boolean(room.at(point)));
       tile.classList.toggle('landing', Boolean(preview && equal(point, preview.destination)));
       tile.classList.toggle('focus-threat', Boolean(focus && Room.threatens(focus, point)));
       tile.disabled = busy || room.finished;
@@ -178,6 +183,8 @@ export function mountBattle(): void {
     elements.actions.setAttribute('aria-label', `剩餘 ${room.actions} 次行動`);
     elements.turn.textContent = `第 ${room.turn} 回合`;
     elements.end.disabled = busy || room.finished;
+    $<HTMLButtonElement>('back-home').disabled = busy;
+    elements.game.classList.toggle('choosing', selected >= 0 && !busy);
     elements.game.setAttribute('aria-busy', String(busy));
     syncHand();
   }
@@ -191,9 +198,11 @@ export function mountBattle(): void {
     for (const actor of actors.values())
       actor.classList.remove('origin-preview', 'victim-preview', 'hovered');
     elements.end.disabled = true;
+    $<HTMLButtonElement>('back-home').disabled = true;
+    elements.game.classList.remove('choosing');
     for (const { tile } of tiles) {
       tile.disabled = true;
-      tile.classList.remove('legal', 'landing', 'focus-threat');
+      tile.classList.remove('legal', 'landing', 'focus-threat', 'capture');
     }
     for (const card of elements.hand.querySelectorAll<HTMLButtonElement>('.card')) {
       card.disabled = true;
@@ -313,9 +322,22 @@ export function mountBattle(): void {
   makeTiles();
   onClick(elements.end, () => enemyTurn());
   onClick($('replay'), reset);
+  function leave() {
+    if (busy) return;
+    selected = -1;
+    hoveredTile = null;
+    hoveredEnemy = -1;
+    elements.hint.textContent = '';
+    elements.result.hidden = true;
+    render();
+    onHome();
+  }
+  onClick($('back-home'), leave);
+  onClick($('result-home'), leave);
   document.addEventListener('pointerdown', (event) => {
     if (
       busy ||
+      elements.game.hidden ||
       (event.target instanceof Element && event.target.closest('button, .board-shell, .modal'))
     )
       return;
@@ -326,4 +348,11 @@ export function mountBattle(): void {
     render();
   });
   reset();
+  return {
+    enter() {
+      if (room.finished) reset();
+      render();
+    },
+    canResume: () => !room.finished
+  };
 }

@@ -29,6 +29,16 @@ fs.mkdirSync(output, { recursive: true });
     );
   try {
     await page.goto(process.env.TESTPB_URL || 'http://127.0.0.1:4173');
+    await page.locator('#home').waitFor();
+    await page.waitForFunction(() =>
+      [...document.images].every((image) => image.complete && image.naturalWidth > 0)
+    );
+    await page.screenshot({ path: path.join(output, 'home.png'), fullPage: true });
+    await page.locator('#view-portrait').click();
+    assert.equal(await page.locator('#portrait-viewer').isVisible(), true);
+    await page.screenshot({ path: path.join(output, 'portrait.png'), fullPage: true });
+    await page.locator('#close-portrait').click();
+    await page.locator('#start-game').click();
     await page.locator('.card').first().waitFor();
     await page.waitForFunction(() =>
       [...document.images].every((image) => image.complete && image.naturalWidth > 0)
@@ -50,6 +60,13 @@ fs.mkdirSync(output, { recursive: true });
     assert.equal(await page.locator('[data-actor="0"]').count(), 0);
     assert.equal(await page.locator('.card').count(), 2);
     assert.equal(await page.locator('#turn').textContent(), '第 1 回合');
+    await page.locator('#back-home').click();
+    assert.equal(await page.locator('#game').isVisible(), false);
+    assert.equal(await page.locator('#start-label').textContent(), '繼續旅途');
+    await page.locator('#start-game').click();
+    assert.equal(await page.locator('.card').count(), 2);
+    assert.equal(await page.locator('#actors .actor').count(), 4);
+    assert.equal(await page.locator('.card.selected').count(), 0);
     await page.locator('[data-card="short"]').click();
     await tile(2, 1).click();
     await idle();
@@ -59,6 +76,7 @@ fs.mkdirSync(output, { recursive: true });
 
     // Start fresh, finish a whole room through real pointer clicks.
     await page.reload();
+    await page.locator('#start-game').click();
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.locator('.card').first().waitFor();
     const model = new Room(1);
@@ -103,7 +121,12 @@ fs.mkdirSync(output, { recursive: true });
       await idle();
     }
     assert.equal(await page.locator('#result-title').textContent(), '再試一次');
-    await page.locator('#replay').click();
+    await page.locator('#result-home').click();
+    assert.equal(await page.locator('#result').isVisible(), false);
+    assert.equal(await page.locator('#start-label').textContent(), '出發');
+    await page.locator('#start-game').click();
+    assert.equal(await page.locator('#health .empty').count(), 0);
+    assert.equal(await page.locator('#actors .actor').count(), 5);
     await page.locator('.card').first().focus();
     await page.keyboard.press('Enter');
     assert.equal(await page.locator('.card.selected').count(), 0);
@@ -118,6 +141,10 @@ fs.mkdirSync(output, { recursive: true });
       'Short desktop must fit without vertical scrolling'
     );
     await page.screenshot({ path: path.join(output, 'small-desktop.png'), fullPage: true });
+    await page.locator('#back-home').click();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight));
+    await page.screenshot({ path: path.join(output, 'home-small.png'), fullPage: true });
+    await page.locator('#start-game').click();
     await page.setViewportSize({ width: 390, height: 844 });
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
@@ -134,6 +161,10 @@ fs.mkdirSync(output, { recursive: true });
     });
     phone.on('pageerror', (error) => errors.push(error.message));
     await phone.goto(process.env.TESTPB_URL || 'http://127.0.0.1:4173');
+    await phone.screenshot({ path: path.join(output, 'home-mobile.png'), fullPage: true });
+    await phone.locator('#view-portrait').tap();
+    await phone.locator('#close-portrait').tap();
+    await phone.locator('#start-game').tap();
     await phone.locator('[data-card="rush"]').tap();
     assert.equal(await phone.locator('.tile.legal').count(), 3);
     await phone.locator('.tile[data-x="2"][data-y="2"]').tap();
