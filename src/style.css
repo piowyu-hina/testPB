@@ -327,26 +327,12 @@ h1 {
 .actor.hero {
   z-index: 3;
 }
-.actor.hero:before {
-  content: '';
-  position: absolute;
-  bottom: 5%;
-  left: 23%;
-  width: 54%;
-  height: 12%;
-  border-radius: 50%;
-  background: #23394024;
-  z-index: -1;
-}
 .actor.hero img {
-  scale: 0.92;
+  scale: 1.02;
 }
 .actor.ghost {
   opacity: 0.68;
   z-index: 4;
-}
-.actor.ghost:before {
-  display: none;
 }
 .actor.origin-preview {
   opacity: 0.4;
