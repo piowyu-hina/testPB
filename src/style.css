@@ -242,7 +242,8 @@ h1 {
 .tile.odd.danger {
   background: #d9b7a4;
 }
-.tile.focus-threat {
+.tile.focus-threat,
+.tile.odd.danger.focus-threat {
   background: #db9f8f;
 }
 .tile.legal:after {
@@ -310,7 +311,6 @@ h1 {
   height: 18%;
   transform: translate(-50%, -50%);
   pointer-events: none;
-  will-change: transform;
 }
 .actor img {
   width: 100%;
@@ -326,9 +326,8 @@ h1 {
 }
 .actor.hero {
   z-index: 3;
-}
-.actor.hero img {
-  scale: 1.18;
+  width: 21.24%;
+  height: 21.24%;
 }
 .actor.ghost {
   opacity: 0.68;
