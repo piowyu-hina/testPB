@@ -10,5 +10,6 @@
 - Keep UI minimal. Reuse the approved PNG art; when new art is requested, use built-in imagegen with broad silhouettes and few details.
 - Judge character art by its proportions, readability, and intended game style, not color matching the current background (the user will replace it). Current home portrait uses the user-provided white-haired catgirl, from art-previews/catgirl-6x.png. The board has a matching winking catgirl head with simplified accessories. See docs/CatgirlPortraitTrial.md and docs/CatgirlHead.md.
 - Card data and rules must stay separate from rendering. Preview must match the committed result.
+- Board hero art must match the monsters: thick dark contours, broad color shapes, minimal face details and shading. Keep the home portrait detailed. See docs/CatgirlHeadSimple.md.
 - Verify with npm test, npm run typecheck, browser pointer checks and a real Tauri/WebView2 window.
 - Save local Git checkpoints. Do not publish remotely or create ZIP packages unless requested.
