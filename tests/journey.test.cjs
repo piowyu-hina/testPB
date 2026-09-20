@@ -100,14 +100,44 @@ test('elite damage preview matches resolution, capture removes its entire threat
   const capture = new Room(1, rooms[2]);
   capture.hero = [2, 2];
   const preview = capture.preview(0, [2, 3]);
-  assert.equal(preview.removedId, 0);
-  assert.equal(preview.damage, 2); // Both diagonal guards protect the elite.
+  assert.equal(preview.removedId, -1);
+  assert.deepEqual(preview.destination, [2, 2]);
+  assert.equal(capture.enemies[0].health, 2); // Preview must not damage the boss.
+  assert.equal(preview.damage, 2);
+  capture.move(0, [2, 3]);
+  assert.equal(capture.enemies[0].health, 1);
+  assert.deepEqual(capture.hero, [2, 2]);
+  assert.equal(capture.damageAt(capture.hero), preview.damage);
+  capture.hand = ['short'];
+  const finishing = capture.preview(0, [2, 3]);
+  assert.equal(finishing.removedId, 0);
   capture.move(0, [2, 3]);
   assert.equal(
     capture.enemies.some((enemy) => enemy.elite),
     false
   );
-  assert.equal(capture.damageAt(capture.hero), preview.damage);
+  assert.deepEqual(capture.hero, [2, 3]);
+  assert.equal(capture.damageAt(capture.hero), finishing.damage);
+});
+
+test('last boss survives first hit without overlap or opening the exit', () => {
+  const room = new Room(1, { name: 'Boss', hero: [2, 2], enemies: [
+    { id: 0, kind: 'imp', position: [2, 3], elite: true }
+  ] });
+  const cardsBefore = room.hand.length;
+  room.move(0, [2, 3]);
+  assert.equal(room.won, false);
+  assert.equal(room.actions, 1);
+  assert.equal(room.hand.length, cardsBefore - 1);
+  assert.equal(room.enemies[0].health, 1);
+  assert.deepEqual(room.hero, [2, 2]);
+  assert.equal(room.at(room.hero), undefined);
+  const health = room.health;
+  room.endTurn();
+  assert.equal(room.health, health - 2);
+  room.hand = ['short'];
+  room.move(0, [2, 3]);
+  assert.equal(room.won, true);
 });
 
 test('room definitions are independent, legal, and start outside all attacks', () => {
@@ -140,7 +170,7 @@ test('100 seeded journeys can be cleared using previews, with bounded damage and
                 preview = room.preview(card, point);
               if (!preview) continue;
               const score =
-                (preview.removedId >= 0 ? 15 : 0) -
+                (preview.removedId >= 0 ? 15 : preview.hitId !== undefined ? 12 : 0) -
                 preview.damage * 10 -
                 ((x - 2) ** 2 + (y - 2) ** 2) * 0.1;
               if (!best || score > best.score)

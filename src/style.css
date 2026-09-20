@@ -160,6 +160,22 @@ h1 {
 .actor.elite img {
   filter: drop-shadow(0 1px 1px #bd8a38);
 }
+.boss-health {
+  position: absolute;
+  bottom: -3%;
+  left: 25%;
+  width: 50%;
+  display: flex;
+  gap: 3px;
+}
+.boss-health i {
+  flex: 1;
+  height: 5px;
+  border-radius: 2px;
+  background: #b95349;
+  box-shadow: 0 0 0 1px #452c29;
+}
+.boss-health i.empty { background: #d0c5bd; }
 @media (max-height: 720px) {
   .journey-progress {
     gap: 4px;

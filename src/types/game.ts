@@ -17,8 +17,10 @@ export interface Enemy {
   kind: EnemyKind;
   position: Point;
   elite?: boolean;
+  health?: number;
 }
 export interface MovePreview {
+  hitId?: number;
   destination: Point;
   removedId: number;
   damage: number;

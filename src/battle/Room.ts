@@ -6,6 +6,7 @@ import type { RoomDefinition } from '../data/rooms.ts';
 import type { Point, Enemy, MovePreview, EnemyMotion, TurnOutcome } from '../types/game.ts';
 export const data = { cards, enemies };
 export interface MoveAction {
+  hitId?: number;
   from: Point;
   to: Point;
   kind: CardId;
@@ -48,7 +49,7 @@ export class Room {
     this.health = Math.max(0, Math.min(5, health));
     this.actions = 2;
     this.turn = 1;
-    this.enemies = definition.enemies.map((enemy) => ({ ...enemy, position: [...enemy.position] }));
+    this.enemies = definition.enemies.map((enemy) => ({ ...enemy, health: enemy.health ?? (enemy.elite ? 2 : 1), position: [...enemy.position] }));
     this.hand = ['short', 'diagonal', 'rush'];
     this.deck = [];
     this.discard = [];
@@ -138,10 +139,13 @@ export class Room {
   preview(index: number, destination: Point): MovePreview | null {
     if (!this.canMove(index, destination)) return null;
     const victim = this.at(destination);
+    const survives = victim && (victim.health ?? 1) > 1;
+    const landing = survives ? this.hero : destination;
     return {
-      destination: destination.slice() as Point,
-      removedId: victim ? victim.id : -1,
-      damage: this.damageAt(destination, victim ? victim.id : -1)
+      destination: landing.slice() as Point,
+      hitId: victim?.id,
+      removedId: victim && !survives ? victim.id : -1,
+      damage: this.damageAt(landing, victim && !survives ? victim.id : -1)
     };
   }
   move(index: number, destination: Point): MoveAction | null {
@@ -151,10 +155,13 @@ export class Room {
       from: this.hero.slice() as Point,
       to: destination.slice() as Point,
       kind: this.hand[index],
-      removedId: preview.removedId
+      removedId: preview.removedId,
+      hitId: preview.hitId
     };
+    const victim = this.at(destination);
+    if (victim) victim.health = (victim.health ?? 1) - 1;
     this.enemies = this.enemies.filter((e) => e.id !== preview.removedId);
-    this.hero = destination.slice() as Point;
+    this.hero = preview.destination.slice() as Point;
     this.discard.push(this.hand.splice(index, 1)[0]);
     this.actions--;
     return action;

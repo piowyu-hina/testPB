@@ -28,7 +28,7 @@ module.exports = async function playJourney(page, output, prefix = '') {
               preview = model.preview(card, point);
             if (!preview) continue;
             const score =
-              (preview.removedId >= 0 ? 15 : 0) -
+              (preview.removedId >= 0 ? 15 : preview.hitId !== undefined ? 12 : 0) -
               preview.damage * 10 -
               ((x - 2) ** 2 + (y - 2) ** 2) * 0.1;
             if (!best || score > best.score) best = { card, point, score };
@@ -44,6 +44,8 @@ module.exports = async function playJourney(page, output, prefix = '') {
         if (!model.finished && model.actions === 0) model.endTurn();
       }
       await idle();
+      const boss = model.enemies.find(e => e.elite);
+      assert.equal(await page.locator('.boss-health i:not(.empty)').count(), boss ? boss.health : 0);
       assert.equal(await page.locator('#health .empty').count(), 5 - model.health);
       assert.equal(
         await page.locator('#turn').textContent(),

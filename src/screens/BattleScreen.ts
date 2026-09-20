@@ -196,6 +196,11 @@ export function mountBattle(onHome: () => void) {
       place(sprite, enemy.position);
       sprite.classList.toggle('victim-preview', enemy.id === removedId);
       sprite.classList.toggle('hovered', enemy.id === hoveredEnemy && !busy);
+      const health = sprite.querySelector('.boss-health');
+      if (health) {
+        health.innerHTML = Array.from({ length: 2 }, (_, i) => `<i class="${i < (enemy.health ?? 2) ? '' : 'empty'}"></i>`).join('');
+        health.setAttribute('aria-label', `${enemy.health} / 2`);
+      }
     }
     place(actor('hero'), room.hero);
     actor('hero').classList.toggle('origin-preview', Boolean(preview));
@@ -254,6 +259,10 @@ export function mountBattle(onHome: () => void) {
     lock();
     // Keep the visible board stable until the movement and impact complete.
     await travel(actor('hero'), action.from, action.to, action.kind === 'leap' ? 30 : 9);
+    if (action.hitId !== undefined && action.removedId < 0) {
+      await animate(actor(action.hitId), [{ opacity: 1 }, { opacity: 0.3 }, { opacity: 1 }], 120);
+      await travel(actor('hero'), action.to, action.from, 9);
+    }
     if (action.removedId >= 0) {
       const victim = actor(action.removedId);
       await animate(
@@ -402,6 +411,7 @@ export function mountBattle(onHome: () => void) {
       sprite.dataset.kind = enemy.kind;
       if (enemy.elite) {
         sprite.classList.add('elite');
+        sprite.insertAdjacentHTML('beforeend', '<span class="boss-health"></span>');
         sprite.insertAdjacentHTML(
           'beforeend',
           '<svg class="elite-crown" viewBox="0 0 24 16" aria-hidden="true"><path d="M3 12 1 3l6 4L12 1l5 6 6-4-2 9ZM3 15h18"/></svg>'
