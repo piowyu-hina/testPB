@@ -74,7 +74,7 @@ export function mountBattle(onHome: () => void) {
           );
         }
         tile.addEventListener('pointerenter', () => {
-          if (busy || room.finished) return;
+          if (busy || (room.finished && !exploring())) return;
           hoveredTile = [x, y];
           hoveredEnemy = room.at(hoveredTile)?.id ?? -1;
           const enemy = room.at(hoveredTile);
@@ -125,7 +125,7 @@ export function mountBattle(onHome: () => void) {
           elements.hint.textContent = '';
         });
         onClick(card, () => {
-          if (busy || room.finished || room.actions <= 0) return;
+          if (busy || (!exploring() && (room.finished || room.actions <= 0))) return;
           selected = selected === index ? -1 : index;
           hoveredTile = null;
           hoveredEnemy = -1;
@@ -137,7 +137,7 @@ export function mountBattle(onHome: () => void) {
     [...elements.hand.querySelectorAll<HTMLButtonElement>('.card')].forEach((card, index) => {
       card.classList.toggle('selected', index === selected);
       card.setAttribute('aria-pressed', String(index === selected));
-      card.disabled = busy || room.finished || room.actions <= 0;
+      card.disabled = busy || (!exploring() && (room.finished || room.actions <= 0));
     });
   }
   function renderHealth(incoming = 0) {
@@ -153,7 +153,14 @@ export function mountBattle(onHome: () => void) {
   }
   function render() {
     if (!room) return;
-    const preview = !busy && hoveredTile ? room.preview(selected, hoveredTile) : null;
+    const preview =
+      !busy && hoveredTile
+        ? exploring()
+          ? room.canExplore(selected, hoveredTile)
+            ? { destination: hoveredTile, removedId: -1, damage: 0 }
+            : null
+          : room.preview(selected, hoveredTile)
+        : null;
     const removedId = preview?.removedId ?? -1;
     const focus = !preview ? room.enemies.find((e) => e.id === hoveredEnemy) : null;
     const cleared = exploring();
@@ -161,7 +168,8 @@ export function mountBattle(onHome: () => void) {
     elements.game.classList.toggle('exploring', cleared);
     for (const { tile, threats, point } of tiles) {
       const damage = room.damageAt(point, removedId),
-        legal = !busy && room.canMove(selected, point);
+        legal =
+          !busy && (cleared ? room.canExplore(selected, point) : room.canMove(selected, point));
       tile.classList.toggle('odd', (point[0] + point[1]) % 2 === 1);
       tile.classList.toggle('danger', damage > 0);
       tile.classList.toggle('legal', legal);
@@ -275,14 +283,10 @@ export function mountBattle(onHome: () => void) {
   }
   async function walk(destination: Point) {
     if (busy || !exploring()) return;
-    let from: Point = [...room.hero];
-    const path = room.walkCleared(destination);
-    if (!path) return;
+    const action = room.explore(selected, destination);
+    if (!action) return;
     lock();
-    for (const point of path) {
-      await travel(actor('hero'), from, point, 3);
-      from = point;
-    }
+    await travel(actor('hero'), action.from, action.to, action.kind === 'leap' ? 30 : 9);
     if (equal(destination, journey.exit)) {
       await animate(
         elements.board,
@@ -404,6 +408,7 @@ export function mountBattle(onHome: () => void) {
       }
     }
     makeActor('hero', heroArt.image, heroArt.name, true);
+    elements.ghost.querySelector<HTMLImageElement>('img')!.src = heroArt.image;
     render();
   }
   elements.ghost.querySelector<HTMLImageElement>('img')!.src = heroArt.image;
@@ -443,6 +448,10 @@ export function mountBattle(onHome: () => void) {
   return {
     enter() {
       if (journey.finished) reset();
+      const heroImage = actor('hero').querySelector('img')!;
+      heroImage.src = heroArt.image;
+      heroImage.alt = heroArt.name;
+      elements.ghost.querySelector<HTMLImageElement>('img')!.src = heroArt.image;
       render();
       if (room.won) showResult();
     },

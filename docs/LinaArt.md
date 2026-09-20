@@ -1,0 +1,11 @@
+# Lina art
+
+Created with the built-in image_gen tool. Original approved male art retained; generated transparency preserved without code-based image editing.
+
+## assets/LinaPortrait.png
+
+Use case: stylized-concept. Asset type: transparent full-body female character portrait for the same Japanese SD tactical RPG as reference. Reference is STYLE ONLY, not the same identity. Draw one adult female adventurer with a clear charming Japanese chibi/SD design, 3.5-head-tall proportions matching the reference. Short silver ash bob hair with one small burgundy side ribbon, warm amber eyes, assured gentle smile. Practical muted burgundy short travel cape over cream long-sleeved tunic, dark brown belt, simple dark leggings and brown ankle boots. Natural standing pose, one hand on hip, other relaxed, slightly turned toward viewer. Entire figure and both boots visible. Broad clean color shapes, confident dark brown outlines, restrained cel shading and very few clothing details. No weapons, tiny jewelry, lace or elaborate ornaments. Consistent polish and simplicity with the reference. Actual transparent background, no scenery, halo, ground shadow, frame, text or watermark. Character centered with 5 percent safe margins. This is a new character, not a recolor of the man.
+
+## assets/LinaHead.png
+
+Use case: identity-preserve. Asset type: tactical board chibi head icon. Image 1 is the female character identity to preserve: silver ash bob, small burgundy side ribbon on viewer's right, amber eyes, burgundy cape and cream collar. Image 2 is STYLE/FRAMING reference for our existing male board head. Draw ONLY a front-facing oversized chibi head of the female character plus tiny cape collar, no torso or hands. Match the simplicity, bold dark-brown contours, face proportions and approximately 88% canvas occupancy of Image 2. Silver hair in a few broad locks, amber eyes with one highlight each, small confident smile. Only broad flat colors and one shadow per area; no detailed strands or decorations. Centered square composition, entire hair silhouette and ribbon visible. Actual transparent background, no halo, frame, scenery, ground shadow, lettering or watermark. Preserve female identity from Image 1, not the male hair or costume.

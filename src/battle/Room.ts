@@ -71,18 +71,45 @@ export class Room {
   at(tile: Point) {
     return this.enemies.find((e) => equal(e.position, tile));
   }
-  walkCleared(destination: Point): Point[] | null {
-    if (!this.won || this.lost || !inside(destination)) return null;
-    const path: Point[] = [];
-    const point: Point = [...this.hero];
-    for (const axis of [0, 1] as const) {
-      while (point[axis] !== destination[axis]) {
-        point[axis] += Math.sign(destination[axis] - point[axis]);
-        path.push([...point]);
+  prepareExploration() {
+    if (!this.won || this.lost) return;
+    while (this.hand.length < 3) this.draw();
+    // Keep a short step available so parity-only hands cannot strand the exit.
+    if (!this.hand.includes('short')) {
+      const source = this.deck.includes('short') ? this.deck : this.discard;
+      const index = source.indexOf('short');
+      if (index >= 0) {
+        source.splice(index, 1);
+        this.discard.push(this.hand.pop()!);
+        this.hand.push('short');
       }
     }
+  }
+  canExplore(index: number, destination: Point) {
+    return this.won && !this.lost && this.matchesCard(index, destination);
+  }
+  explore(index: number, destination: Point): MoveAction | null {
+    if (!this.canExplore(index, destination)) return null;
+    const action: MoveAction = {
+      from: [...this.hero],
+      to: [...destination],
+      kind: this.hand[index],
+      removedId: -1
+    };
     this.hero = [...destination];
-    return path;
+    this.discard.push(this.hand.splice(index, 1)[0]);
+    this.prepareExploration();
+    return action;
+  }
+  private draw() {
+    if (!this.deck.length) {
+      this.deck.push(...this.discard);
+      this.discard = [];
+      this.shuffle(this.deck);
+    }
+    const drawn = this.deck.pop();
+    if (!drawn) throw new Error('Cannot draw from an empty deck; check card copy counts.');
+    this.hand.push(drawn);
   }
   shuffle(cards: CardId[]) {
     for (let i = cards.length - 1; i > 0; i--) {
@@ -91,8 +118,10 @@ export class Room {
     }
   }
   canMove(index: number, destination: Point) {
-    if (this.finished || this.actions <= 0 || !Number.isInteger(index) || !inside(destination))
-      return false;
+    return !this.finished && this.actions > 0 && this.matchesCard(index, destination);
+  }
+  private matchesCard(index: number, destination: Point) {
+    if (!Number.isInteger(index) || !inside(destination)) return false;
     const card = data.cards[this.hand[index]];
     if (!card) return false;
     const delta: Point = [destination[0] - this.hero[0], destination[1] - this.hero[1]];
@@ -141,6 +170,7 @@ export class Room {
     this.hero = destination.slice() as Point;
     this.discard.push(this.hand.splice(index, 1)[0]);
     this.actions--;
+    if (this.won) this.prepareExploration();
     return action;
   }
   endTurn(): TurnOutcome | null {
@@ -178,16 +208,7 @@ export class Room {
       }
       this.discard.push(...this.hand);
       this.hand = [];
-      for (let i = 0; i < 3; i++) {
-        if (!this.deck.length) {
-          this.deck.push(...this.discard);
-          this.discard = [];
-          this.shuffle(this.deck);
-        }
-        const drawn = this.deck.pop();
-        if (!drawn) throw new Error('Cannot draw from an empty deck; check card copy counts.');
-        this.hand.push(drawn);
-      }
+      for (let i = 0; i < 3; i++) this.draw();
       this.actions = 2;
       this.turn++;
     }

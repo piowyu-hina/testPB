@@ -6,6 +6,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const { pathToFileURL } = require('node:url');
 const playJourney = require('./journey-flow.cjs');
+const checkCharacters = require('./character-flow.cjs');
 const output = path.resolve(__dirname, '../test-results');
 fs.mkdirSync(output, { recursive: true });
 
@@ -30,6 +31,7 @@ fs.mkdirSync(output, { recursive: true });
   try {
     await page.goto(process.env.TESTPB_URL || 'http://127.0.0.1:4173');
     await page.locator('#home').waitFor();
+    await checkCharacters(page);
     await page.waitForFunction(() =>
       [...document.images].every((image) => image.complete && image.naturalWidth > 0)
     );

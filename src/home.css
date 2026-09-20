@@ -66,14 +66,14 @@
   letter-spacing: 0.12em;
   color: var(--ink);
 }
-.hero-token {
+.character-picker {
   display: flex;
   gap: 15px;
   align-items: center;
   color: var(--muted);
   font-size: 14px;
 }
-.hero-token img {
+.character-choice {
   width: 58px;
   height: 58px;
   object-fit: contain;
@@ -82,6 +82,21 @@
   box-shadow: 0 3px 0 #d3c8b3;
   border-radius: 13px;
   padding: 5px;
+}
+.character-choice img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.character-choice[aria-pressed='true'] {
+  border-color: var(--teal);
+  box-shadow:
+    0 3px 0 #355b4c,
+    0 0 0 2px #83b79e;
+}
+.character-choice:hover {
+  transform: translateY(-2px);
 }
 .primary-button {
   display: flex;
@@ -178,10 +193,10 @@
   .home-details h1 {
     margin: 8px 0 14px;
   }
-  .hero-token {
+  .character-picker {
     justify-content: center;
   }
-  .hero-token img {
+  .character-choice {
     width: 44px;
     height: 44px;
   }

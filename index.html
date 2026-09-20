@@ -20,17 +20,20 @@
           aria-label="切換為淺色背景"
         ></button>
       </header>
-      <section class="home-stage" aria-label="冒險者">
+      <section class="home-stage" aria-label="角色展示">
         <div class="portrait-display">
           <span class="portrait-disc" aria-hidden="true"></span>
           <img id="home-portrait" alt="冒險者立繪" draggable="false" />
         </div>
         <div class="home-details">
           <span class="eyebrow">旅途的起點</span>
-          <h1>冒險者</h1>
-          <div class="hero-token">
-            <img id="hero-token" alt="棋盤上的冒險者" draggable="false" /><span>你的棋子</span>
-          </div>
+          <h1 id="hero-name">莉娜</h1>
+          <div
+            id="character-picker"
+            class="character-picker"
+            role="group"
+            aria-label="選擇角色"
+          ></div>
           <button id="start-game" class="primary-button" type="button" tabindex="-1">
             <span id="start-label">出發</span><span aria-hidden="true">→</span>
           </button>

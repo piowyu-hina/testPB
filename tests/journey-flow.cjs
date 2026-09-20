@@ -2,6 +2,7 @@
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const { Journey } = require('../src/battle/Journey.ts');
+const { nextStep } = require('./explore-helper.cjs');
 
 module.exports = async function playJourney(page, output, prefix = '') {
   const run = new Journey(1);
@@ -53,11 +54,14 @@ module.exports = async function playJourney(page, output, prefix = '') {
     if (stage < 2) {
       assert.equal(await page.locator('#result').isVisible(), false);
       assert.equal(await page.locator('#room-exit').isVisible(), true);
-      assert.equal(await page.locator('#hand').isVisible(), false);
+      assert.equal(await page.locator('#hand').isVisible(), true);
+      assert.equal(await page.locator('.card').count(), 3);
       await page.screenshot({ path: path.join(output, `${prefix}room-${stage + 1}-clear.png`) });
-      // Cleared-room movement is free and returning home preserves the open exit.
+      // Clicking the floor without selecting a card must not move the hero.
+      const heroStyle = await page.locator('[data-actor="hero"]').getAttribute('style');
       await page.locator('.tile[data-x="0"][data-y="0"]').click();
       await idle();
+      assert.equal(await page.locator('[data-actor="hero"]').getAttribute('style'), heroStyle);
       assert.equal(await page.locator('.room-step.current').textContent(), String(stage + 1));
       assert.equal(await page.locator('#health .empty').count(), 5 - model.health);
       await page.locator('#back-home').click();
@@ -67,11 +71,28 @@ module.exports = async function playJourney(page, output, prefix = '') {
       assert.equal(await page.locator('#room-exit').isVisible(), true);
       // Exercise the walking animation and rapid-click lock, not just reduced motion.
       await page.emulateMedia({ reducedMotion: 'no-preference' });
-      await page.locator('.exit-tile').click();
-      await page.locator('.tile[data-x="2"][data-y="4"]').dispatchEvent('click', { detail: 1 });
-      await idle();
+      // If combat ended on the exit tile, step away before entering the opened door.
+      if (model.hero.join() === run.exit.join()) {
+        const card = model.hand.indexOf('short'),
+          point = [2, 3];
+        await page.locator(`.card[data-index="${card}"]`).click();
+        await page.locator('.tile[data-x="2"][data-y="3"]').click();
+        model.explore(card, point);
+        await idle();
+      }
+      for (let steps = 0; model.hero.join() !== run.exit.join() && steps < 10; steps++) {
+        const { card, point } = nextStep(model, run.exit);
+        await page.locator(`.card[data-index="${card}"]`).click();
+        const target = page.locator(`.tile[data-x="${point[0]}"][data-y="${point[1]}"]`);
+        assert.ok((await target.getAttribute('class')).includes('legal'));
+        await target.click();
+        await target.dispatchEvent('click', { detail: 1 });
+        model.explore(card, point);
+        await idle();
+        assert.equal(await page.locator('.card').count(), 3);
+      }
       await page.emulateMedia({ reducedMotion: 'reduce' });
-      model.walkCleared(run.exit);
+      assert.deepEqual(model.hero, run.exit);
       run.advance();
       assert.equal(await page.locator('#result').isVisible(), false);
       assert.equal(await page.locator('#game').evaluate((el) => el.inert), false);

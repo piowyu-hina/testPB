@@ -80,14 +80,14 @@ h1 {
   display: flex;
   gap: 8px;
 }
-.exploring .controls,
+.exploring .end-turn,
 .exploring .actions {
   visibility: hidden;
 }
 .exploring .tile {
   cursor: pointer;
 }
-.exploring .tile:not(:disabled):hover {
+.exploring .tile.legal:not(:disabled):hover {
   background: #d8e3cb;
 }
 .exit-door {

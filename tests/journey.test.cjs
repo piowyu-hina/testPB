@@ -5,25 +5,49 @@ const { Journey } = require('../src/battle/Journey.ts');
 const { Room } = require('../src/battle/Room.ts');
 const { rooms } = require('../src/data/rooms.ts');
 
-test('free walking only after clearing, no cards or health spent, invalid exits rejected', () => {
-  const run = new Journey();
-  assert.equal(run.room.walkCleared(run.exit), null);
-  run.room.enemies = [];
-  run.room.actions = 0;
-  run.room.hand = [];
-  const before = { health: run.room.health, turn: run.room.turn, deck: [...run.room.deck] };
-  assert.equal(run.room.walkCleared([5, 4]), null);
-  assert.deepEqual(run.room.walkCleared([1, 1]), [
-    [1, 0],
-    [1, 1]
-  ]);
-  assert.equal(run.advance(), false);
-  assert.equal(run.room.actions, 0);
-  assert.deepEqual({ health: run.room.health, turn: run.room.turn, deck: run.room.deck }, before);
-  run.room.walkCleared(run.exit);
-  assert.deepEqual(run.room.walkCleared(run.exit), []);
+const { toExit } = require('./explore-helper.cjs');
+
+test('exit movement requires cards, replenishes them, and never spends turns or actions', () => {
+  const run = new Journey(),
+    room = run.room;
+  assert.equal(room.explore(0, [2, 1]), null);
+  room.enemies = [];
+  room.actions = 0;
+  room.prepareExploration();
+  const health = room.health,
+    turn = room.turn;
+  assert.equal(room.explore(-1, [2, 1]), null);
+  assert.equal(room.explore(room.hand.indexOf('short'), [2, 4]), null);
+  assert.equal(room.explore(room.hand.indexOf('short'), [5, 0]), null);
+  assert.deepEqual(room.hero, [2, 0]);
+  assert.ok(room.explore(room.hand.indexOf('short'), [2, 1]));
+  assert.equal(room.actions, 0);
+  assert.equal(room.turn, turn);
+  assert.equal(room.health, health);
+  assert.equal(room.hand.length, 3);
+  assert.ok(room.hand.includes('short'));
+  toExit(room, run.exit);
+  assert.equal(room.hand.length + room.deck.length + room.discard.length, 12);
   assert.equal(run.advance(), true);
   assert.equal(run.advance(), false);
+});
+
+test('cleared-room exploration preserves all card copies across recycling', () => {
+  const room = new Room();
+  room.enemies = [];
+  room.prepareExploration();
+  for (let i = 0; i < 100; i++) {
+    const point = [2, i % 2 ? 0 : 1];
+    assert.ok(room.explore(room.hand.indexOf('short'), point));
+    for (const id of ['short', 'diagonal', 'rush', 'leap'])
+      assert.equal(
+        [...room.hand, ...room.deck, ...room.discard].filter((card) => card === id).length,
+        3
+      );
+    assert.equal(room.hand.length, 3);
+    assert.equal(room.turn, 1);
+    assert.equal(room.actions, 2);
+  }
 });
 
 test('only clearing advances; healing is capped and cannot be repeated', () => {
@@ -34,7 +58,7 @@ test('only clearing advances; healing is capped and cannot be repeated', () => {
   assert.equal(run.finished, false);
   assert.equal(run.recovery, 1);
   assert.equal(run.advance(), false);
-  run.room.walkCleared(run.exit);
+  toExit(run.room, run.exit);
   assert.equal(run.advance(), true);
   assert.equal(run.stage, 1);
   assert.equal(run.room.health, 3);
@@ -46,7 +70,7 @@ test('only clearing advances; healing is capped and cannot be repeated', () => {
   run.room.health = 5;
   run.room.enemies = [];
   assert.equal(run.recovery, 0);
-  run.room.walkCleared(run.exit);
+  toExit(run.room, run.exit);
   run.advance();
   assert.equal(run.room.health, 5);
   run.room.enemies = [];
@@ -58,7 +82,7 @@ test('only clearing advances; healing is capped and cannot be repeated', () => {
 test('death ends the whole journey and a new journey restores the opening', () => {
   const run = new Journey();
   run.room.enemies = [];
-  run.room.walkCleared(run.exit);
+  toExit(run.room, run.exit);
   run.advance();
   run.room.health = 0;
   assert.equal(run.finished, true);
@@ -140,7 +164,7 @@ test('100 seeded journeys can be cleared using previews, with bounded damage and
       }
       if (!room.won) break;
       clears[stage]++;
-      room.walkCleared(run.exit);
+      toExit(room, run.exit);
       run.advance();
     }
   }

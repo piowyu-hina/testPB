@@ -8,6 +8,7 @@ const os = require('node:os');
 const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const playJourney = require('./journey-flow.cjs');
+const checkCharacters = require('./character-flow.cjs');
 const root = path.resolve(__dirname, '..');
 const output = path.join(root, 'test-results');
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -62,6 +63,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     );
     assert.ok(await page.evaluate(() => '__TAURI_INTERNALS__' in window));
     assert.ok(page.url().includes('tauri.localhost'), `Unexpected app URL: ${page.url()}`);
+    await checkCharacters(page);
     await page.screenshot({ path: path.join(output, 'tauri-home.png') });
     assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
     await page.locator('#home .theme-toggle').click();
@@ -106,7 +108,9 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     await page.locator('#replay').click();
     assert.equal(await page.locator('#actors .actor').count(), 5);
     assert.equal(await page.locator('.card').count(), 3);
-    await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
+    await page.waitForFunction(() =>
+      [...document.images].every((image) => image.complete && image.naturalWidth > 0)
+    );
     await page.reload();
     await page.locator('#start-game').click();
     await playJourney(page, output, 'tauri-');
