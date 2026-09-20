@@ -1,3 +1,7 @@
 node_modules/
 test-results/
 *.log
+dist/
+src-tauri/target/
+src-tauri/gen/
+testPB.exe

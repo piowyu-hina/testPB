@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main-window",
+  "description": "The game renders locally and does not need filesystem or shell access.",
+  "windows": ["main"],
+  "permissions": []
+}
