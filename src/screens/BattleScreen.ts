@@ -1,4 +1,5 @@
 import { Room, data, equal } from '../battle/Room';
+import { Journey } from '../battle/Journey';
 import { heroArt, enemyArt } from '../data/art';
 import type { Point, CardDefinition } from '../types/game';
 import { element as $, onClick } from '../ui/dom';
@@ -24,7 +25,8 @@ export function mountBattle(onHome: () => void) {
   };
   const heart =
     '<svg class="heart" viewBox="0 0 32 30" aria-hidden="true"><path d="M16 27C12 23 2 16 2 9C2 1 12-1 16 6C20-1 30 1 30 9C30 16 20 23 16 27Z"/></svg>';
-  let room: Room,
+  let journey: Journey,
+    room: Room,
     seed = 1,
     selected = -1,
     hoveredTile: Point | null = null,
@@ -71,7 +73,7 @@ export function mountBattle(onHome: () => void) {
           const enemy = room.at(hoveredTile);
           elements.hint.textContent =
             enemy && selected < 0
-              ? `${data.enemies[enemy.kind].name} · ${data.enemies[enemy.kind].hint}`
+              ? `${enemy.elite ? '精英・' : ''}${data.enemies[enemy.kind].name} · ${data.enemies[enemy.kind].hint}${enemy.elite ? ' · 2 傷害' : ''}`
               : '';
           render();
         });
@@ -182,6 +184,17 @@ export function mountBattle(onHome: () => void) {
     ).join('');
     elements.actions.setAttribute('aria-label', `剩餘 ${room.actions} 次行動`);
     elements.turn.textContent = `第 ${room.turn} 回合`;
+    const progress = $('journey-progress');
+    progress.setAttribute(
+      'aria-label',
+      `第 ${journey.stage + 1} / ${journey.total} 間 · ${journey.definition.name}`
+    );
+    progress.title = `第 ${journey.stage + 1} / ${journey.total} 間 · ${journey.definition.name}`;
+    progress.innerHTML = Array.from(
+      { length: journey.total },
+      (_, i) =>
+        `<span class="room-step${i < journey.stage ? ' complete' : ''}${i === journey.stage ? ' current' : ''}" ${i === journey.stage ? 'aria-current="step"' : ''}>${i + 1}</span>`
+    ).join('');
     elements.end.disabled = busy || room.finished;
     $<HTMLButtonElement>('back-home').disabled = busy;
     elements.game.classList.toggle('choosing', selected >= 0 && !busy);
@@ -298,30 +311,72 @@ export function mountBattle(onHome: () => void) {
     if (room.finished) showResult();
   }
   function showResult() {
-    elements.resultTitle.textContent = room.won ? '漂亮，過關！' : '再試一次';
+    elements.resultTitle.textContent = room.lost
+      ? '再試一次'
+      : journey.won
+        ? '旅途完成！'
+        : '房間通過';
+    $('replay').textContent = room.won && !journey.won ? '下一間 →' : '再來一局';
+    const recovery = $('result-recovery');
+    recovery.hidden = !(room.won && !journey.won);
+    recovery.innerHTML = heart.repeat(5);
+    [...recovery.children].forEach((node, index) => {
+      node.classList.toggle('empty', index >= room.health + journey.recovery);
+      node.classList.toggle(
+        'recovered',
+        index >= room.health && index < room.health + journey.recovery
+      );
+    });
+    recovery.setAttribute(
+      'aria-label',
+      `生命 ${room.health} → ${room.health + journey.recovery} / 5`
+    );
+    recovery.title = journey.recovery ? '下一間回復 1 點生命' : '生命已滿';
     elements.result.hidden = false;
+    elements.game.inert = true;
   }
   function reset() {
-    room = new Room(seed++);
+    journey = new Journey(seed++);
+    loadRoom();
+  }
+  function loadRoom() {
+    room = journey.room;
     selected = -1;
     hoveredTile = null;
     hoveredEnemy = -1;
     busy = false;
     handSignature = '';
     elements.result.hidden = true;
+    elements.game.inert = false;
     elements.hint.textContent = '';
     elements.endLabel.textContent = '結束回合';
     elements.actors.replaceChildren();
     actors.clear();
-    for (const enemy of room.enemies)
-      makeActor(enemy.id, enemyArt[enemy.kind], data.enemies[enemy.kind].name);
+    for (const enemy of room.enemies) {
+      const sprite = makeActor(
+        enemy.id,
+        enemyArt[enemy.kind],
+        `${enemy.elite ? '精英・' : ''}${data.enemies[enemy.kind].name}`
+      );
+      if (enemy.elite) {
+        sprite.classList.add('elite');
+        sprite.insertAdjacentHTML(
+          'beforeend',
+          '<svg class="elite-crown" viewBox="0 0 24 16" aria-hidden="true"><path d="M3 12 1 3l6 4L12 1l5 6 6-4-2 9ZM3 15h18"/></svg>'
+        );
+      }
+    }
     makeActor('hero', heroArt.image, heroArt.name, true);
     render();
   }
   elements.ghost.querySelector<HTMLImageElement>('img')!.src = heroArt.image;
   makeTiles();
   onClick(elements.end, () => enemyTurn());
-  onClick($('replay'), reset);
+  onClick($('replay'), () => {
+    if (!room.finished || elements.result.hidden) return;
+    if (journey.advance()) loadRoom();
+    else reset();
+  });
   function leave() {
     if (busy) return;
     selected = -1;
@@ -329,6 +384,7 @@ export function mountBattle(onHome: () => void) {
     hoveredEnemy = -1;
     elements.hint.textContent = '';
     elements.result.hidden = true;
+    elements.game.inert = false;
     render();
     onHome();
   }
@@ -350,9 +406,10 @@ export function mountBattle(onHome: () => void) {
   reset();
   return {
     enter() {
-      if (room.finished) reset();
+      if (journey.finished) reset();
       render();
+      if (room.won) showResult();
     },
-    canResume: () => !room.finished
+    canResume: () => !journey.finished
   };
 }

@@ -7,6 +7,7 @@ const path = require('node:path');
 const os = require('node:os');
 const fs = require('node:fs');
 const assert = require('node:assert/strict');
+const playJourney = require('./journey-flow.cjs');
 const root = path.resolve(__dirname, '..');
 const output = path.join(root, 'test-results');
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -105,6 +106,9 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     await page.locator('#replay').click();
     assert.equal(await page.locator('#actors .actor').count(), 5);
     assert.equal(await page.locator('.card').count(), 3);
+    await page.reload();
+    await page.locator('#start-game').click();
+    await playJourney(page, output, 'tauri-');
     assert.deepEqual(errors, []);
     assert.deepEqual(blocked, []);
     console.log(

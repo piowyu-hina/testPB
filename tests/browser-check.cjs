@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 const fs = require('node:fs');
 const { pathToFileURL } = require('node:url');
-const { Room } = require('../src/battle/Room.ts');
+const playJourney = require('./journey-flow.cjs');
 const output = path.resolve(__dirname, '../test-results');
 fs.mkdirSync(output, { recursive: true });
 
@@ -75,38 +75,7 @@ fs.mkdirSync(output, { recursive: true });
     await page.locator('#start-game').click();
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.locator('.card').first().waitFor();
-    const model = new Room(1);
-    for (let steps = 0; steps < 60 && !model.finished; steps++) {
-      let best = null;
-      model.hand.forEach((_, card) => {
-        for (let y = 0; y < 5; y++)
-          for (let x = 0; x < 5; x++) {
-            const point = [x, y],
-              preview = model.preview(card, point);
-            if (!preview) continue;
-            const score =
-              (preview.removedId >= 0 ? 15 : 0) -
-              preview.damage * 10 -
-              ((x - 2) ** 2 + (y - 2) ** 2) * 0.1;
-            if (!best || score > best.score) best = { card, point, score };
-          }
-      });
-      if (!best) {
-        await page.locator('#end-turn').click();
-        model.endTurn();
-      } else {
-        await page.locator(`.card[data-index="${best.card}"]`).click();
-        await tile(...best.point).click();
-        model.move(best.card, best.point);
-        if (!model.finished && model.actions === 0) model.endTurn();
-      }
-      await idle();
-      assert.equal(await page.locator('#turn').textContent(), `第 ${model.turn} 回合`);
-    }
-    assert.equal(model.won, true);
-    await page.locator('#result').waitFor({ state: 'visible' });
-    assert.equal(await page.locator('#result-title').textContent(), '漂亮，過關！');
-    await page.screenshot({ path: path.join(output, 'victory.png'), fullPage: true });
+    await playJourney(page, output);
     await page.locator('#replay').click();
     assert.equal(await page.locator('.card').count(), 3);
     assert.equal(await page.locator('#actors .actor').count(), 5);

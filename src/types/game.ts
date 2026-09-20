@@ -16,6 +16,7 @@ export interface Enemy {
   id: number;
   kind: EnemyKind;
   position: Point;
+  elite?: boolean;
 }
 export interface MovePreview {
   destination: Point;

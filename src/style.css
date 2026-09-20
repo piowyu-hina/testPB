@@ -80,6 +80,67 @@ h1 {
   display: flex;
   gap: 8px;
 }
+.journey-progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.room-step {
+  width: 21px;
+  height: 21px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #9a9f8766;
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 11px;
+  opacity: 0.45;
+}
+.room-step.current {
+  background: var(--teal);
+  color: var(--paper);
+  border-color: var(--teal);
+  opacity: 1;
+}
+.room-step.complete {
+  opacity: 1;
+  border-color: var(--teal);
+}
+.result-recovery {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: -10px 0 24px;
+}
+.heart.recovered {
+  fill: #559977;
+  stroke: #356649;
+  stroke-width: 1;
+}
+.elite-crown {
+  position: absolute;
+  top: -7%;
+  left: 35%;
+  width: 30%;
+  height: 20%;
+  fill: #e8bd64;
+  stroke: #65481c;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.actor.elite img {
+  filter: drop-shadow(0 1px 1px #bd8a38);
+}
+@media (max-height: 720px) {
+  .journey-progress {
+    gap: 4px;
+  }
+  .room-step {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+  }
+}
 .heart {
   width: clamp(17px, 2.7vh, 27px);
   height: clamp(17px, 2.7vh, 27px);

@@ -1,6 +1,8 @@
 import { cards } from '../data/cards.ts';
 import type { CardId } from '../data/cards.ts';
 import { enemies } from '../data/enemies.ts';
+import { rooms } from '../data/rooms.ts';
+import type { RoomDefinition } from '../data/rooms.ts';
 import type { Point, Enemy, MovePreview, EnemyMotion, TurnOutcome } from '../types/game.ts';
 export const data = { cards, enemies };
 export interface MoveAction {
@@ -41,17 +43,12 @@ export class Room {
   deck: CardId[];
   discard: CardId[];
   private random: () => number;
-  constructor(seed = 1) {
-    this.hero = [2, 0];
-    this.health = 5;
+  constructor(seed = 1, definition: RoomDefinition = rooms[0], health = 5) {
+    this.hero = [...definition.hero];
+    this.health = Math.max(0, Math.min(5, health));
     this.actions = 2;
     this.turn = 1;
-    this.enemies = [
-      { id: 0, kind: 'imp', position: [2, 2] },
-      { id: 1, kind: 'bat', position: [0, 3] },
-      { id: 2, kind: 'imp', position: [4, 3] },
-      { id: 3, kind: 'bat', position: [3, 4] }
-    ];
+    this.enemies = definition.enemies.map((enemy) => ({ ...enemy, position: [...enemy.position] }));
     this.hand = ['short', 'diagonal', 'rush'];
     this.deck = [];
     this.discard = [];
@@ -103,7 +100,9 @@ export class Room {
   }
   damageAt(tile: Point, removedId = -1) {
     return this.enemies.reduce(
-      (damage, enemy) => damage + (enemy.id !== removedId && Room.threatens(enemy, tile) ? 1 : 0),
+      (damage, enemy) =>
+        damage +
+        (enemy.id !== removedId && Room.threatens(enemy, tile) ? (enemy.elite ? 2 : 1) : 0),
       0
     );
   }
@@ -136,7 +135,7 @@ export class Room {
     const attacks = this.enemies
       .filter((e) => Room.threatens(e, this.hero))
       .map((e) => ({ id: e.id, from: e.position.slice() as Point }));
-    const damage = attacks.length;
+    const damage = this.damageAt(this.hero);
     this.health = Math.max(0, this.health - damage);
     const motions: EnemyMotion[] = [];
     if (!this.lost) {
