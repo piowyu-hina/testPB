@@ -71,19 +71,8 @@ export class Room {
   at(tile: Point) {
     return this.enemies.find((e) => equal(e.position, tile));
   }
-  prepareExploration() {
-    if (!this.won || this.lost) return;
-    while (this.hand.length < 3) this.draw();
-    // Keep a short step available so parity-only hands cannot strand the exit.
-    if (!this.hand.includes('short')) {
-      const source = this.deck.includes('short') ? this.deck : this.discard;
-      const index = source.indexOf('short');
-      if (index >= 0) {
-        source.splice(index, 1);
-        this.discard.push(this.hand.pop()!);
-        this.hand.push('short');
-      }
-    }
+  get availableCards(): readonly CardId[] {
+    return this.won && !this.lost ? ['short', 'diagonal'] : this.hand;
   }
   canExplore(index: number, destination: Point) {
     return this.won && !this.lost && this.matchesCard(index, destination);
@@ -93,12 +82,10 @@ export class Room {
     const action: MoveAction = {
       from: [...this.hero],
       to: [...destination],
-      kind: this.hand[index],
+      kind: this.availableCards[index],
       removedId: -1
     };
     this.hero = [...destination];
-    this.discard.push(this.hand.splice(index, 1)[0]);
-    this.prepareExploration();
     return action;
   }
   private draw() {
@@ -122,7 +109,7 @@ export class Room {
   }
   private matchesCard(index: number, destination: Point) {
     if (!Number.isInteger(index) || !inside(destination)) return false;
-    const card = data.cards[this.hand[index]];
+    const card = data.cards[this.availableCards[index]];
     if (!card) return false;
     const delta: Point = [destination[0] - this.hero[0], destination[1] - this.hero[1]];
     if (!card.offsets.some((o) => equal(o, delta))) return false;
@@ -170,7 +157,6 @@ export class Room {
     this.hero = destination.slice() as Point;
     this.discard.push(this.hand.splice(index, 1)[0]);
     this.actions--;
-    if (this.won) this.prepareExploration();
     return action;
   }
   endTurn(): TurnOutcome | null {

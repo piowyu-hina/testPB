@@ -98,11 +98,11 @@ export function mountBattle(onHome: () => void) {
       }
   }
   function syncHand() {
-    const signature = room.hand.join(',');
+    const signature = room.availableCards.join(',');
     if (signature !== handSignature) {
       handSignature = signature;
       elements.hand.replaceChildren();
-      room.hand.forEach((id, index) => {
+      room.availableCards.forEach((id, index) => {
         const definition: CardDefinition = data.cards[id],
           card = document.createElement('button');
         card.type = 'button';
@@ -433,6 +433,7 @@ export function mountBattle(onHome: () => void) {
   onClick($('result-home'), leave);
   document.addEventListener('pointerdown', (event) => {
     if (
+      event.button !== 0 ||
       busy ||
       elements.game.hidden ||
       (event.target instanceof Element && event.target.closest('button, .board-shell, .modal'))

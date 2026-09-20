@@ -6,6 +6,7 @@ import { mountBattle } from './screens/BattleScreen';
 import { mountHome } from './screens/HomeScreen';
 import { element } from './ui/dom';
 
+document.addEventListener('contextmenu', (event) => event.preventDefault());
 mountTheme();
 let started = false;
 const battle = mountBattle(() => {

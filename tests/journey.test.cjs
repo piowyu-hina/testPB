@@ -7,13 +7,12 @@ const { rooms } = require('../src/data/rooms.ts');
 
 const { toExit } = require('./explore-helper.cjs');
 
-test('exit movement requires cards, replenishes them, and never spends turns or actions', () => {
+test('exit movement uses reusable walking cards and never spends turns or actions', () => {
   const run = new Journey(),
     room = run.room;
   assert.equal(room.explore(0, [2, 1]), null);
   room.enemies = [];
   room.actions = 0;
-  room.prepareExploration();
   const health = room.health,
     turn = room.turn;
   assert.equal(room.explore(-1, [2, 1]), null);
@@ -24,27 +23,25 @@ test('exit movement requires cards, replenishes them, and never spends turns or 
   assert.equal(room.actions, 0);
   assert.equal(room.turn, turn);
   assert.equal(room.health, health);
-  assert.equal(room.hand.length, 3);
-  assert.ok(room.hand.includes('short'));
+  assert.deepEqual(room.availableCards, ['short', 'diagonal']);
   toExit(room, run.exit);
   assert.equal(room.hand.length + room.deck.length + room.discard.length, 12);
   assert.equal(run.advance(), true);
   assert.equal(run.advance(), false);
 });
 
-test('cleared-room exploration preserves all card copies across recycling', () => {
+test('cleared-room movement preserves combat cards and offers straight and diagonal steps', () => {
   const room = new Room();
   room.enemies = [];
-  room.prepareExploration();
+  room.hand = ['leap'];
+  const before = JSON.stringify([room.hand, room.deck, room.discard]);
+  assert.ok(room.canExplore(1, [3, 1]));
+  assert.equal(room.canExplore(2, [2, 2]), false);
   for (let i = 0; i < 100; i++) {
     const point = [2, i % 2 ? 0 : 1];
-    assert.ok(room.explore(room.hand.indexOf('short'), point));
-    for (const id of ['short', 'diagonal', 'rush', 'leap'])
-      assert.equal(
-        [...room.hand, ...room.deck, ...room.discard].filter((card) => card === id).length,
-        3
-      );
-    assert.equal(room.hand.length, 3);
+    assert.ok(room.explore(0, point));
+    assert.equal(JSON.stringify([room.hand, room.deck, room.discard]), before);
+    assert.deepEqual(room.availableCards, ['short', 'diagonal']);
     assert.equal(room.turn, 1);
     assert.equal(room.actions, 2);
   }
