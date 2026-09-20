@@ -80,6 +80,48 @@ h1 {
   display: flex;
   gap: 8px;
 }
+.exploring .controls,
+.exploring .actions {
+  visibility: hidden;
+}
+.exploring .tile {
+  cursor: pointer;
+}
+.exploring .tile:not(:disabled):hover {
+  background: #d8e3cb;
+}
+.exit-door {
+  position: absolute;
+  width: 76%;
+  height: 90%;
+  left: 12%;
+  top: 3%;
+  pointer-events: none;
+}
+.door-frame {
+  fill: #778671;
+  stroke: #3c5346;
+  stroke-width: 3;
+}
+.door-interior {
+  fill: #233b30;
+}
+.door-step {
+  fill: #c4b596;
+  stroke: #71694e;
+  stroke-width: 2;
+}
+.door-arrow {
+  fill: none;
+  stroke: #f4e4a8;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tile.exit-tile {
+  background: #dedbc2;
+  box-shadow: inset 0 0 0 2px #a28a59;
+}
 .journey-progress {
   display: flex;
   align-items: center;
@@ -105,17 +147,6 @@ h1 {
 .room-step.complete {
   opacity: 1;
   border-color: var(--teal);
-}
-.result-recovery {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin: -10px 0 24px;
-}
-.heart.recovered {
-  fill: #559977;
-  stroke: #356649;
-  stroke-width: 1;
 }
 .elite-crown {
   position: absolute;

@@ -5,6 +5,27 @@ const { Journey } = require('../src/battle/Journey.ts');
 const { Room } = require('../src/battle/Room.ts');
 const { rooms } = require('../src/data/rooms.ts');
 
+test('free walking only after clearing, no cards or health spent, invalid exits rejected', () => {
+  const run = new Journey();
+  assert.equal(run.room.walkCleared(run.exit), null);
+  run.room.enemies = [];
+  run.room.actions = 0;
+  run.room.hand = [];
+  const before = { health: run.room.health, turn: run.room.turn, deck: [...run.room.deck] };
+  assert.equal(run.room.walkCleared([5, 4]), null);
+  assert.deepEqual(run.room.walkCleared([1, 1]), [
+    [1, 0],
+    [1, 1]
+  ]);
+  assert.equal(run.advance(), false);
+  assert.equal(run.room.actions, 0);
+  assert.deepEqual({ health: run.room.health, turn: run.room.turn, deck: run.room.deck }, before);
+  run.room.walkCleared(run.exit);
+  assert.deepEqual(run.room.walkCleared(run.exit), []);
+  assert.equal(run.advance(), true);
+  assert.equal(run.advance(), false);
+});
+
 test('only clearing advances; healing is capped and cannot be repeated', () => {
   const run = new Journey();
   assert.equal(run.advance(), false);
@@ -12,6 +33,8 @@ test('only clearing advances; healing is capped and cannot be repeated', () => {
   run.room.enemies = [];
   assert.equal(run.finished, false);
   assert.equal(run.recovery, 1);
+  assert.equal(run.advance(), false);
+  run.room.walkCleared(run.exit);
   assert.equal(run.advance(), true);
   assert.equal(run.stage, 1);
   assert.equal(run.room.health, 3);
@@ -23,6 +46,7 @@ test('only clearing advances; healing is capped and cannot be repeated', () => {
   run.room.health = 5;
   run.room.enemies = [];
   assert.equal(run.recovery, 0);
+  run.room.walkCleared(run.exit);
   run.advance();
   assert.equal(run.room.health, 5);
   run.room.enemies = [];
@@ -34,6 +58,7 @@ test('only clearing advances; healing is capped and cannot be repeated', () => {
 test('death ends the whole journey and a new journey restores the opening', () => {
   const run = new Journey();
   run.room.enemies = [];
+  run.room.walkCleared(run.exit);
   run.advance();
   run.room.health = 0;
   assert.equal(run.finished, true);
@@ -115,6 +140,7 @@ test('100 seeded journeys can be cleared using previews, with bounded damage and
       }
       if (!room.won) break;
       clears[stage]++;
+      room.walkCleared(run.exit);
       run.advance();
     }
   }

@@ -106,6 +106,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     await page.locator('#replay').click();
     assert.equal(await page.locator('#actors .actor').count(), 5);
     assert.equal(await page.locator('.card').count(), 3);
+    await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
     await page.reload();
     await page.locator('#start-game').click();
     await playJourney(page, output, 'tauri-');

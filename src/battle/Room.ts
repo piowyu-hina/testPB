@@ -71,6 +71,19 @@ export class Room {
   at(tile: Point) {
     return this.enemies.find((e) => equal(e.position, tile));
   }
+  walkCleared(destination: Point): Point[] | null {
+    if (!this.won || this.lost || !inside(destination)) return null;
+    const path: Point[] = [];
+    const point: Point = [...this.hero];
+    for (const axis of [0, 1] as const) {
+      while (point[axis] !== destination[axis]) {
+        point[axis] += Math.sign(destination[axis] - point[axis]);
+        path.push([...point]);
+      }
+    }
+    this.hero = [...destination];
+    return path;
+  }
   shuffle(cards: CardId[]) {
     for (let i = cards.length - 1; i > 0; i--) {
       const j = Math.floor(this.random() * (i + 1));

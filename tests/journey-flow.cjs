@@ -44,29 +44,41 @@ module.exports = async function playJourney(page, output, prefix = '') {
       }
       await idle();
       assert.equal(await page.locator('#health .empty').count(), 5 - model.health);
-      assert.equal(await page.locator('#turn').textContent(), `第 ${model.turn} 回合`);
+      assert.equal(
+        await page.locator('#turn').textContent(),
+        model.won && stage < 2 ? '' : `第 ${model.turn} 回合`
+      );
     }
     assert.ok(model.won, `Room ${stage + 1} did not clear`);
-    assert.equal(
-      await page.locator('#result-title').textContent(),
-      stage === 2 ? '旅途完成！' : '房間通過'
-    );
-    assert.equal(await page.locator('#game').evaluate((el) => el.inert), true);
     if (stage < 2) {
-      assert.equal(
-        await page.locator('#result-recovery .empty').count(),
-        5 - model.health - run.recovery
-      );
+      assert.equal(await page.locator('#result').isVisible(), false);
+      assert.equal(await page.locator('#room-exit').isVisible(), true);
+      assert.equal(await page.locator('#hand').isVisible(), false);
       await page.screenshot({ path: path.join(output, `${prefix}room-${stage + 1}-clear.png`) });
-      // Visiting home on the boundary must preserve the result, without healing twice.
-      await page.locator('#result-home').click();
+      // Cleared-room movement is free and returning home preserves the open exit.
+      await page.locator('.tile[data-x="0"][data-y="0"]').click();
+      await idle();
+      assert.equal(await page.locator('.room-step.current').textContent(), String(stage + 1));
+      assert.equal(await page.locator('#health .empty').count(), 5 - model.health);
+      await page.locator('#back-home').click();
       assert.equal(await page.locator('#start-label').textContent(), '繼續旅途');
       await page.locator('#start-game').click();
-      assert.equal(await page.locator('#result').isVisible(), true);
-      await page.locator('#replay').click();
+      assert.equal(await page.locator('#result').isVisible(), false);
+      assert.equal(await page.locator('#room-exit').isVisible(), true);
+      // Exercise the walking animation and rapid-click lock, not just reduced motion.
+      await page.emulateMedia({ reducedMotion: 'no-preference' });
+      await page.locator('.exit-tile').click();
+      await page.locator('.tile[data-x="2"][data-y="4"]').dispatchEvent('click', { detail: 1 });
+      await idle();
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      model.walkCleared(run.exit);
       run.advance();
       assert.equal(await page.locator('#result').isVisible(), false);
       assert.equal(await page.locator('#game').evaluate((el) => el.inert), false);
+      assert.equal(await page.locator('#room-exit').isVisible(), false);
+    } else {
+      assert.equal(await page.locator('#result-title').textContent(), '旅途完成！');
+      assert.equal(await page.locator('#game').evaluate((el) => el.inert), true);
     }
   }
   await page.screenshot({ path: path.join(output, `${prefix}victory.png`) });

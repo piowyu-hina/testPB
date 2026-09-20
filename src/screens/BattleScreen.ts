@@ -35,6 +35,7 @@ export function mountBattle(onHome: () => void) {
     handSignature = '';
   const tiles: { tile: HTMLButtonElement; threats: HTMLSpanElement; point: Point }[] = [];
   const actors = new Map<number | 'hero', HTMLDivElement>();
+  const exploring = () => room.won && !journey.finished;
   function actor(id: number | 'hero'): HTMLDivElement {
     const node = actors.get(id);
     if (!node) throw new Error(`Missing actor: ${id}`);
@@ -66,6 +67,12 @@ export function mountBattle(onHome: () => void) {
         threats.className = 'threats';
         threats.setAttribute('aria-hidden', 'true');
         tile.append(threats);
+        if (x === 2 && y === 4) {
+          tile.insertAdjacentHTML(
+            'beforeend',
+            '<svg id="room-exit" class="exit-door" viewBox="0 0 64 64" aria-hidden="true" hidden><path class="door-frame" d="M12 55V25a20 20 0 0 1 40 0v30H12Z"/><path class="door-interior" d="M21 53V25a11 11 0 0 1 22 0v28Z"/><path class="door-step" d="M9 55h46v6H9Z"/><path class="door-arrow" d="M32 44V25m-7 7 7-7 7 7"/></svg>'
+          );
+        }
         tile.addEventListener('pointerenter', () => {
           if (busy || room.finished) return;
           hoveredTile = [x, y];
@@ -85,7 +92,7 @@ export function mountBattle(onHome: () => void) {
             render();
           }
         });
-        onClick(tile, () => move([x, y]));
+        onClick(tile, () => (exploring() ? walk([x, y]) : move([x, y])));
         elements.tiles.append(tile);
         tiles.push({ tile, threats, point: [x, y] });
       }
@@ -149,6 +156,9 @@ export function mountBattle(onHome: () => void) {
     const preview = !busy && hoveredTile ? room.preview(selected, hoveredTile) : null;
     const removedId = preview?.removedId ?? -1;
     const focus = !preview ? room.enemies.find((e) => e.id === hoveredEnemy) : null;
+    const cleared = exploring();
+    $('room-exit').toggleAttribute('hidden', !cleared);
+    elements.game.classList.toggle('exploring', cleared);
     for (const { tile, threats, point } of tiles) {
       const damage = room.damageAt(point, removedId),
         legal = !busy && room.canMove(selected, point);
@@ -158,12 +168,18 @@ export function mountBattle(onHome: () => void) {
       tile.classList.toggle('capture', legal && Boolean(room.at(point)));
       tile.classList.toggle('landing', Boolean(preview && equal(point, preview.destination)));
       tile.classList.toggle('focus-threat', Boolean(focus && Room.threatens(focus, point)));
-      tile.disabled = busy || room.finished;
+      tile.classList.toggle('exit-tile', cleared && equal(point, journey.exit));
+      tile.disabled = busy || (room.finished && !cleared);
       const enemy = room.at(point);
       tile.setAttribute(
         'aria-label',
         `${point[0] + 1},${point[1] + 1}${enemy ? ` ${data.enemies[enemy.kind].name}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? '，可移動' : ''}`
       );
+      if (cleared)
+        tile.setAttribute(
+          'aria-label',
+          equal(point, journey.exit) ? '走向出口' : `走到 ${point[0] + 1},${point[1] + 1}`
+        );
       if (threats.childElementCount !== damage)
         threats.innerHTML = '<i class="threat"></i>'.repeat(damage);
     }
@@ -183,7 +199,7 @@ export function mountBattle(onHome: () => void) {
       (_, i) => `<span class="action-pip${i >= room.actions || busy ? ' empty' : ''}"></span>`
     ).join('');
     elements.actions.setAttribute('aria-label', `剩餘 ${room.actions} 次行動`);
-    elements.turn.textContent = `第 ${room.turn} 回合`;
+    elements.turn.textContent = cleared ? '' : `第 ${room.turn} 回合`;
     const progress = $('journey-progress');
     progress.setAttribute(
       'aria-label',
@@ -257,6 +273,41 @@ export function mountBattle(onHome: () => void) {
       render();
     }
   }
+  async function walk(destination: Point) {
+    if (busy || !exploring()) return;
+    let from: Point = [...room.hero];
+    const path = room.walkCleared(destination);
+    if (!path) return;
+    lock();
+    for (const point of path) {
+      await travel(actor('hero'), from, point, 3);
+      from = point;
+    }
+    if (equal(destination, journey.exit)) {
+      await animate(
+        elements.board,
+        [
+          { opacity: 1, transform: 'translateY(0)' },
+          { opacity: 0, transform: 'translateY(12px)' }
+        ],
+        220
+      );
+      if (journey.advance()) {
+        loadRoom();
+        lock();
+        await animate(
+          elements.board,
+          [
+            { opacity: 0, transform: 'translateY(-12px)' },
+            { opacity: 1, transform: 'translateY(0)' }
+          ],
+          240
+        );
+      }
+    }
+    busy = false;
+    render();
+  }
   async function enemyTurn(alreadyLocked = false) {
     if ((!alreadyLocked && busy) || room.finished) return;
     lock();
@@ -311,27 +362,13 @@ export function mountBattle(onHome: () => void) {
     if (room.finished) showResult();
   }
   function showResult() {
+    if (exploring()) return;
     elements.resultTitle.textContent = room.lost
       ? '再試一次'
       : journey.won
         ? '旅途完成！'
         : '房間通過';
-    $('replay').textContent = room.won && !journey.won ? '下一間 →' : '再來一局';
-    const recovery = $('result-recovery');
-    recovery.hidden = !(room.won && !journey.won);
-    recovery.innerHTML = heart.repeat(5);
-    [...recovery.children].forEach((node, index) => {
-      node.classList.toggle('empty', index >= room.health + journey.recovery);
-      node.classList.toggle(
-        'recovered',
-        index >= room.health && index < room.health + journey.recovery
-      );
-    });
-    recovery.setAttribute(
-      'aria-label',
-      `生命 ${room.health} → ${room.health + journey.recovery} / 5`
-    );
-    recovery.title = journey.recovery ? '下一間回復 1 點生命' : '生命已滿';
+    $('replay').textContent = '再來一局';
     elements.result.hidden = false;
     elements.game.inert = true;
   }
@@ -374,8 +411,7 @@ export function mountBattle(onHome: () => void) {
   onClick(elements.end, () => enemyTurn());
   onClick($('replay'), () => {
     if (!room.finished || elements.result.hidden) return;
-    if (journey.advance()) loadRoom();
-    else reset();
+    reset();
   });
   function leave() {
     if (busy) return;
