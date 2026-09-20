@@ -1,0 +1,7 @@
+# Matching catgirl board head
+
+Built-in GPT Image used the user-provided art-previews/catgirl-source.png as identity reference. Saved to assets/HeroineHead.png, used for board actor, movement ghost, and favicon. Portrait remains unchanged.
+
+## Prompt
+
+Use case: identity-preserve. Draw a matching Japanese chibi HEAD ICON for a tactical game board, based on this exact white-haired catgirl reference. Preserve her identity: white hair with pale pink ends, two white cat ears with pink interiors, large pink eyes, black bows with pink inner ribbons on both sides. Cheerful winking expression matching reference: viewer-left eye closed, viewer-right pink eye open, small happy mouth. Square composition, face large and central, complete ears and bows visible with safe margins. ONLY head plus tiny black collar, NO shoulders, hands, torso or full body. Long hair simplified into two compact side locks ending just below chin so face remains large at 70px. Keep one simple pink crossed hairclip on viewer-right; omit tiny cat pin, chains, lace, jewelry, bunny and other tiny ornaments. Clean confident dark outlines, broad readable hair shapes, simple cel shading, restrained highlights, same appealing anime facial style as reference. Actual transparent background with alpha, no background glow, halo, ground shadow, border or text. Entire icon silhouette occupies approximately 88 percent of square.
