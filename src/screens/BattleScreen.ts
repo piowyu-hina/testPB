@@ -399,6 +399,7 @@ export function mountBattle(onHome: () => void) {
         enemyArt[enemy.kind],
         `${enemy.elite ? '精英・' : ''}${data.enemies[enemy.kind].name}`
       );
+      sprite.dataset.kind = enemy.kind;
       if (enemy.elite) {
         sprite.classList.add('elite');
         sprite.insertAdjacentHTML(

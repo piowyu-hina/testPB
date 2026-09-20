@@ -2,8 +2,8 @@ import type { Point } from '../types/game.ts';
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 export const position = (p: Point) => ({
-  left: `${p[0] * 20 + 10}%`,
-  top: `${(4 - p[1]) * 20 + 10}%`
+  left: `calc(${p[0] * 20 + 10}% + ${(p[0] - 2) / 5} * var(--tile-gap))`,
+  top: `calc(${(4 - p[1]) * 20 + 10}% + ${(2 - p[1]) / 5} * var(--tile-gap))`
 });
 export function place(node: HTMLElement, point: Point): void {
   Object.assign(node.style, position(point));
@@ -35,8 +35,7 @@ export async function travel(
     [
       { ...position(from), transform: 'translate(-50%, -50%)' },
       {
-        left: `${(from[0] + to[0]) * 10 + 10}%`,
-        top: `${(8 - from[1] - to[1]) * 10 + 10}%`,
+        ...position([(from[0] + to[0]) / 2, (from[1] + to[1]) / 2]),
         transform: `translate(-50%, calc(-50% - ${jump}px))`,
         offset: 0.5
       },
