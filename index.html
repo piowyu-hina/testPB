@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-theme="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="light" />
-    <meta name="theme-color" content="#eee7d9" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#171c1b" />
     <title>testPB</title>
     <link rel="icon" href="assets/Adventurer.png" />
     <script type="module" src="/src/main.ts"></script>
@@ -12,7 +12,13 @@
   <body>
     <main id="home" class="home" aria-label="主畫面">
       <header class="home-header">
-        <span class="brand">testPB</span><span class="home-mark" aria-hidden="true">✦</span>
+        <span class="brand">testPB</span
+        ><button
+          class="theme-toggle"
+          type="button"
+          tabindex="-1"
+          aria-label="切換為淺色背景"
+        ></button>
       </header>
       <section class="home-stage" aria-label="冒險者">
         <div class="portrait-display">
@@ -42,7 +48,15 @@
         >
           ‹ 主畫面
         </button>
-        <span id="turn">第 1 回合</span>
+        <div class="heading-tools">
+          <span id="turn">第 1 回合</span
+          ><button
+            class="theme-toggle"
+            type="button"
+            tabindex="-1"
+            aria-label="切換為淺色背景"
+          ></button>
+        </div>
       </header>
       <div class="status">
         <div id="health" class="health" aria-label="生命"></div>

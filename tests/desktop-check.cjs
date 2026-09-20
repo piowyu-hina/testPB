@@ -62,6 +62,13 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     assert.ok(await page.evaluate(() => '__TAURI_INTERNALS__' in window));
     assert.ok(page.url().includes('tauri.localhost'), `Unexpected app URL: ${page.url()}`);
     await page.screenshot({ path: path.join(output, 'tauri-home.png') });
+    assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
+    await page.locator('#home .theme-toggle').click();
+    await page.reload();
+    await page.locator('#start-game').waitFor();
+    assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
+    await page.screenshot({ path: path.join(output, 'tauri-home-light.png') });
+    await page.locator('#home .theme-toggle').click();
     await page.locator('#start-game').click();
     assert.ok(
       await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight),
@@ -77,6 +84,10 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     await idle();
     assert.equal(await page.locator('#actors .actor').count(), 4);
     assert.equal(await page.locator('.card').count(), 2);
+    await page.locator('#game .theme-toggle').click();
+    assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
+    assert.equal(await page.locator('.card').count(), 2);
+    await page.locator('#game .theme-toggle').click();
     await page.locator('#back-home').click();
     assert.equal(await page.locator('#start-label').textContent(), '繼續旅途');
     await page.locator('#start-game').click();
