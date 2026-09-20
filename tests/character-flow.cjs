@@ -11,18 +11,13 @@ module.exports = async function checkCharacters(page) {
     document.querySelector('#home').dispatchEvent(event);
     return event.defaultPrevented;
   }), true);
-  assert.equal(await page.locator('.character-choice').count(), 2);
-  for (const [id, name] of [
-    ['adventurer', '冒險者'],
-    ['lina', '莉娜']
-  ]) {
-    await page.locator(`[data-character="${id}"]`).click();
-    await loaded();
-    assert.equal(await page.locator('#hero-name').textContent(), name);
-    assert.equal(
-      await page.locator(`[data-character="${id}"]`).getAttribute('aria-pressed'),
-      'true'
-    );
+  assert.equal(await page.locator('.character-choice').count(), 0);
+  await loaded();
+  await page.evaluate(() => localStorage.setItem('testpb.character', 'adventurer'));
+  await page.reload();
+  await loaded();
+  {
+    const name = '莉娜';
     await page.reload();
     await loaded();
     assert.equal(await page.locator('#hero-name').textContent(), name);
