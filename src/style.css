@@ -1,22 +1,20 @@
 :root {
   font-family: 'Microsoft JhengHei', 'Microsoft JhengHei UI', system-ui, sans-serif;
-  color: #35483e;
-  background: #eee7d9;
+  color: #383b40;
+  background: #eeeeef;
   font-synthesis: none;
-  --ink: #35483e;
+  --ink: #383b40;
   --paper: #fff9eb;
   --teal: #44786b;
   --red: #c96d58;
-  --muted: #736b58;
+  --muted: #72757b;
   --board: clamp(270px, 57vh, 590px);
 }
 * {
   box-sizing: border-box;
 }
 body {
-  background:
-    radial-gradient(ellipse at 30% 15%, #fffaf0 0, transparent 65%),
-    radial-gradient(ellipse at 95% 95%, #dcdccc 0, transparent 65%);
+  background: radial-gradient(ellipse at 30% 35%, #fafafa 0, #e5e5e7 80%);
   margin: 0;
   min-height: 100vh;
   min-height: 100svh;

@@ -27,51 +27,46 @@
   background: #b4a48722;
 }
 :root[data-theme='dark'] {
-  background: #171c1b;
-  color: #eee7d9;
-  --muted: #b9b4a4;
+  background: #161719;
+  color: #e5e5e7;
+  --muted: #a8a9ad;
   color-scheme: dark;
 }
 :root[data-theme='light'] {
   color-scheme: light;
 }
 [data-theme='dark'] body {
-  background:
-    radial-gradient(ellipse at 30% 15%, #28342e 0, transparent 65%),
-    radial-gradient(ellipse at 95% 95%, #1e2724 0, transparent 65%);
+  background: radial-gradient(ellipse at 30% 35%, #25262a 0, #161719 75%);
 }
 [data-theme='dark'] .brand,
 [data-theme='dark'] .home-details h1,
 [data-theme='dark'] .end-turn {
-  color: #eee7d9;
+  color: #e5e5e7;
 }
 [data-theme='dark'] .eyebrow {
-  color: #c4ad84;
+  color: #a8a9ad;
 }
 [data-theme='dark'] .home-header {
-  border-color: #a8966c40;
+  border-color: #ffffff18;
 }
 [data-theme='dark'] .portrait-disc {
-  background: linear-gradient(155deg, #36473c, #29382f);
-  border-color: #63765b;
-  box-shadow:
-    inset 0 0 0 8px #26372f,
-    inset 0 0 0 9px #63765b,
-    0 22px 45px #00000025;
+  background: linear-gradient(155deg, #303136, #212226);
+  border-color: #ffffff12;
+  box-shadow: none;
 }
 [data-theme='dark'] .quiet-button:not(:disabled):hover {
-  background: #35483e;
-  color: #fff9eb;
-  border-color: #65745d;
+  background: #303136;
+  color: #f1f1f2;
+  border-color: #53545a;
 }
 [data-theme='dark'] .action-pip {
-  background: #83b79e;
+  background: #b4c2d0;
 }
 [data-theme='dark'] .action-pip.empty {
-  background: #47544a;
+  background: #45464c;
 }
 [data-theme='dark'] .heart.empty {
-  fill: #47544a;
+  fill: #45464c;
 }
 [data-theme='dark'] .result-panel {
   color: var(--ink);

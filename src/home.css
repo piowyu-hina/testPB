@@ -6,13 +6,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #b4a48766;
+  border-bottom: 1px solid #35363a22;
   padding-bottom: 18px;
 }
 .brand {
-  font-family: Georgia, serif;
-  font-size: 29px;
-  letter-spacing: 0.04em;
+  font-family: inherit;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   color: var(--ink);
 }
 .home-mark {
@@ -39,13 +40,10 @@
   position: absolute;
   width: min(88%, 53svh);
   height: 76%;
-  border-radius: 48% 48% 24px 24px;
-  background: linear-gradient(155deg, #d6ddd0, #bccab9);
-  border: 1px solid #a4b29f;
-  box-shadow:
-    inset 0 0 0 8px #eceddf,
-    inset 0 0 0 9px #a4b29f,
-    0 22px 45px #6d654b17;
+  border-radius: 24px;
+  background: linear-gradient(155deg, #e7e7e9, #d9dade);
+  border: 1px solid #35363a12;
+  box-shadow: none;
   z-index: -1;
 }
 .portrait-display img {
@@ -55,7 +53,7 @@
   object-fit: contain;
 }
 .eyebrow {
-  color: #82704f;
+  color: var(--muted);
   font-size: 13px;
   letter-spacing: 0.24em;
 }
@@ -73,14 +71,11 @@
   width: min(260px, 100%);
   margin-top: 42px;
   padding: 18px 24px;
-  background: linear-gradient(#4e8070, #3c695d);
-  color: #fff9eb;
-  border: 1px solid #31584e;
-  border-radius: 12px;
-  box-shadow:
-    inset 0 1px 0 #a0c1aa80,
-    0 4px 0 #284d43,
-    0 10px 20px #294e4320;
+  background: #525a65;
+  color: #fafafa;
+  border: 1px solid #ffffff20;
+  border-radius: 8px;
+  box-shadow: 0 3px 10px #00000018;
   font-size: 20px;
   letter-spacing: 0.1em;
   font-weight: 600;
@@ -90,16 +85,12 @@
 }
 .primary-button:hover {
   transform: translateY(-2px);
-  box-shadow:
-    inset 0 1px 0 #a0c1aa80,
-    0 6px 0 #284d43,
-    0 14px 24px #294e4328;
+  background: #626c79;
+  box-shadow: 0 5px 16px #00000020;
 }
 .primary-button:active {
   transform: translateY(3px);
-  box-shadow:
-    inset 0 1px 0 #a0c1aa80,
-    0 1px 0 #284d43;
+  box-shadow: none;
 }
 .quiet-button {
   border: 1px solid transparent;
