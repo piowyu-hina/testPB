@@ -8,7 +8,7 @@ import type { GameSession } from '../app/GameSession';
 import template from './battle.html?raw';
 import { place, animate, pause, travel } from '../ui/animations';
 import { diagram } from '../ui/cardDiagram';
-import { impact, hitFlash } from '../ui/battleFeedback';
+import { approach, shield, recoil } from '../ui/battleFeedback';
 import { enemySkill, blocksAttack } from '../battle/EnemyRules';
 import { enemySummary, renderEnemyInfo } from '../ui/enemyInfo';
 import '../enemy.css';
@@ -304,19 +304,20 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (!action) return;
     lock();
     // Keep the visible board stable until the movement and impact complete.
-    await travel(actor('hero'), action.from, action.to, action.kind === 'leap' ? 30 : 9);
+    const contact = action.hitId !== undefined
+      ? await approach(actor('hero'), action.from, action.to, action.kind === 'leap')
+      : action.to;
+    if (action.hitId === undefined) await travel(actor('hero'), action.from, action.to, action.kind === 'leap' ? 30 : 9);
     if (action.hitId !== undefined) {
       elements.hint.textContent = blocked ? '正面格擋 · 這次攻擊沒有造成傷害' : action.removedId >= 0 ? '擊敗怪物' : '命中 · 怪物生命 −1';
-      await Promise.all([
-        impact(elements.board, action.to, blocked ? 'block' : 'hit'),
-        blocked ? Promise.resolve() : hitFlash(actor(action.hitId))
-      ]);
+      if (blocked) await shield(elements.board, action.to);
+      else await recoil(actor(action.hitId), action.from, action.to);
     }
     if (action.hitId !== undefined && action.removedId < 0) {
       const enemy = room.enemies.find(enemy => enemy.id === action.hitId);
       const health = actor(action.hitId).querySelector('.boss-health');
       if (health && enemy) [...health.children].forEach((pip, i) => pip.classList.toggle('empty', i >= (enemy.health ?? 1)));
-      await travel(actor('hero'), action.to, action.from, 9);
+      await travel(actor('hero'), contact, action.from, 0);
     }
     if (action.removedId >= 0) {
       const victim = actor(action.removedId);
@@ -324,12 +325,13 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         victim,
         [
           { opacity: 1, scale: 1 },
-          { opacity: 0, scale: 1.17 }
+          { opacity: 0, scale: 0.75 }
         ],
-        130
+        200
       );
       victim.remove();
       actors.delete(action.removedId);
+      await travel(actor('hero'), contact, action.to, 0);
     }
     if (room.finished) {
       busy = false;
@@ -409,18 +411,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (outcome.damage) {
       elements.hint.textContent = `受到 ${outcome.damage} 傷害`;
       renderHealth();
-      await Promise.all([impact(elements.board, room.hero, 'hurt'), animate(elements.health, [
+      const source = outcome.attacks[0]?.from ?? [room.hero[0], room.hero[1] + 1] as Point;
+      await Promise.all([recoil(actor('hero'), source, room.hero, true), animate(elements.health, [
         { opacity: 1 }, { opacity: 0.45 }, { opacity: 1 }
-      ], 200), animate(
-        actor('hero'),
-        [
-          { transform: 'translate(-50%, -50%)', filter: 'none' },
-          { transform: 'translate(calc(-50% - 4px), -50%)', filter: 'sepia(1) saturate(3)' },
-          { transform: 'translate(calc(-50% + 4px), -50%)' },
-          { transform: 'translate(-50%, -50%)', filter: 'none' }
-        ],
-        200
-      )]);
+      ], 380)]);
     }
     if (!room.lost) {
       await Promise.all(
