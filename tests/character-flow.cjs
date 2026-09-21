@@ -13,12 +13,12 @@ module.exports = async function checkCharacters(page) {
     document.querySelector('#home').dispatchEvent(event);
     return event.defaultPrevented;
   }), true);
-  assert.equal(await page.locator('.character-choice').count(), 3);
+  assert.equal(await page.locator('.character-choice').count(), 2);
   await loaded();
   await page.evaluate(() => localStorage.setItem('testpb.character', 'adventurer'));
   await page.reload();
   await loaded();
-  for (const [id, name] of [['heroine', '白色貓娘'], ['pinkCat', '粉色貓娘'], ['rogue', '莉娜']]) {
+  for (const [id, name] of [['pinkCat', '粉色貓娘'], ['rogue', '莉娜']]) {
     await page.reload();
     await loaded();
     await page.locator('#open-characters').click();

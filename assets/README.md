@@ -1,7 +1,7 @@
 # 素材分類
 
 - `characters/rogue/`：可選角色莉娜，黑髮女孩與無小刀白色吉祥物。
-- `characters/heroine/`：可選角色白色貓娘。
+- `characters/heroine/`：已退出選角名單的白色貓娘，保留原素材。
 - `characters/pink-cat/`：可選角色粉色貓娘，根目錄新原圖的正式副本。
 - `monsters/forest/`：森林怪物。
 - `scenes/village/`：村莊背景。
