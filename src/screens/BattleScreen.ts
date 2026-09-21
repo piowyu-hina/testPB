@@ -131,7 +131,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         card.dataset.card = id;
         card.dataset.index = String(index);
         card.setAttribute('aria-label', definition.name);
-        card.innerHTML = diagram(definition, id);
+        card.innerHTML = diagram(definition);
         const label = document.createElement('span');
         label.className = 'card-name';
         label.textContent = definition.name;
@@ -247,6 +247,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     for (const point of room.knives) {
       const token = document.createElement('div');
       token.className = 'ground-knife';
+      token.classList.toggle('occupied', room.enemies.some(enemy => equal(enemy.position, point)));
       token.dataset.point = point.join(',');
       token.innerHTML = groundDaggerIcon;
       token.title = '飛刀：走到此格回收一張本回合免費小刀';
