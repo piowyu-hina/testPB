@@ -5,7 +5,6 @@ module.exports = async function checkRogue(page, output) {
   await page.locator('#open-dungeons').click();
   await page.locator('#start-game').click();
   assert.deepEqual(await page.locator('#hand .card').evaluateAll(nodes => nodes.map(n => n.dataset.card)), ['throw', 'shadow', 'lunge']);
-  assert.equal(await page.locator('#whirl-charge-pips .filled').count(), 0);
   const origin = await page.locator('[data-actor="hero"]').getAttribute('style');
   await page.locator('[data-card="throw"]').click();
   await page.locator('.tile[data-x="2"][data-y="2"]').hover();
@@ -14,7 +13,6 @@ module.exports = async function checkRogue(page, output) {
   await idle();
   assert.equal(await page.locator('[data-actor="hero"]').getAttribute('style'), origin);
   assert.equal(await page.locator('.ground-knife').count(), 1);
-  assert.equal(await page.locator('#whirl-charge-pips .filled').count(), 1);
   assert.equal(await page.locator('[data-actor="0"]').count(), 0);
   if (output) await page.screenshot({path: `${output}/rogue-ground-knife.png`});
   await page.locator('[data-card="shadow"]').click();
@@ -24,8 +22,6 @@ module.exports = async function checkRogue(page, output) {
   assert.match(await page.locator('#actions').textContent(), /1\/2/);
   assert.equal(await page.locator('.ground-knife').count(), 0);
   assert.equal(await page.locator('[data-card="knife"]').count(), 1);
-  assert.equal(await page.locator('#whirl-charge-pips .filled').count(), 2);
-  assert.equal(await page.locator('[data-card="whirl"]').count(), 0);
   assert.notEqual(await page.locator('[data-actor="hero"]').getAttribute('style'), origin);
   if (output) await page.screenshot({path: `${output}/rogue-knife-pickup.png`});
   assert.equal(await page.locator('#hand .card').count(), 3);
@@ -45,47 +41,5 @@ module.exports = async function checkRogue(page, output) {
   await page.locator('.tile.legal').first().click();
   await idle();
   assert.equal(await page.locator('[data-card="knife"]').count(), 0);
-  await page.reload();
-  await require('./village-flow.cjs').chooseCharacter(page, 'rogue');
-  await page.locator('#open-dungeons').click();
-  await page.locator('#start-game').click();
-  await page.locator('[data-card="throw"]').click();
-  await page.locator('.tile[data-x="2"][data-y="2"]').click();
-  await idle();
-  await page.locator('[data-card="lunge"]').click();
-  await page.locator('.tile[data-x="2"][data-y="1"]').click();
-  await idle();
-  assert.equal(await page.locator('#whirl-charge-pips .filled').count(), 2);
-  for (let i = 0; i < 2; i++) {
-    let played = false;
-    for (const id of ['throw', 'lunge', 'shadow']) {
-      const card = page.locator(`[data-card="${id}"]:not(:disabled)`).first();
-      if (!await card.count()) continue;
-      await card.click();
-      const target = page.locator('.tile.legal:not(.has-knife)').first();
-      if (!await target.count()) continue;
-      await target.click();
-      await idle();
-      played = true;
-      break;
-    }
-    assert.equal(played, true, 'A normal card must be playable to fill the charge meter');
-  }
-  assert.equal(await page.locator('#whirl-charge-pips .filled').count(), 4);
-  assert.equal(await page.locator('#claim-whirl').isEnabled(), true);
-  if (output) await page.screenshot({path: `${output}/rogue-whirl-ready.png`});
-  await page.locator('#claim-whirl').click();
-  assert.equal(await page.locator('#whirl-charge-pips .filled').count(), 0);
-  assert.equal(await page.locator('[data-card="whirl"]').count(), 1);
-  await page.locator('[data-card="whirl"] img').evaluate(image => image.decode());
-  if (output) await page.screenshot({path: `${output}/rogue-whirl-claimed.png`});
-  const beforeTeleport = await page.locator('[data-actor="hero"]').getAttribute('style');
-  const knifeCount = await page.locator('[data-card="knife"]').count();
-  await page.locator('.tile.legal.has-knife').first().click();
-  await idle();
-  assert.notEqual(await page.locator('[data-actor="hero"]').getAttribute('style'), beforeTeleport);
-  assert.equal(await page.locator('[data-card="whirl"]').count(), 0);
-  assert.equal(await page.locator('[data-card="knife"]').count(), knifeCount);
-  if (output) await page.screenshot({path: `${output}/rogue-whirl-teleport.png`});
   await page.reload();
 };

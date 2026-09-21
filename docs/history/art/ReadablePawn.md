@@ -1,0 +1,9 @@
+# Rejected full-body pawn experiment
+
+User rejected this redraw. assets/HeroineHead.png has been restored from art-previews/characters/legacy-catgirl/catgirl-before-readable-redraw.png. Do not use the generated replacement.
+
+Built-in GPT Image redraw. Previous user sprite preserved at art-previews/characters/legacy-catgirl/catgirl-before-readable-redraw.png. New asset: assets/HeroineHead.png. Uses previous sprite as identity reference and Imp.png as rendering reference. Preserves frown and full body; simplifies hair, eyes and outfit for small board size. Home portrait unchanged.
+
+## Prompt
+
+Redraw reference 1 as a MUCH SIMPLER full-body chibi board-game pawn, preserving white catgirl identity and annoyed frowning expression. Reference 2 red imp is the strict rendering target: very bold dark brown outlines, broad flat shapes, minimal details, very few large shadows. Keep FULL tiny body, hands and boots, not just a head. Preserve two white cat ears, white hair with solid pink tips, two black/pink bows, pink eyes, black dress with ONE simple pink bow. Hair: just three chunky bangs and two smooth side locks, no internal hair lines, no curls, remove ahoge. Eyes: flat solid pink ovals with solid dark pupils, NO highlights or gradients, thick angry brows and tiny upside-down V mouth. Face large and unobstructed. No blush lines, jewelry, frills, hairclips, lace or tiny decorations. About 1.8 heads tall, round head and squat body. Body a plain black bell shape, simple small hands and two black feet. Every important edge has bold dark outline as thick as imp. Design must read cleanly at 70 pixels tall; this is a game token, not detailed anime illustration. Center in square, full silhouette within 10 percent safe margins, actual transparent background, no shadow, glow, background, border or text.

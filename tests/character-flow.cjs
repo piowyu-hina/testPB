@@ -18,7 +18,7 @@ module.exports = async function checkCharacters(page) {
   await page.evaluate(() => localStorage.setItem('testpb.character', 'adventurer'));
   await page.reload();
   await loaded();
-  for (const [id, name] of [['pinkCat', '粉色貓娘'], ['rogue', '莉娜']]) {
+  for (const [id, name] of [['pinkCat', '戀喵'], ['rogue', '露雪']]) {
     await page.reload();
     await loaded();
     await page.locator('#open-characters').click();

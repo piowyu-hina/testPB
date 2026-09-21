@@ -6,7 +6,7 @@ export interface CardDefinition {
   canJump: boolean;
   copies: number;
   cost?: number;
-  effect?: 'throw' | 'shadow' | 'knife' | 'whirl';
+  effect?: 'throw' | 'shadow' | 'knife';
 }
 export type EnemyKind = 'sprout' | 'stump';
 export type Facing = 'north' | 'east' | 'south' | 'west';
@@ -36,7 +36,6 @@ export interface MovePreview {
   hitId?: number;
   destination: Point;
   removedId: number;
-  hits?: { id: number; blocked: boolean; removed: boolean }[];
   damage: number;
 }
 export interface EnemyMotion {

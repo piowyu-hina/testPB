@@ -8,8 +8,6 @@ import { attackOffsets, blocksAttack, enemySkill, faceToward } from './EnemyRule
 export const data = { cards, enemies };
 export interface MoveAction {
   hitId?: number;
-  hits?: { id: number; blocked: boolean; removed: boolean }[];
-  consumedKnife?: boolean;
   pickedKnife?: boolean;
   drawn?: CardId;
   from: Point;
@@ -28,7 +26,6 @@ export const equal = (a: Point, b: Point) => a[0] === b[0] && a[1] === b[1];
 export const inside = (p: Point) =>
   Array.isArray(p) && p.length === 2 && p.every((v) => Number.isInteger(v) && v >= 0 && v < 5);
 const distanceSquared = (a: Point, b: Point) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
-const isTemporaryCard = (id: CardId) => id === 'knife' || id === 'whirl';
 const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a);
 function rng(seed: number) {
   let value = seed >>> 0;
@@ -41,7 +38,6 @@ function rng(seed: number) {
 }
 
 export class Room {
-  static readonly whirlChargeMax = 4;
   hero: Point;
   health: number;
   actions: number;
@@ -51,7 +47,6 @@ export class Room {
   deck: CardId[];
   discard: CardId[];
   knives: Point[] = [];
-  whirlCharge = 0;
   loadout: Loadout;
   private random: () => number;
   constructor(seed = 1, definition: RoomDefinition = rooms[0], health = 5, loadout: Loadout = 'basic') {
@@ -124,29 +119,18 @@ export class Room {
     for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) if (this.canMove(index, [x, y])) return true;
     return false;
   }
-  hasPlayableCard() { return this.hand.some((_, i) => this.canUseCard(i)) || this.canClaimWhirl(); }
-  canClaimWhirl() {
-    return this.loadout === 'rogue' && !this.finished && this.whirlCharge === Room.whirlChargeMax &&
-      !this.hand.includes('whirl') && this.knives.some(point => !equal(point, this.hero) && !this.at(point));
-  }
-  claimWhirl() {
-    if (!this.canClaimWhirl()) return false;
-    this.whirlCharge = 0;
-    this.hand.push('whirl');
-    return true;
-  }
+  hasPlayableCard() { return this.hand.some((_, i) => this.canUseCard(i)); }
   setLoadout(next: Loadout) {
     if (next === this.loadout) return;
     const previous = loadouts[this.loadout], target = loadouts[next];
-    const convert = (pile: CardId[]) => pile.filter(id => !isTemporaryCard(id)).map(id => target[Math.max(0, previous.indexOf(id)) % target.length]);
+    const convert = (pile: CardId[]) => pile.filter(id => id !== 'knife').map(id => target[Math.max(0, previous.indexOf(id)) % target.length]);
     this.hand = convert(this.hand); this.deck = convert(this.deck); this.discard = convert(this.discard);
-    this.knives = []; this.whirlCharge = 0; this.loadout = next;
+    this.knives = []; this.loadout = next;
   }
   canMove(index: number, destination: Point) {
     if (this.finished || this.actions < this.cardCost(index) || !inside(destination)) return false;
     const card = data.cards[this.hand[index]] as CardDefinition | undefined;
     if (!card) return false;
-    if (card.effect === 'whirl') return !equal(this.hero, destination) && this.hasKnife(destination) && !this.at(destination);
     if (!this.matchesCard(index, destination)) return false;
     if (card.effect === 'throw') return Boolean(this.at(destination));
     if (card.effect === 'shadow' && this.at(destination) && !this.hasKnife(destination)) return false;
@@ -172,32 +156,16 @@ export class Room {
       (o) => enemy.position[0] + o[0] === tile[0] && enemy.position[1] + o[1] === tile[1]
     );
   }
-  damageAt(tile: Point, removedId: number | readonly number[] = -1) {
-    const removed = Array.isArray(removedId) ? removedId : [removedId];
+  damageAt(tile: Point, removedId = -1) {
     return this.enemies.reduce(
       (damage, enemy) =>
         damage +
-        (!removed.includes(enemy.id) && Room.threatens(enemy, tile) ? (enemy.elite ? 2 : 1) : 0),
+        (enemy.id !== removedId && Room.threatens(enemy, tile) ? (enemy.elite ? 2 : 1) : 0),
       0
     );
   }
   preview(index: number, destination: Point): MovePreview | null {
     if (!this.canMove(index, destination)) return null;
-    if (this.hand[index] === 'whirl') {
-      const hits = this.enemies.filter(enemy =>
-        Math.max(Math.abs(enemy.position[0] - destination[0]), Math.abs(enemy.position[1] - destination[1])) === 1
-      ).map(enemy => {
-        const blocked = blocksAttack(enemy, destination);
-        return { id: enemy.id, blocked, removed: !blocked && (enemy.health ?? 1) === 1 };
-      });
-      return {
-        blocked: hits.length > 0 && hits.every(hit => hit.blocked),
-        destination: [...destination],
-        removedId: hits.find(hit => hit.removed)?.id ?? -1,
-        hits,
-        damage: this.damageAt(destination, hits.filter(hit => hit.removed).map(hit => hit.id))
-      };
-    }
     const victim = this.at(destination);
     const blocked = victim ? blocksAttack(victim, this.hero) : false;
     const survives = victim && (blocked || (victim.health ?? 1) > 1);
@@ -219,38 +187,25 @@ export class Room {
       to: destination.slice() as Point,
       kind: this.hand[index],
       removedId: preview.removedId,
-      hitId: preview.hitId,
-      hits: preview.hits
+      hitId: preview.hitId
     };
-    if (preview.hits) {
-      for (const hit of preview.hits) {
-        const victim = this.enemies.find(enemy => enemy.id === hit.id);
-        if (victim && !hit.blocked) victim.health = (victim.health ?? 1) - 1;
-      }
-      this.enemies = this.enemies.filter(enemy => !preview.hits!.some(hit => hit.id === enemy.id && hit.removed));
-    } else {
-      const victim = this.at(destination);
-      if (victim && !preview.blocked) victim.health = (victim.health ?? 1) - 1;
-      this.enemies = this.enemies.filter((e) => e.id !== preview.removedId);
-    }
+    const victim = this.at(destination);
+    if (victim && !preview.blocked) victim.health = (victim.health ?? 1) - 1;
+    this.enemies = this.enemies.filter((e) => e.id !== preview.removedId);
     this.hero = preview.destination.slice() as Point;
     const used = this.hand.splice(index, 1)[0];
-    if (!isTemporaryCard(used)) this.discard.push(used);
+    if (used !== 'knife') this.discard.push(used);
     this.actions -= cost;
-    if (this.loadout === 'rogue' && loadouts.rogue.includes(used))
-      this.whirlCharge = Math.min(Room.whirlChargeMax, this.whirlCharge + 1);
     if (used === 'throw') {
       if (!this.hasKnife(destination)) this.knives.push([...destination]);
     } else if (equal(this.hero, destination) && this.hasKnife(destination)) {
       this.knives = this.knives.filter(point => !equal(point, destination));
-      action.consumedKnife = true;
-      if (used !== 'whirl') {
-        action.pickedKnife = true;
-        this.hand.push('knife');
-        this.actions = Math.min(2, this.actions + 1);
-        if (this.deck.length || this.discard.length) action.drawn = this.draw();
-      }
+      action.pickedKnife = true;
+      this.hand.push('knife');
+      this.actions = Math.min(2, this.actions + 1);
+      if (this.deck.length || this.discard.length) action.drawn = this.draw();
     }
+    if (this.won) this.knives = [];
     return action;
   }
   endTurn(): TurnOutcome | null {
@@ -292,7 +247,7 @@ export class Room {
         if (!equal(from, best)) motions.push({ id: enemy.id, from, to: best.slice() as Point });
       }
       const heldKnives = this.hand.filter(id => id === 'knife');
-      this.discard.push(...this.hand.filter(id => !isTemporaryCard(id)));
+      this.discard.push(...this.hand.filter(id => id !== 'knife'));
       this.hand = heldKnives;
       for (let i = 0; i < 3; i++) this.draw();
       this.actions = 2;

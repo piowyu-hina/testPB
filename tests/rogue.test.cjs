@@ -26,6 +26,9 @@ test('front block leaves knife but neither kills nor duplicates a knife on same 
 test('shadow obeys queen paths, can attack only knife tile, failed attacks do not recover', () => {
   const r = room(); r.enemies = [enemy(0, [2, 2], 'stump', { facing: 'south' }), enemy(1, [4, 4])];
   r.hand = ['shadow'];
+  assert.equal(r.canMove(0, [2, 3]), false);
+  assert.equal(r.canMove(0, [2, 4]), false);
+  assert.equal(r.canMove(0, [3, 1]), true);
   assert.equal(r.canMove(0, [2, 2]), false);
   r.knives = [[2, 2]];
   assert.equal(r.canMove(0, [2, 3]), false);
@@ -35,11 +38,17 @@ test('shadow obeys queen paths, can attack only knife tile, failed attacks do no
   assert.deepEqual(r.knives, [[2, 2]]);
   assert.deepEqual(r.hand, []);
 });
+test('winning removes ground knives, including a knife thrown for the last hit', () => {
+  const r = room(); r.hand = ['throw']; r.enemies = [enemy(0, [2, 2])];
+  r.knives = [[4, 4]];
+  r.move(0, [2, 2]);
+  assert.equal(r.won, true);
+  assert.deepEqual(r.knives, []);
+});
 test('last paid action collects knife, restores one action, and draws one normal card', () => {
   const r = room(); r.enemies = [enemy(0, [2, 2]), enemy(1, [2, 3])];
   r.move(0, [2, 2]);
   const pickup = r.move(0, [2, 2]);
-  assert.equal(pickup.consumedKnife, true);
   assert.equal(pickup.pickedKnife, true);
   assert.ok(['throw', 'shadow', 'lunge'].includes(pickup.drawn));
   assert.equal(r.actions, 1);
@@ -74,66 +83,8 @@ test('lunge moves one cardinal step, attacks the landing enemy, and cannot jump 
   assert.deepEqual(r.hero, [2, 1]);
   assert.deepEqual(r.enemies.map(e => e.id), [1]);
 });
-test('rogue deck has no whirl; four normal plays charge one claimable special', () => {
-  const r = room();
-  const pile = [...r.hand, ...r.deck];
-  assert.equal(pile.length, 16);
-  assert.equal(pile.filter(id => id === 'throw').length, 6);
-  assert.equal(pile.filter(id => id === 'shadow').length, 5);
-  assert.equal(pile.filter(id => id === 'lunge').length, 5);
-  assert.equal(pile.includes('whirl'), false);
-  r.hero = [0, 0]; r.enemies = [enemy(0, [4, 4])]; r.knives = [[2, 2]];
-  r.hand = ['lunge', 'lunge', 'lunge', 'lunge']; r.actions = 4;
-  for (const point of [[1, 0], [2, 0], [3, 0], [3, 1]]) r.move(0, point);
-  assert.equal(r.whirlCharge, 4);
-  assert.equal(r.canClaimWhirl(), true);
-  r.actions = 0;
-  assert.equal(r.hasPlayableCard(), true);
-  assert.equal(r.claimWhirl(), true);
-  assert.equal(r.whirlCharge, 0);
-  assert.deepEqual(r.hand, ['whirl']);
-  assert.equal(r.canMove(0, [2, 2]), true);
-  const action = r.move(0, [2, 2]);
-  assert.equal(action.consumedKnife, true);
-  assert.equal(action.pickedKnife, undefined);
-  assert.equal(action.drawn, undefined);
-  assert.deepEqual(r.hero, [2, 2]);
-  assert.equal(r.actions, 0);
-  assert.equal(r.hand.includes('knife'), false);
-  assert.equal(r.discard.includes('whirl'), false);
-  assert.equal(r.whirlCharge, 0);
-});
-test('unclaimed charge persists, but a claimed whirl expires at turn end', () => {
-  const r = room(); r.enemies = [enemy(0, [4, 4])]; r.hand = ['knife'];
-  r.whirlCharge = 4;
-  assert.equal(r.canClaimWhirl(), false);
-  assert.equal(r.claimWhirl(), false);
-  r.endTurn();
-  assert.equal(r.whirlCharge, 4);
-  r.knives = [[2, 2]];
-  assert.equal(r.claimWhirl(), true);
-  r.endTurn();
-  assert.equal(r.whirlCharge, 0);
-  assert.equal([...r.hand, ...r.deck, ...r.discard].includes('whirl'), false);
-  const knifeIndex = r.hand.indexOf('knife');
-  r.move(knifeIndex, [2, 1]);
-  assert.equal(r.whirlCharge, 0);
-});
-test('switching characters clears charge and generated whirl without changing ordinary deck size', () => {
-  const j = new Journey(1, 'rogue');
-  const r = j.room;
-  r.whirlCharge = 4;
-  r.knives = [[4, 4]];
-  assert.equal(r.claimWhirl(), true);
-  r.whirlCharge = 3;
-  j.setLoadout('basic');
-  assert.equal(r.whirlCharge, 0);
-  assert.deepEqual(r.knives, []);
-  assert.equal([...r.hand, ...r.deck, ...r.discard].includes('whirl'), false);
-  assert.equal(r.hand.length + r.deck.length + r.discard.length, 16);
-});
 test('unused knives persist across turns and can be played later; next room clears them', () => {
-  const r = room(); r.hand = ['knife', 'whirl']; r.knives = [[4, 4]];
+  const r = room(); r.hand = ['knife', 'lunge']; r.knives = [[4, 4]];
   r.endTurn();
   assert.equal(r.hand.filter(id => id === 'knife').length, 1);
   assert.equal(r.hand.length, 4);
@@ -169,41 +120,8 @@ test('picking a knife with no drawable cards still restores action and keeps the
   assert.equal(r.actions, 1);
   assert.deepEqual(r.hand, ['knife']);
 });
-test('whirl teleports to an empty dagger and hits its eight adjacent tiles', () => {
-  const r = room(); r.hero = [2, 0]; r.hand = ['whirl']; r.knives = [[2, 2]];
-  r.enemies = [
-    enemy(0, [1, 2]),
-    enemy(1, [2, 3], 'stump', { facing: 'south', health: 2 }),
-    enemy(2, [3, 3], 'stump', { facing: 'north', health: 2 }),
-    enemy(3, [4, 4])
-  ];
-  assert.equal(r.canMove(0, [3, 2]), false);
-  assert.equal(r.canMove(0, [2, 2]), true);
-  const preview = r.preview(0, [2, 2]);
-  assert.deepEqual(preview.hits, [
-    { id: 0, blocked: false, removed: true },
-    { id: 1, blocked: true, removed: false },
-    { id: 2, blocked: false, removed: false }
-  ]);
-  const action = r.move(0, [2, 2]);
-  assert.deepEqual(action.hits, preview.hits);
-  assert.deepEqual(r.hero, [2, 2]);
-  assert.deepEqual(r.knives, []);
-  assert.equal(action.consumedKnife, true);
-  assert.equal(action.pickedKnife, undefined);
-  assert.deepEqual(r.enemies.map(e => [e.id, e.health]), [[1, 2], [2, 1], [3, 1]]);
-  assert.equal(r.actions, 2);
-  assert.equal(r.damageAt(r.hero), preview.damage);
-});
-test('whirl cannot teleport onto a living enemy but can reach an unoccupied dagger anywhere', () => {
-  const r = room(); r.hand = ['whirl']; r.knives = [[2, 2], [4, 1]];
-  assert.equal(r.canMove(0, [2, 2]), false);
-  assert.equal(r.canMove(0, [4, 1]), true);
-  const preview = r.preview(0, [4, 1]);
-  assert.deepEqual(preview.destination, [4, 1]);
-});
 test('rogue previews match actual landing, removal and damage without mutations', () => {
-  for (const id of ['throw','shadow','whirl','lunge','knife']) for (let y=0;y<5;y++) for(let x=0;x<5;x++) {
+  for (const id of ['throw','shadow','lunge','knife']) for (let y=0;y<5;y++) for(let x=0;x<5;x++) {
     const r=room(); r.hand=[id]; r.knives=[[2,2],[3,1]];
     const before=JSON.stringify(r), preview=r.preview(0,[x,y]);
     assert.equal(JSON.stringify(r),before);
