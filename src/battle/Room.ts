@@ -8,6 +8,7 @@ import { attackOffsets, blocksAttack, enemySkill, faceToward } from './EnemyRule
 export const data = { cards, enemies };
 export interface MoveAction {
   hitId?: number;
+  hits?: { id: number; blocked: boolean; removed: boolean }[];
   from: Point;
   to: Point;
   kind: CardId;
@@ -128,6 +129,10 @@ export class Room {
     if (this.finished || this.actions < this.cardCost(index) || !this.matchesCard(index, destination)) return false;
     const card: CardDefinition = data.cards[this.hand[index]];
     if (card.effect === 'throw') return Boolean(this.at(destination));
+    if (card.effect === 'knife') return Boolean(this.at(destination));
+    if (card.effect === 'whirl') return this.enemies.some(enemy =>
+      Math.max(Math.abs(enemy.position[0] - this.hero[0]), Math.abs(enemy.position[1] - this.hero[1])) === 1
+    );
     if (card.effect === 'shadow' && this.at(destination) && !this.hasKnife(destination)) return false;
     return true;
   }
@@ -151,20 +156,36 @@ export class Room {
       (o) => enemy.position[0] + o[0] === tile[0] && enemy.position[1] + o[1] === tile[1]
     );
   }
-  damageAt(tile: Point, removedId = -1) {
+  damageAt(tile: Point, removedId: number | readonly number[] = -1) {
+    const removed = Array.isArray(removedId) ? removedId : [removedId];
     return this.enemies.reduce(
       (damage, enemy) =>
         damage +
-        (enemy.id !== removedId && Room.threatens(enemy, tile) ? (enemy.elite ? 2 : 1) : 0),
+        (!removed.includes(enemy.id) && Room.threatens(enemy, tile) ? (enemy.elite ? 2 : 1) : 0),
       0
     );
   }
   preview(index: number, destination: Point): MovePreview | null {
     if (!this.canMove(index, destination)) return null;
+    if (this.hand[index] === 'whirl') {
+      const hits = this.enemies.filter(enemy =>
+        Math.max(Math.abs(enemy.position[0] - this.hero[0]), Math.abs(enemy.position[1] - this.hero[1])) === 1
+      ).map(enemy => {
+        const blocked = blocksAttack(enemy, this.hero);
+        return { id: enemy.id, blocked, removed: !blocked && (enemy.health ?? 1) === 1 };
+      });
+      return {
+        blocked: hits.every(hit => hit.blocked),
+        destination: [...this.hero],
+        removedId: hits.find(hit => hit.removed)?.id ?? -1,
+        hits,
+        damage: this.damageAt(this.hero, hits.filter(hit => hit.removed).map(hit => hit.id))
+      };
+    }
     const victim = this.at(destination);
     const blocked = victim ? blocksAttack(victim, this.hero) : false;
     const survives = victim && (blocked || (victim.health ?? 1) > 1);
-    const landing = survives || this.hand[index] === 'throw' ? this.hero : destination;
+    const landing = survives || this.hand[index] === 'throw' || this.hand[index] === 'knife' ? this.hero : destination;
     return {
       blocked,
       destination: landing.slice() as Point,
@@ -182,18 +203,27 @@ export class Room {
       to: destination.slice() as Point,
       kind: this.hand[index],
       removedId: preview.removedId,
-      hitId: preview.hitId
+      hitId: preview.hitId,
+      hits: preview.hits
     };
-    const victim = this.at(destination);
-    if (victim && !preview.blocked) victim.health = (victim.health ?? 1) - 1;
-    this.enemies = this.enemies.filter((e) => e.id !== preview.removedId);
+    if (preview.hits) {
+      for (const hit of preview.hits) {
+        const victim = this.enemies.find(enemy => enemy.id === hit.id);
+        if (victim && !hit.blocked) victim.health = (victim.health ?? 1) - 1;
+      }
+      this.enemies = this.enemies.filter(enemy => !preview.hits!.some(hit => hit.id === enemy.id && hit.removed));
+    } else {
+      const victim = this.at(destination);
+      if (victim && !preview.blocked) victim.health = (victim.health ?? 1) - 1;
+      this.enemies = this.enemies.filter((e) => e.id !== preview.removedId);
+    }
     this.hero = preview.destination.slice() as Point;
     const used = this.hand.splice(index, 1)[0];
     if (used !== 'knife') this.discard.push(used);
     this.actions -= cost;
     if (used === 'throw') {
       if (!this.hasKnife(destination)) this.knives.push([...destination]);
-    } else if (equal(this.hero, destination) && this.hasKnife(destination)) {
+    } else if (used !== 'knife' && used !== 'whirl' && equal(this.hero, destination) && this.hasKnife(destination)) {
       this.knives = this.knives.filter(point => !equal(point, destination));
       this.hand.push('knife');
     }

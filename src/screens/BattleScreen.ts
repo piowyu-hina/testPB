@@ -213,10 +213,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       else if (cleared) elements.hint.textContent = chosen
         ? `${chosen.name}：點亮起的格子，走向上方出口 · 不消耗行動`
         : '清場完成！選「前進」走向上方出口 · 下一間恢復 1 點生命';
-      else if (preview) elements.hint.textContent = `${chosenId === 'throw' ? '原地投擲 · ' : ''}${preview.removedId >= 0 ? '擊敗怪物 · ' : ''}落點受擊預告：${preview.damage} 傷害${preview.damage >= room.health ? ' · 致命' : ''}${chosenId !== 'throw' && room.hasKnife(preview.destination) ? ' · 回收，獲得免費小刀' : ''}`;
+      else if (preview) elements.hint.textContent = `${chosenId === 'throw' ? '原地投擲 · ' : chosenId === 'knife' ? '原地刺擊 · ' : chosenId === 'whirl' ? `原地掃擊 ${preview.hits?.length ?? 0} 隻 · ` : ''}${preview.hits ? `${preview.hits.filter(hit => hit.removed).length} 隻擊敗 · ` : preview.removedId >= 0 ? '擊敗怪物 · ' : ''}留在落點受擊預告：${preview.damage} 傷害${preview.damage >= room.health ? ' · 致命' : ''}${chosenId !== 'throw' && chosenId !== 'knife' && chosenId !== 'whirl' && room.hasKnife(preview.destination) ? ' · 回收，獲得免費小刀' : ''}`;
       else if (chosen) {
         const hasMove = tiles.some(({ point }) => room.canMove(selected, point));
-        elements.hint.textContent = `${chosen.name} · ${chosen.hint} · ${hasMove ? '點亮起的格子移動' : '目前無可用落點，請換牌'} · 再點此牌取消`;
+        elements.hint.textContent = `${chosen.name} · ${chosen.hint} · ${hasMove ? chosenId === 'whirl' ? '點自己所在的格子發動' : chosenId === 'knife' ? '點相鄰怪物刺擊' : '點亮起的格子移動' : '目前無可用目標，請換牌'} · 再點此牌取消`;
       } else if (focusedEnemy) elements.hint.textContent = enemySummary(focusedEnemy);
       else elements.hint.textContent = room.finished ? '' : '先選一張牌，再點亮起的格子 · 點怪物可查看技能';
     }
@@ -225,7 +225,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     $('room-exit').toggleAttribute('hidden', !cleared);
     elements.game.classList.toggle('exploring', cleared);
     for (const { tile, threats, point } of tiles) {
-      const damage = room.damageAt(point, removedId),
+      const damage = room.damageAt(point, preview?.hits ? preview.hits.filter(hit => hit.removed).map(hit => hit.id) : removedId),
         legal =
           !busy && (cleared ? room.canExplore(selected, point) : room.canMove(selected, point));
       tile.classList.toggle('odd', (point[0] + point[1]) % 2 === 1);
@@ -233,15 +233,16 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       tile.classList.toggle('legal', legal);
       tile.classList.toggle('inspectable', !busy && !room.finished && selected < 0 && Boolean(room.at(point)));
       tile.classList.toggle('capture', legal && Boolean(room.at(point)));
+      tile.classList.toggle('whirl-range', chosenId === 'whirl' && Math.max(Math.abs(point[0] - room.hero[0]), Math.abs(point[1] - room.hero[1])) === 1);
       tile.classList.toggle('blocked', legal && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
-      tile.classList.toggle('landing', Boolean(preview && equal(point, chosenId === 'throw' ? hoveredTile! : preview.destination)));
+      tile.classList.toggle('landing', Boolean(preview && equal(point, chosenId === 'throw' || chosenId === 'knife' ? hoveredTile! : preview.destination)));
       tile.classList.toggle('focus-threat', Boolean(focus && Room.threatens(focus, point)));
       tile.classList.toggle('exit-tile', cleared && equal(point, journey.exit));
       tile.disabled = busy || (room.finished && !cleared);
       const enemy = room.at(point);
       tile.setAttribute(
         'aria-label',
-        `${point[0] + 1},${point[1] + 1}${enemy ? ` ${enemySummary(enemy)}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? '，可移動' : ''}`
+        `${point[0] + 1},${point[1] + 1}${enemy ? ` ${enemySummary(enemy)}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? chosenId === 'whirl' ? '，發動迴旋斬' : chosenId === 'knife' ? '，可刺擊' : '，可移動' : ''}`
       );
       if (cleared)
         tile.setAttribute(
@@ -266,7 +267,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     for (const enemy of room.enemies) {
       const sprite = actor(enemy.id);
       place(sprite, enemy.position);
-      sprite.classList.toggle('victim-preview', enemy.id === removedId);
+      sprite.classList.toggle('victim-preview', preview?.hits ? preview.hits.some(hit => hit.id === enemy.id && hit.removed) : enemy.id === removedId);
       sprite.classList.toggle('hovered', enemy.id === hoveredEnemy && !busy);
       const skill = enemySkill(enemy);
       sprite.dataset.skill = skill.id;
@@ -278,8 +279,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       }
     }
     place(actor('hero'), room.hero);
-    actor('hero').classList.toggle('origin-preview', Boolean(preview && chosenId !== 'throw'));
-    elements.ghost.hidden = !preview || chosenId === 'throw';
+    actor('hero').classList.toggle('origin-preview', Boolean(preview && chosenId !== 'throw' && chosenId !== 'knife' && chosenId !== 'whirl'));
+    elements.ghost.hidden = !preview || chosenId === 'throw' || chosenId === 'knife' || chosenId === 'whirl';
     if (preview) place(elements.ghost, preview.destination);
     renderHealth(room.finished || busy ? 0 : preview ? preview.damage : room.damageAt(room.hero));
     elements.actions.innerHTML = `<small>行動 ${room.actions}/2</small>` + Array.from(
@@ -324,7 +325,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.game.classList.remove('choosing');
     for (const { tile } of tiles) {
       tile.disabled = true;
-      tile.classList.remove('legal', 'landing', 'focus-threat', 'capture', 'blocked');
+      tile.classList.remove('legal', 'landing', 'focus-threat', 'capture', 'blocked', 'whirl-range');
     }
     for (const card of root.querySelectorAll<HTMLButtonElement>('.card')) {
       card.disabled = true;
@@ -340,19 +341,45 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     lock();
     // Keep the visible board stable until the movement and impact complete.
     const thrown = action.kind === 'throw';
-    const resisted = !thrown && action.hitId !== undefined && action.removedId < 0;
+    const stationary = action.kind === 'knife' || action.kind === 'whirl';
+    const resisted = !thrown && !stationary && action.hitId !== undefined && action.removedId < 0;
     const contact = resisted
       ? await approach(actor('hero'), action.from, action.to, action.kind === 'leap')
       : action.to;
-    if (thrown) {
+    if (action.kind === 'whirl') {
+      const ring = document.createElement('div');
+      ring.className = 'whirl-effect';
+      ring.setAttribute('aria-hidden', 'true');
+      place(ring, action.from);
+      elements.board.append(ring);
+      try {
+        await animate(ring, [
+          { opacity: 0, scale: 0.35, rotate: '-45deg' },
+          { opacity: 1, scale: 0.9, rotate: '170deg', offset: 0.45 },
+          { opacity: 0, scale: 1.1, rotate: '340deg' }
+        ], 330);
+      } finally { ring.remove(); }
+      const hits = action.hits ?? [];
+      elements.hint.textContent = `${hits.filter(hit => !hit.blocked).length} 隻命中${hits.some(hit => hit.blocked) ? ' · 有怪物格擋' : ''}`;
+      await Promise.all(hits.map(async hit => {
+        const target = actor(hit.id);
+        const point = room.enemies.find(enemy => enemy.id === hit.id)?.position ?? action.from;
+        if (hit.blocked) await shield(elements.board, point);
+        else if (!hit.removed) await recoil(target, action.from, point);
+        const health = target.querySelector('.boss-health');
+        const enemy = room.enemies.find(enemy => enemy.id === hit.id);
+        if (health && enemy) [...health.children].forEach((pip, i) => pip.classList.toggle('empty', i >= (enemy.health ?? 1)));
+        if (hit.removed) { target.remove(); actors.delete(hit.id); }
+      }));
+    } else if (thrown) {
       const projectile = document.createElement('div');
       projectile.className = 'knife-projectile';
       projectile.innerHTML = daggerIcon;
       elements.board.append(projectile);
       try { await travel(projectile, action.from, action.to, 0); }
       finally { projectile.remove(); }
-    } else if (!resisted) await travel(actor('hero'), action.from, action.to, action.kind === 'leap' ? 30 : 9);
-    if (action.hitId !== undefined) {
+    } else if (!resisted && !stationary) await travel(actor('hero'), action.from, action.to, action.kind === 'leap' ? 30 : 9);
+    if (action.kind !== 'whirl' && action.hitId !== undefined) {
       elements.hint.textContent = blocked ? '正面格擋 · 這次攻擊沒有造成傷害' : action.removedId >= 0 ? '擊敗怪物' : '命中 · 怪物生命 −1';
       if (blocked) await shield(elements.board, action.to);
       else if (action.removedId < 0) await recoil(actor(action.hitId), action.from, action.to);
@@ -361,9 +388,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const enemy = room.enemies.find(enemy => enemy.id === action.hitId);
       const health = actor(action.hitId).querySelector('.boss-health');
       if (health && enemy) [...health.children].forEach((pip, i) => pip.classList.toggle('empty', i >= (enemy.health ?? 1)));
-      if (!thrown) await travel(actor('hero'), contact, action.from, 0);
+      if (!thrown && !stationary) await travel(actor('hero'), contact, action.from, 0);
     }
-    if (action.removedId >= 0) {
+    if (action.kind !== 'whirl' && action.removedId >= 0) {
       const victim = actor(action.removedId);
       await pause(80);
       victim.remove();

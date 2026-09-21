@@ -8,8 +8,8 @@ const rays = (directions: Point[]): Point[] => directions.flatMap(([x, y]) => [1
 export const cards = {
   throw: { name: '飛刀', hint: '原地攻擊十字方向第一隻怪物，刀留在命中格', offsets: rays(cross), canJump: false, copies: 4, cost: 1, effect: 'throw' },
   shadow: { name: '追影', hint: '直線或斜線任意距離移動；只有刀格的怪物可攻擊', offsets: rays(around), canJump: false, copies: 4, cost: 1, effect: 'shadow' },
-  whirl: { name: '迴旋斬', hint: '八方向移動 1 格，攻擊落點怪物', offsets: around, canJump: false, copies: 4, cost: 1 },
-  knife: { name: '小刀', hint: '免費十字一步攻擊；用後或回合結束消失', offsets: cross, canJump: false, copies: 0, cost: 0, effect: 'knife' },
+  whirl: { name: '迴旋斬', hint: '原地攻擊周圍八格所有怪物', offsets: [[0, 0]], canJump: false, copies: 4, cost: 1, effect: 'whirl' },
+  knife: { name: '小刀', hint: '原地刺擊十字相鄰一格；用後或回合結束消失', offsets: cross, canJump: false, copies: 0, cost: 0, effect: 'knife' },
   forward: { name: '前進', hint: '清場後走向周圍一格，可重複使用且不消耗行動', offsets: around, canJump: false, copies: 0 },
   short: {
     name: '短步',

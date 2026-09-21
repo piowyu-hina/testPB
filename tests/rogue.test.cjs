@@ -45,6 +45,7 @@ test('last paid action collects a free temporary knife; it remains usable at zer
   assert.equal(r.hasPlayableCard(), true);
   assert.equal(r.canMove(1, [2, 3]), true);
   r.move(1, [2, 3]);
+  assert.deepEqual(r.hero, [2, 2]);
   assert.equal(r.actions, 0);
   assert.equal(r.hand.includes('knife'), false);
   assert.equal(r.discard.includes('knife'), false);
@@ -66,12 +67,38 @@ test('manual end expires knives but preserves ground tokens; next room starts wi
   assert.equal(j.advance(), true); assert.deepEqual(j.room.knives, []);
   assert.deepEqual(j.room.hand, ['throw', 'shadow', 'whirl']);
 });
-test('all-unusable includes remaining actions but no targets; zero-cost knife can chain pickups', () => {
+test('all-unusable includes remaining actions but no targets; knife cannot move or collect another knife', () => {
   const r = room(); r.hand = ['throw']; r.enemies = [enemy(0, [3, 2])];
   assert.equal(r.hasPlayableCard(), false);
-  r.hand = ['knife']; r.actions = 0; r.knives = [[3, 0]];
-  r.move(0, [3, 0]); assert.deepEqual(r.hand, ['knife']); assert.deepEqual(r.knives, []);
-  r.move(0, [4, 0]); assert.deepEqual(r.hand, []); assert.equal(r.hasPlayableCard(), false);
+  r.hand = ['knife']; r.actions = 0; r.knives = [[3, 0]]; r.enemies = [enemy(0, [3, 0]), enemy(1, [4, 4])];
+  assert.equal(r.canMove(0, [2, 1]), false);
+  r.move(0, [3, 0]);
+  assert.deepEqual(r.hero, [2, 0]);
+  assert.deepEqual(r.hand, []);
+  assert.deepEqual(r.knives, [[3, 0]]);
+  assert.equal(r.hasPlayableCard(), false);
+});
+test('whirl hits every adjacent enemy from the current tile, with individual guard and health', () => {
+  const r = room(); r.hero = [2, 2]; r.hand = ['whirl'];
+  r.enemies = [
+    enemy(0, [1, 2]),
+    enemy(1, [2, 3], 'stump', { facing: 'south', health: 2 }),
+    enemy(2, [3, 3], 'stump', { facing: 'north', health: 2 }),
+    enemy(3, [4, 4])
+  ];
+  assert.equal(r.canMove(0, [3, 2]), false);
+  const preview = r.preview(0, [2, 2]);
+  assert.deepEqual(preview.hits, [
+    { id: 0, blocked: false, removed: true },
+    { id: 1, blocked: true, removed: false },
+    { id: 2, blocked: false, removed: false }
+  ]);
+  const action = r.move(0, [2, 2]);
+  assert.deepEqual(action.hits, preview.hits);
+  assert.deepEqual(r.hero, [2, 2]);
+  assert.deepEqual(r.enemies.map(e => [e.id, e.health]), [[1, 2], [2, 1], [3, 1]]);
+  assert.equal(r.actions, 1);
+  assert.equal(r.damageAt(r.hero), preview.damage);
 });
 test('rogue previews match actual landing, removal and damage without mutations', () => {
   for (const id of ['throw','shadow','whirl','knife']) for (let y=0;y<5;y++) for(let x=0;x<5;x++) {
