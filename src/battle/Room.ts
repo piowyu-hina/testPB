@@ -55,7 +55,7 @@ export class Room {
     this.health = Math.max(0, Math.min(5, health));
     this.actions = 2;
     this.turn = 1;
-    this.enemies = definition.enemies.map((enemy) => ({ ...enemy, health: enemy.health ?? (enemy.elite ? 2 : 1), position: [...enemy.position] }));
+    this.enemies = definition.enemies.map((enemy) => ({ ...enemy, health: enemy.health ?? (enemy.elite ? 2 : 1), maxHealth: enemy.maxHealth ?? enemy.health ?? (enemy.elite ? 2 : 1), position: [...enemy.position] }));
     this.hand = loadouts[loadout].slice(0, 3);
     this.deck = [];
     this.discard = [];
@@ -133,7 +133,7 @@ export class Room {
     if (!card) return false;
     if (!this.matchesCard(index, destination)) return false;
     if (card.effect === 'throw') return Boolean(this.at(destination));
-    if (card.effect === 'shadow' && this.at(destination) && !this.hasKnife(destination)) return false;
+    if (card.effect === 'shadow' && !this.hasKnife(destination)) return false;
     return true;
   }
   private matchesCard(index: number, destination: Point) {
@@ -156,11 +156,11 @@ export class Room {
       (o) => enemy.position[0] + o[0] === tile[0] && enemy.position[1] + o[1] === tile[1]
     );
   }
-  damageAt(tile: Point, removedId = -1) {
+  damageAt(tile: Point, removedId = -1, addedKnife?: Point) {
     return this.enemies.reduce(
       (damage, enemy) =>
         damage +
-        (enemy.id !== removedId && Room.threatens(enemy, tile) ? (enemy.elite ? 2 : 1) : 0),
+        (enemy.id !== removedId && Room.threatens(enemy, tile) ? (enemy.elite ? 2 : 1) + Number(this.hasKnife(enemy.position) || Boolean(addedKnife && equal(enemy.position, addedKnife))) : 0),
       0
     );
   }
@@ -175,7 +175,7 @@ export class Room {
       destination: landing.slice() as Point,
       hitId: victim?.id,
       removedId: victim && !survives ? victim.id : -1,
-      damage: this.damageAt(landing, victim && !survives ? victim.id : -1)
+      damage: this.damageAt(landing, victim && !survives ? victim.id : -1, this.hand[index] === 'throw' ? destination : undefined)
     };
   }
   move(index: number, destination: Point): MoveAction | null {

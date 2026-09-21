@@ -8,8 +8,10 @@
   --teal: #44786b;
   --red: #c96d58;
   --muted: #72757b;
-  --board: min(57svh, calc((100svh - 220px) / 1.32), 590px);
+  --board: min(57svh, calc((100svh - 255px) / 1.32), 590px);
 }
+html { scrollbar-width: none; }
+html::-webkit-scrollbar { display: none; }
 * {
   box-sizing: border-box;
 }
@@ -156,22 +158,25 @@ h1 {
 .actor.elite img {
   filter: drop-shadow(0 1px 1px #bd8a38);
 }
-.boss-health {
+.enemy-health {
   position: absolute;
-  bottom: -3%;
-  left: 25%;
-  width: 50%;
+  bottom: 0;
+  left: 8%;
   display: flex;
-  gap: 3px;
+  gap: 2px;
+  padding: 2px 3px;
+  border-radius: 8px;
+  background: #fff9ebd9;
+  box-shadow: 0 1px 2px #352b2b44;
 }
-.boss-health i {
-  flex: 1;
-  height: 5px;
-  border-radius: 2px;
+.enemy-health i {
+  width: 9px;
+  height: 9px;
+  display: block;
   background: #b95349;
-  box-shadow: 0 0 0 1px #452c29;
+  clip-path: polygon(50% 18%, 62% 5%, 81% 5%, 100% 23%, 100% 48%, 50% 96%, 0 48%, 0 23%, 19% 5%, 38% 5%);
 }
-.boss-health i.empty { background: #d0c5bd; }
+.enemy-health i.empty { background: #c5bdb4; }
 @media (max-height: 720px) {
   .journey-progress {
     gap: 4px;
@@ -530,7 +535,7 @@ noscript {
 }
 @media (max-width: 850px) {
   :root {
-    --board: min(57svh, calc((100svh - 220px) / 1.32), calc(100vw - 200px), 550px);
+    --board: min(57svh, calc((100svh - 255px) / 1.32), calc(100vw - 200px), 550px);
   }
   .end-turn {
     left: calc(100% + 5px);

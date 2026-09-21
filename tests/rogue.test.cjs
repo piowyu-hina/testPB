@@ -23,20 +23,41 @@ test('front block leaves knife but neither kills nor duplicates a knife on same 
   assert.equal(r.enemies[0].health, 1);
   assert.deepEqual(r.knives, [[2, 2]]);
 });
-test('shadow obeys queen paths, can attack only knife tile, failed attacks do not recover', () => {
+test('shadow only targets knife tiles along clear straight or diagonal paths', () => {
   const r = room(); r.enemies = [enemy(0, [2, 2], 'stump', { facing: 'south' }), enemy(1, [4, 4])];
   r.hand = ['shadow'];
   assert.equal(r.canMove(0, [2, 3]), false);
   assert.equal(r.canMove(0, [2, 4]), false);
-  assert.equal(r.canMove(0, [3, 1]), true);
+  assert.equal(r.canMove(0, [3, 1]), false);
   assert.equal(r.canMove(0, [2, 2]), false);
-  r.knives = [[2, 2]];
+  r.knives = [[2, 2], [3, 1], [2, 4]];
+  assert.equal(r.canMove(0, [3, 1]), true);
+  assert.equal(r.canMove(0, [2, 4]), false); // The nearer guard blocks this route.
   assert.equal(r.canMove(0, [2, 3]), false);
   assert.equal(r.canMove(0, [3, 2]), false);
   r.move(0, [2, 2]);
   assert.deepEqual(r.hero, [2, 0]);
-  assert.deepEqual(r.knives, [[2, 2]]);
+  assert.deepEqual(r.knives, [[2, 2], [3, 1], [2, 4]]);
   assert.deepEqual(r.hand, []);
+});
+test('an enemy standing on a ground knife deals one extra damage and loses it after moving away', () => {
+  const r = room(); r.hero = [2, 1]; r.enemies = [enemy(0, [2, 2]), enemy(1, [4, 4])];
+  assert.equal(r.damageAt(r.hero), 1);
+  r.knives = [[2, 2]];
+  assert.equal(r.damageAt(r.hero), 2);
+  assert.equal(r.preview(0, [2, 2]).damage, 0); // Killing the armed monster removes its threat.
+  r.enemies[0].position = [3, 2];
+  assert.equal(r.damageAt(r.hero), 0);
+});
+test('throw preview includes the new knife damage when its target survives', () => {
+  const r = room(); r.hero = [2, 1]; r.hand = ['throw'];
+  r.enemies = [enemy(0, [2, 2], 'sprout', { health: 2 }), enemy(1, [4, 4])];
+  const preview = r.preview(0, [2, 2]);
+  assert.equal(preview.removedId, -1);
+  assert.equal(preview.damage, 2);
+  r.move(0, [2, 2]);
+  assert.equal(r.damageAt(r.hero), preview.damage);
+  assert.equal(r.enemies[0].health, 1);
 });
 test('winning removes ground knives, including a knife thrown for the last hit', () => {
   const r = room(); r.hand = ['throw']; r.enemies = [enemy(0, [2, 2])];

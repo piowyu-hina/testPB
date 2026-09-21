@@ -28,6 +28,7 @@ export interface Enemy {
   position: Point;
   elite?: boolean;
   health?: number;
+  maxHealth?: number;
   skillIndex?: number;
   facing?: Facing;
 }

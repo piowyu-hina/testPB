@@ -22,8 +22,8 @@ export const rooms: RoomDefinition[] = [
     hero: [2, 0],
     enemies: [
       { id: 0, kind: 'sprout', position: [2, 2] },
-      { id: 1, kind: 'stump', position: [1, 3], facing: 'south' },
-      { id: 2, kind: 'stump', position: [3, 3], facing: 'south', skillIndex: 1 },
+      { id: 1, kind: 'stump', position: [1, 3], facing: 'south', health: 2 },
+      { id: 2, kind: 'stump', position: [3, 3], facing: 'south', skillIndex: 1, health: 2 },
       { id: 3, kind: 'sprout', position: [2, 4] }
     ]
   },
@@ -31,9 +31,9 @@ export const rooms: RoomDefinition[] = [
     name: '遺跡守衛',
     hero: [2, 0],
     enemies: [
-      { id: 0, kind: 'stump', position: [2, 3], elite: true, facing: 'south' },
-      { id: 1, kind: 'sprout', position: [1, 2] },
-      { id: 2, kind: 'sprout', position: [3, 2] },
+      { id: 0, kind: 'stump', position: [2, 3], elite: true, facing: 'south', health: 3 },
+      { id: 1, kind: 'sprout', position: [1, 2], health: 2 },
+      { id: 2, kind: 'sprout', position: [3, 2], health: 2 },
       { id: 3, kind: 'sprout', position: [4, 4] }
     ]
   }

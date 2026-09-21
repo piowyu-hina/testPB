@@ -92,7 +92,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           const enemy = room.at(hoveredTile);
           elements.hint.textContent =
             enemy && selected < 0
-              ? enemySummary(enemy)
+              ? enemySummary(enemy, room.hasKnife(enemy.position))
               : '';
           render();
         });
@@ -204,7 +204,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const removedId = preview?.removedId ?? -1;
     const focusedEnemy = room.enemies.find((e) => e.id === (hoveredEnemy >= 0 ? hoveredEnemy : inspectedEnemy));
     const focus = !preview ? focusedEnemy : null;
-    renderEnemyInfo($('enemy-info'), !busy && !room.finished ? focusedEnemy : undefined);
+    renderEnemyInfo($('enemy-info'), !busy && !room.finished ? focusedEnemy : undefined, Boolean(focusedEnemy && room.hasKnife(focusedEnemy.position)));
     const cleared = exploring();
     const chosenId = room.availableCards[selected];
     const chosen = chosenId ? data.cards[chosenId] : undefined;
@@ -217,7 +217,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       else if (chosen) {
         const hasMove = tiles.some(({ point }) => room.canMove(selected, point));
         elements.hint.textContent = `${chosen.name} · ${chosen.hint} · ${hasMove ? '點亮起的格子移動' : '目前無可用目標，請換牌'} · 再點此牌取消`;
-      } else if (focusedEnemy) elements.hint.textContent = enemySummary(focusedEnemy);
+      } else if (focusedEnemy) elements.hint.textContent = enemySummary(focusedEnemy, room.hasKnife(focusedEnemy.position));
       else elements.hint.textContent = room.finished ? '' : '先選一張牌，再點亮起的格子 · 點怪物可查看技能';
     }
     const endDamage = room.finished ? 0 : room.damageAt(room.hero);
@@ -241,7 +241,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const enemy = room.at(point);
       tile.setAttribute(
         'aria-label',
-        `${point[0] + 1},${point[1] + 1}${enemy ? ` ${enemySummary(enemy)}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? '，可移動' : ''}`
+        `${point[0] + 1},${point[1] + 1}${enemy ? ` ${enemySummary(enemy, room.hasKnife(enemy.position))}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? '，可移動' : ''}`
       );
       if (cleared)
         tile.setAttribute(
@@ -271,10 +271,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const skill = enemySkill(enemy);
       sprite.dataset.skill = skill.id;
       sprite.dataset.facing = enemy.facing ?? 'south';
-      const health = sprite.querySelector('.boss-health');
+      const health = sprite.querySelector('.enemy-health');
       if (health) {
-        health.innerHTML = Array.from({ length: 2 }, (_, i) => `<i class="${i < (enemy.health ?? 2) ? '' : 'empty'}"></i>`).join('');
-        health.setAttribute('aria-label', `${enemy.health} / 2`);
+        const maximum = enemy.maxHealth ?? (enemy.elite ? 2 : 1);
+        health.innerHTML = Array.from({ length: maximum }, (_, i) => `<i class="${i < (enemy.health ?? maximum) ? '' : 'empty'}"></i>`).join('');
+        health.setAttribute('aria-label', `${enemy.health} / ${maximum}`);
       }
     }
     place(actor('hero'), room.hero);
@@ -361,7 +362,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     if (action.hitId !== undefined && action.removedId < 0) {
       const enemy = room.enemies.find(enemy => enemy.id === action.hitId);
-      const health = actor(action.hitId).querySelector('.boss-health');
+      const health = actor(action.hitId).querySelector('.enemy-health');
       if (health && enemy) [...health.children].forEach((pip, i) => pip.classList.toggle('empty', i >= (enemy.health ?? 1)));
       if (!thrown) await travel(actor('hero'), contact, action.from, 0);
     }
@@ -538,9 +539,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         `${enemy.elite ? '精英・' : ''}${data.enemies[enemy.kind].name}`
       );
       sprite.dataset.kind = enemy.kind;
+      if ((enemy.maxHealth ?? 1) > 1) {
+        sprite.insertAdjacentHTML('beforeend', `<span class="enemy-health${enemy.elite ? ' boss-health' : ''}"></span>`);
+      }
       if (enemy.elite) {
         sprite.classList.add('elite');
-        sprite.insertAdjacentHTML('beforeend', '<span class="boss-health"></span>');
         sprite.insertAdjacentHTML(
           'beforeend',
           '<svg class="elite-crown" viewBox="0 0 24 16" aria-hidden="true"><path d="M3 12 1 3l6 4L12 1l5 6 6-4-2 9ZM3 15h18"/></svg>'
