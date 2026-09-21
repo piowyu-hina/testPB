@@ -69,6 +69,13 @@
 .settings-row p, .settings-note { font-size: 13px; line-height: 1.8; color: #66695b; }
 .settings-dialog .theme-toggle { color: #475b49; flex-shrink: 0; }
 .settings-dialog .quiet-button { color: #475b49; }
+#open-characters { display: block; margin-top: 10px; padding: 7px 12px; font-size: 12px; }
+.character-picker { width: min(560px, calc(100vw - 32px)); max-height: 85svh; overflow: auto; }
+.character-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.character-choice { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 14px 6px; border: 2px solid #b8b49e; border-radius: 12px; background: #fff9ec; color: #354638; font-size: 14px; }
+.character-choice img { width: 100%; max-width: 110px; aspect-ratio: 1; object-fit: contain; }
+.character-choice[aria-pressed='true'] { border-color: #467966; background: #dfeade; }
+.character-choice:hover { border-color: #467966; }
 .destination-screen { display: flex; flex-direction: column; gap: 20px; }
 .destination-header { display: flex; align-items: center; justify-content: space-between; min-height: 38px; }
 .destination-header > span { font-size: 14px; letter-spacing: .24em; }

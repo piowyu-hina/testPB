@@ -1,7 +1,7 @@
 import type { Screen } from '../app/ScreenManager';
 import type { GameSession } from '../app/GameSession';
 import { forestRuins } from '../data/dungeons';
-import { heroArt } from '../data/art';
+import { characters } from '../data/art';
 import { element, mountScreenRoot, onClick } from '../ui/dom';
 import template from './dungeon.html?raw';
 import '../hub.css';
@@ -13,13 +13,16 @@ export function mountDungeon(host: HTMLElement, session: GameSession, onBack: ()
   $('dungeon-title').textContent = forestRuins.name;
   $('dungeon-subtitle').textContent = forestRuins.subtitle;
   $('dungeon-description').textContent = forestRuins.description;
-  $<HTMLImageElement>('party-icon').src = heroArt.image;
-  $('party-name').textContent = heroArt.name;
+  $<HTMLImageElement>('party-icon').src = characters[session.characterId].image;
+  $('party-name').textContent = characters[session.characterId].name;
   onClick($('dungeon-back'), onBack);
   onClick($('start-game'), onStart);
   return {
     root,
     enter() {
+      $<HTMLImageElement>('party-icon').src = characters[session.characterId].image;
+      $<HTMLImageElement>('party-icon').alt = characters[session.characterId].name;
+      $('party-name').textContent = characters[session.characterId].name;
       const { journey, canResume } = session;
       $('start-label').textContent = canResume ? '繼續旅途' : '出發';
       $('dungeon-state').textContent = canResume

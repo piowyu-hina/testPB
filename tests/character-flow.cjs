@@ -13,15 +13,17 @@ module.exports = async function checkCharacters(page) {
     document.querySelector('#home').dispatchEvent(event);
     return event.defaultPrevented;
   }), true);
-  assert.equal(await page.locator('.character-choice').count(), 0);
+  assert.equal(await page.locator('.character-choice').count(), 3);
   await loaded();
   await page.evaluate(() => localStorage.setItem('testpb.character', 'adventurer'));
   await page.reload();
   await loaded();
-  {
-    const name = '莉娜';
+  for (const [id, name] of [['heroine', '白色貓娘'], ['pinkCat', '粉色貓娘'], ['rogue', '莉娜']]) {
     await page.reload();
     await loaded();
+    await page.locator('#open-characters').click();
+    await page.locator(`[data-character="${id}"]`).click();
+    assert.equal(await page.locator('#character-picker').isVisible(), false);
     assert.equal(await page.locator('#hero-name').textContent(), name);
     await openDungeon(page);
     await page.locator('#start-game').click();
@@ -38,6 +40,16 @@ module.exports = async function checkCharacters(page) {
       await page.locator('#ghost img').getAttribute('src'),
       await page.locator('[data-actor="hero"] img').getAttribute('src')
     );
+    await page.locator('#back-home').click();
+    const alternative = id === 'rogue' ? 'pinkCat' : 'rogue';
+    await page.locator('#open-characters').click();
+    await page.locator(`[data-character="${alternative}"]`).click();
+    await openDungeon(page);
+    assert.equal(await page.locator('#start-label').textContent(), '繼續旅途');
+    const icon = await page.locator('#party-icon').getAttribute('src');
+    await page.locator('#start-game').click();
+    assert.equal(await page.locator('[data-actor="hero"] img').getAttribute('src'), icon);
+    assert.equal(await page.locator('#ghost img').getAttribute('src'), icon);
     await page.locator('#back-home').click();
   }
   await loaded();

@@ -1,7 +1,9 @@
 import { Journey } from '../battle/Journey.ts';
+import type { CharacterId } from '../data/art.ts';
 
 // In-memory state survives navigation, not application restarts.
 export class GameSession {
+  characterId: CharacterId = 'rogue';
   private seed = 1;
   private started = false;
   private current = new Journey(this.seed++);

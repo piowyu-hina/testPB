@@ -1,6 +1,6 @@
 import { Room, data, equal } from '../battle/Room';
 import type { Journey } from '../battle/Journey';
-import { heroArt, enemyArt } from '../data/art';
+import { characters, enemyArt } from '../data/art';
 import type { Point, CardDefinition } from '../types/game';
 import { element, mountScreenRoot, onClick } from '../ui/dom';
 import type { Screen } from '../app/ScreenManager';
@@ -444,8 +444,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         );
       }
     }
-    makeActor('hero', heroArt.image, heroArt.name, true);
-    elements.ghost.querySelector<HTMLImageElement>('img')!.src = heroArt.image;
+    makeActor('hero', characters[session.characterId].image, characters[session.characterId].name, true);
+    elements.ghost.querySelector<HTMLImageElement>('img')!.src = characters[session.characterId].image;
     render();
   }
   makeTiles();
@@ -498,9 +498,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         loadRoom();
       }
       const heroImage = actor('hero').querySelector('img')!;
-      heroImage.src = heroArt.image;
-      heroImage.alt = heroArt.name;
-      elements.ghost.querySelector<HTMLImageElement>('img')!.src = heroArt.image;
+      heroImage.src = characters[session.characterId].image;
+      heroImage.alt = characters[session.characterId].name;
+      elements.ghost.querySelector<HTMLImageElement>('img')!.src = characters[session.characterId].image;
       render();
       if (room.won) showResult();
     }

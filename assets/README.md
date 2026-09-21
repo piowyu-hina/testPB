@@ -1,7 +1,8 @@
 # 素材分類
 
-- `characters/rogue/`：目前試用的黑髮短刀女孩立繪與不對稱白色吉祥物棋子。
-- `characters/heroine/`：前一版角色立繪與棋盤圖，保留供比較。
+- `characters/rogue/`：可選角色莉娜，黑髮女孩與無小刀白色吉祥物。
+- `characters/heroine/`：可選角色白色貓娘。
+- `characters/pink-cat/`：可選角色粉色貓娘，根目錄新原圖的正式副本。
 - `monsters/forest/`：森林怪物。
 - `scenes/village/`：村莊背景。
 - `scenes/forest/`：森林遺跡背景。

@@ -1,4 +1,4 @@
-import { heroArt } from '../data/art';
+import { characters, type CharacterId } from '../data/art';
 import { element, mountScreenRoot, onClick } from '../ui/dom';
 import type { Screen } from '../app/ScreenManager';
 import type { GameSession } from '../app/GameSession';
@@ -10,9 +10,42 @@ export function mountHome(host: HTMLElement, session: GameSession, onStart: () =
   const root = mountScreenRoot(host, template);
   const $ = <T extends HTMLElement = HTMLElement>(id: string) => element<T>(id, root);
   const portrait = $<HTMLImageElement>('home-portrait');
-  portrait.src = heroArt.portrait;
-  portrait.alt = `${heroArt.name}立繪`;
-  $('hero-name').textContent = heroArt.name;
+  const picker = $<HTMLDialogElement>('character-picker');
+  function renderCharacter() {
+    const selected = characters[session.characterId];
+    portrait.src = selected.portrait;
+    portrait.alt = `${selected.name}立繪`;
+    $('hero-name').textContent = selected.name;
+    root.querySelectorAll<HTMLButtonElement>('[data-character]').forEach(button => {
+      button.setAttribute('aria-pressed', String(button.dataset.character === session.characterId));
+    });
+  }
+  for (const id of Object.keys(characters) as CharacterId[]) {
+    const character = characters[id];
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.tabIndex = -1;
+    button.className = 'character-choice';
+    button.dataset.character = id;
+    const image = document.createElement('img');
+    image.src = character.image;
+    image.alt = '';
+    image.draggable = false;
+    const label = document.createElement('strong');
+    label.textContent = character.name;
+    button.append(image, label);
+    onClick(button, () => {
+      session.characterId = id;
+      renderCharacter();
+      picker.close();
+    });
+    $('character-options').append(button);
+  }
+  onClick($('open-characters'), () => { renderCharacter(); picker.showModal(); });
+  onClick($('close-characters'), () => picker.close());
+  portrait.src = characters[session.characterId].portrait;
+  portrait.alt = `${characters[session.characterId].name}立繪`;
+  $('hero-name').textContent = characters[session.characterId].name;
   $<HTMLImageElement>('village-art').src = villageImage;
   onClick($('open-dungeons'), onStart);
   const settings = $<HTMLDialogElement>('village-settings');
@@ -21,11 +54,12 @@ export function mountHome(host: HTMLElement, session: GameSession, onStart: () =
   return {
     root,
     enter() {
+      renderCharacter();
       $('village-status').textContent = session.canResume
         ? `森林遺跡 · 第 ${session.journey.stage + 1} / ${session.journey.total} 間`
         : '準備好了，就向森林出發吧。';
       $('dungeon-entry-note').textContent = session.canResume ? '旅途中 · 可繼續' : '探索森林遺跡';
     },
-    leave() { settings.close(); }
+    leave() { settings.close(); picker.close(); }
   };
 }
