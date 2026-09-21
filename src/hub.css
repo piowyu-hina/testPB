@@ -91,7 +91,7 @@
 .party-member span, .party-member strong { display: block; }
 .party-member span { font-size: 11px; letter-spacing: .14em; color: #d4c9ac; margin-bottom: 6px; }
 .party-member strong { font-size: 20px; letter-spacing: .12em; }
-.expedition-button { display: flex; justify-content: space-between; align-items: center; gap: 50px; min-width: 200px; padding: 17px 24px; border: 1px solid #f3d8a1; border-radius: 8px; background: #ebd5a1; color: #263c32; font-size: 19px; font-weight: 600; box-shadow: 0 4px 0 #8d7548; }
+.expedition-button { display: flex; justify-content: center; align-items: center; gap: 50px; min-width: 200px; padding: 17px 24px; border: 1px solid #f3d8a1; border-radius: 8px; background: #ebd5a1; color: #263c32; font-size: 19px; font-weight: 600; box-shadow: 0 4px 0 #8d7548; }
 .expedition-button:hover { background: #fff0c5; }
 .expedition-button:active { transform: translateY(2px); box-shadow: 0 2px 0 #8d7548; }
 #journey-note { grid-column: 1 / -1; margin: 0; font-size: 12px; line-height: 1.7; color: #c9d2bf; }
