@@ -6,8 +6,8 @@ const { Journey } = require('../src/battle/Journey.ts');
 const { nextStep } = require('./explore-helper.cjs');
 const { enemySkill } = require('../src/battle/EnemyRules.ts');
 
-module.exports = async function playJourney(page, output, prefix = '') {
-  const run = new Journey(1);
+module.exports = async function playJourney(page, output, prefix = '', loadout = 'basic') {
+  const run = new Journey(1, loadout);
   let checkedBlock = false;
   const idle = () =>
     page.waitForFunction(
@@ -69,7 +69,7 @@ module.exports = async function playJourney(page, output, prefix = '') {
         await page.locator(`.card[data-index="${best.card}"]`).click();
         await page.locator(`.tile[data-x="${best.point[0]}"][data-y="${best.point[1]}"]`).click();
         model.move(best.card, best.point);
-        if (!model.finished && model.actions === 0) model.endTurn();
+        while (!model.finished && !model.hasPlayableCard()) model.endTurn();
       }
       await idle();
       for (const enemy of model.enemies) {

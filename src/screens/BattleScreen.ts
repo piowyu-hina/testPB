@@ -8,6 +8,7 @@ import type { GameSession } from '../app/GameSession';
 import template from './battle.html?raw';
 import { place, animate, pause, travel } from '../ui/animations';
 import { diagram } from '../ui/cardDiagram';
+import { daggerIcon } from '../ui/dagger';
 import { approach, shield, recoil } from '../ui/battleFeedback';
 import { enemySkill, blocksAttack } from '../battle/EnemyRules';
 import { enemySummary, renderEnemyInfo } from '../ui/enemyInfo';
@@ -119,6 +120,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (signature !== handSignature) {
       handSignature = signature;
       elements.hand.replaceChildren();
+      $('bonus-hand').replaceChildren();
       room.availableCards.forEach((id, index) => {
         const definition: CardDefinition = data.cards[id],
           card = document.createElement('button');
@@ -133,6 +135,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         label.className = 'card-name';
         label.textContent = definition.name;
         card.append(label);
+        if (!exploring()) {
+          const cost = document.createElement('small');
+          cost.className = 'card-cost';
+          cost.textContent = id === 'knife' ? '0 行動 · 本回合' : '1 行動';
+          card.append(cost);
+        }
         card.addEventListener('pointerenter', () => {
           if (!busy)
             elements.hint.textContent =
@@ -142,20 +150,23 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           render();
         });
         onClick(card, () => {
-          if (busy || (!exploring() && (room.finished || room.actions <= 0))) return;
+          if (busy || (!exploring() && !room.canUseCard(index))) return;
           selected = selected === index ? -1 : index;
           inspectedEnemy = -1;
           hoveredTile = null;
           hoveredEnemy = -1;
           render();
         });
-        elements.hand.append(card);
+        (id === 'knife' && !exploring() ? $('bonus-hand') : elements.hand).append(card);
       });
     }
-    [...elements.hand.querySelectorAll<HTMLButtonElement>('.card')].forEach((card, index) => {
+    $('bonus-hand').hidden = exploring() || !room.hand.includes('knife');
+    elements.game.classList.toggle('has-bonus', !$('bonus-hand').hidden);
+    [...root.querySelectorAll<HTMLButtonElement>('.card')].forEach((card) => {
+      const index = Number(card.dataset.index);
       card.classList.toggle('selected', index === selected);
       card.setAttribute('aria-pressed', String(index === selected));
-      card.disabled = busy || (!exploring() && (room.finished || room.actions <= 0));
+      card.disabled = busy || (!exploring() && !room.canUseCard(index));
     });
   }
   function renderHealth(incoming = 0) {
@@ -187,11 +198,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const chosenId = room.availableCards[selected];
     const chosen = chosenId ? data.cards[chosenId] : undefined;
     if (!busy) {
-      if (preview?.blocked) elements.hint.textContent = '正面格擋：無傷害，仍消耗卡片與 1 次行動。';
+      if (preview?.blocked) elements.hint.textContent = `正面格擋：無傷害，仍消耗卡片與 ${room.cardCost(selected)} 次行動。`;
       else if (cleared) elements.hint.textContent = chosen
         ? `${chosen.name}：點亮起的格子，走向上方出口 · 不消耗行動`
         : '清場完成！選下方探索卡，走向上方出口 · 下一間恢復 1 點生命';
-      else if (preview) elements.hint.textContent = `${preview.removedId >= 0 ? '擊敗怪物 · ' : ''}落點受擊預告：${preview.damage} 傷害${preview.damage >= room.health ? ' · 致命' : ''}${room.actions > 1 ? '（仍可再行動）' : '（移動後敵人行動）'}`;
+      else if (preview) elements.hint.textContent = `${chosenId === 'throw' ? '原地投擲 · ' : ''}${preview.removedId >= 0 ? '擊敗怪物 · ' : ''}落點受擊預告：${preview.damage} 傷害${preview.damage >= room.health ? ' · 致命' : ''}${chosenId !== 'throw' && room.hasKnife(preview.destination) ? ' · 回收，獲得免費小刀' : ''}`;
       else if (chosen) {
         const hasMove = tiles.some(({ point }) => room.canMove(selected, point));
         elements.hint.textContent = `${chosen.name} · ${chosen.hint} · ${hasMove ? '點亮起的格子移動' : '目前無可用落點，請換牌'} · 再點此牌取消`;
@@ -212,7 +223,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       tile.classList.toggle('inspectable', !busy && !room.finished && selected < 0 && Boolean(room.at(point)));
       tile.classList.toggle('capture', legal && Boolean(room.at(point)));
       tile.classList.toggle('blocked', legal && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
-      tile.classList.toggle('landing', Boolean(preview && equal(point, preview.destination)));
+      tile.classList.toggle('landing', Boolean(preview && equal(point, chosenId === 'throw' ? hoveredTile! : preview.destination)));
       tile.classList.toggle('focus-threat', Boolean(focus && Room.threatens(focus, point)));
       tile.classList.toggle('exit-tile', cleared && equal(point, journey.exit));
       tile.disabled = busy || (room.finished && !cleared);
@@ -228,6 +239,17 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         );
       if (threats.childElementCount !== damage)
         threats.innerHTML = '<i class="threat"></i>'.repeat(damage);
+      tile.classList.toggle('has-knife', room.hasKnife(point));
+    }
+    $('ground-knives').replaceChildren();
+    for (const point of room.knives) {
+      const token = document.createElement('div');
+      token.className = 'ground-knife';
+      token.dataset.point = point.join(',');
+      token.innerHTML = daggerIcon;
+      token.title = '飛刀：走到此格回收一張本回合免費小刀';
+      place(token, point);
+      $('ground-knives').append(token);
     }
     for (const enemy of room.enemies) {
       const sprite = actor(enemy.id);
@@ -244,8 +266,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       }
     }
     place(actor('hero'), room.hero);
-    actor('hero').classList.toggle('origin-preview', Boolean(preview));
-    elements.ghost.hidden = !preview;
+    actor('hero').classList.toggle('origin-preview', Boolean(preview && chosenId !== 'throw'));
+    elements.ghost.hidden = !preview || chosenId === 'throw';
     if (preview) place(elements.ghost, preview.destination);
     renderHealth(room.finished || busy ? 0 : preview ? preview.damage : room.damageAt(room.hero));
     elements.actions.innerHTML = `<small>行動 ${room.actions}/2</small>` + Array.from(
@@ -292,7 +314,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       tile.disabled = true;
       tile.classList.remove('legal', 'landing', 'focus-threat', 'capture', 'blocked');
     }
-    for (const card of elements.hand.querySelectorAll<HTMLButtonElement>('.card')) {
+    for (const card of root.querySelectorAll<HTMLButtonElement>('.card')) {
       card.disabled = true;
       card.classList.remove('selected');
     }
@@ -305,21 +327,29 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (!action) return;
     lock();
     // Keep the visible board stable until the movement and impact complete.
-    const resisted = action.hitId !== undefined && action.removedId < 0;
+    const thrown = action.kind === 'throw';
+    const resisted = !thrown && action.hitId !== undefined && action.removedId < 0;
     const contact = resisted
       ? await approach(actor('hero'), action.from, action.to, action.kind === 'leap')
       : action.to;
-    if (!resisted) await travel(actor('hero'), action.from, action.to, action.kind === 'leap' ? 30 : 9);
+    if (thrown) {
+      const projectile = document.createElement('div');
+      projectile.className = 'knife-projectile';
+      projectile.innerHTML = daggerIcon;
+      elements.board.append(projectile);
+      try { await travel(projectile, action.from, action.to, 0); }
+      finally { projectile.remove(); }
+    } else if (!resisted) await travel(actor('hero'), action.from, action.to, action.kind === 'leap' ? 30 : 9);
     if (action.hitId !== undefined) {
       elements.hint.textContent = blocked ? '正面格擋 · 這次攻擊沒有造成傷害' : action.removedId >= 0 ? '擊敗怪物' : '命中 · 怪物生命 −1';
       if (blocked) await shield(elements.board, action.to);
-      else if (resisted) await recoil(actor(action.hitId), action.from, action.to);
+      else if (action.removedId < 0) await recoil(actor(action.hitId), action.from, action.to);
     }
     if (action.hitId !== undefined && action.removedId < 0) {
       const enemy = room.enemies.find(enemy => enemy.id === action.hitId);
       const health = actor(action.hitId).querySelector('.boss-health');
       if (health && enemy) [...health.children].forEach((pip, i) => pip.classList.toggle('empty', i >= (enemy.health ?? 1)));
-      await travel(actor('hero'), contact, action.from, 0);
+      if (!thrown) await travel(actor('hero'), contact, action.from, 0);
     }
     if (action.removedId >= 0) {
       const victim = actor(action.removedId);
@@ -333,7 +363,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       showResult();
       return;
     }
-    if (room.actions === 0) {
+    if (!room.hasPlayableCard()) {
       await pause(180);
       await enemyTurn(true);
     } else {
@@ -442,6 +472,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.endLabel.textContent = '結束回合';
     render();
     if (room.finished) showResult();
+    else if (!room.hasPlayableCard()) {
+      await pause(180);
+      await enemyTurn();
+    }
   }
   function showResult() {
     if (exploring()) return;
@@ -547,6 +581,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       elements.ghost.querySelector<HTMLImageElement>('img')!.src = characters[session.characterId].image;
       render();
       if (room.won) showResult();
+      else if (!room.finished && !room.hasPlayableCard()) void enemyTurn();
     }
   };
 }

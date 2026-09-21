@@ -1,7 +1,15 @@
-import type { CardDefinition } from '../types/game.ts';
+import type { CardDefinition, Point } from '../types/game.ts';
+
+const cross: Point[] = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+const around: Point[] = [...cross, [1, 1], [1, -1], [-1, -1], [-1, 1]];
+const rays = (directions: Point[]): Point[] => directions.flatMap(([x, y]) => [1, 2, 3, 4].map(n => [x * n, y * n] as Point));
 
 // Relative landing tiles; positive y points up. Shared by rules and card diagrams.
 export const cards = {
+  throw: { name: '飛刀', hint: '原地攻擊十字方向第一隻怪物，刀留在命中格', offsets: rays(cross), canJump: false, copies: 4, cost: 1, effect: 'throw' },
+  shadow: { name: '追影', hint: '直線或斜線任意距離移動；只有刀格的怪物可攻擊', offsets: rays(around), canJump: false, copies: 4, cost: 1, effect: 'shadow' },
+  whirl: { name: '迴旋斬', hint: '八方向移動 1 格，攻擊落點怪物', offsets: around, canJump: false, copies: 4, cost: 1 },
+  knife: { name: '小刀', hint: '免費十字一步攻擊；用後或回合結束消失', offsets: cross, canJump: false, copies: 0, cost: 0, effect: 'knife' },
   short: {
     name: '短步',
     hint: '上下左右移動 1 格',
@@ -52,3 +60,8 @@ export const cards = {
   }
 } satisfies Record<string, CardDefinition>;
 export type CardId = keyof typeof cards;
+export type Loadout = 'basic' | 'rogue';
+export const loadouts: Record<Loadout, CardId[]> = {
+  basic: ['short', 'diagonal', 'rush', 'leap'],
+  rogue: ['throw', 'shadow', 'whirl']
+};

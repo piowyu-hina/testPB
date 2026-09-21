@@ -1,9 +1,9 @@
-import { cards } from '../data/cards.ts';
-import type { CardId } from '../data/cards.ts';
+import { cards, loadouts } from '../data/cards.ts';
+import type { CardId, Loadout } from '../data/cards.ts';
 import { enemies } from '../data/enemies.ts';
 import { rooms } from '../data/rooms.ts';
 import type { RoomDefinition } from '../data/rooms.ts';
-import type { Point, Enemy, MovePreview, EnemyMotion, TurnOutcome } from '../types/game.ts';
+import type { Point, Enemy, MovePreview, EnemyMotion, TurnOutcome, CardDefinition } from '../types/game.ts';
 import { attackOffsets, blocksAttack, enemySkill, faceToward } from './EnemyRules.ts';
 export const data = { cards, enemies };
 export interface MoveAction {
@@ -44,18 +44,22 @@ export class Room {
   hand: CardId[];
   deck: CardId[];
   discard: CardId[];
+  knives: Point[] = [];
+  loadout: Loadout;
   private random: () => number;
-  constructor(seed = 1, definition: RoomDefinition = rooms[0], health = 5) {
+  constructor(seed = 1, definition: RoomDefinition = rooms[0], health = 5, loadout: Loadout = 'basic') {
+    this.loadout = loadout;
     this.hero = [...definition.hero];
     this.health = Math.max(0, Math.min(5, health));
     this.actions = 2;
     this.turn = 1;
     this.enemies = definition.enemies.map((enemy) => ({ ...enemy, health: enemy.health ?? (enemy.elite ? 2 : 1), position: [...enemy.position] }));
-    this.hand = ['short', 'diagonal', 'rush'];
+    this.hand = loadouts[loadout].slice(0, 3);
     this.deck = [];
     this.discard = [];
     this.random = rng(seed);
-    for (const [id, card] of Object.entries(data.cards)) {
+    for (const id of loadouts[loadout]) {
+      const card = data.cards[id];
       const remaining = card.copies - this.hand.filter((x) => x === id).length;
       for (let i = 0; i < remaining; i++) this.deck.push(id as CardId);
     }
@@ -106,8 +110,26 @@ export class Room {
       [cards[i], cards[j]] = [cards[j], cards[i]];
     }
   }
+  cardCost(index: number) { return (data.cards[this.availableCards[index]] as CardDefinition | undefined)?.cost ?? 1; }
+  hasKnife(point: Point) { return this.knives.some(p => equal(p, point)); }
+  canUseCard(index: number) {
+    for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) if (this.canMove(index, [x, y])) return true;
+    return false;
+  }
+  hasPlayableCard() { return this.hand.some((_, i) => this.canUseCard(i)); }
+  setLoadout(next: Loadout) {
+    if (next === this.loadout) return;
+    const previous = loadouts[this.loadout], target = loadouts[next];
+    const convert = (pile: CardId[]) => pile.filter(id => id !== 'knife').map(id => target[Math.max(0, previous.indexOf(id)) % target.length]);
+    this.hand = convert(this.hand); this.deck = convert(this.deck); this.discard = convert(this.discard);
+    this.knives = []; this.loadout = next;
+  }
   canMove(index: number, destination: Point) {
-    return !this.finished && this.actions > 0 && this.matchesCard(index, destination);
+    if (this.finished || this.actions < this.cardCost(index) || !this.matchesCard(index, destination)) return false;
+    const card: CardDefinition = data.cards[this.hand[index]];
+    if (card.effect === 'throw') return Boolean(this.at(destination));
+    if (card.effect === 'shadow' && this.at(destination) && !this.hasKnife(destination)) return false;
+    return true;
   }
   private matchesCard(index: number, destination: Point) {
     if (!Number.isInteger(index) || !inside(destination)) return false;
@@ -142,7 +164,7 @@ export class Room {
     const victim = this.at(destination);
     const blocked = victim ? blocksAttack(victim, this.hero) : false;
     const survives = victim && (blocked || (victim.health ?? 1) > 1);
-    const landing = survives ? this.hero : destination;
+    const landing = survives || this.hand[index] === 'throw' ? this.hero : destination;
     return {
       blocked,
       destination: landing.slice() as Point,
@@ -154,6 +176,7 @@ export class Room {
   move(index: number, destination: Point): MoveAction | null {
     const preview = this.preview(index, destination);
     if (!preview) return null;
+    const cost = this.cardCost(index);
     const action: MoveAction = {
       from: this.hero.slice() as Point,
       to: destination.slice() as Point,
@@ -165,12 +188,20 @@ export class Room {
     if (victim && !preview.blocked) victim.health = (victim.health ?? 1) - 1;
     this.enemies = this.enemies.filter((e) => e.id !== preview.removedId);
     this.hero = preview.destination.slice() as Point;
-    this.discard.push(this.hand.splice(index, 1)[0]);
-    this.actions--;
+    const used = this.hand.splice(index, 1)[0];
+    if (used !== 'knife') this.discard.push(used);
+    this.actions -= cost;
+    if (used === 'throw') {
+      if (!this.hasKnife(destination)) this.knives.push([...destination]);
+    } else if (equal(this.hero, destination) && this.hasKnife(destination)) {
+      this.knives = this.knives.filter(point => !equal(point, destination));
+      this.hand.push('knife');
+    }
     return action;
   }
   endTurn(): TurnOutcome | null {
     if (this.finished) return null;
+    this.hand = this.hand.filter(id => id !== 'knife');
     const attacks = this.enemies
       .filter((e) => Room.threatens(e, this.hero))
       .map((e) => ({ id: e.id, from: e.position.slice() as Point }));

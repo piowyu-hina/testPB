@@ -5,6 +5,8 @@ export interface CardDefinition {
   offsets: Point[];
   canJump: boolean;
   copies: number;
+  cost?: number;
+  effect?: 'throw' | 'shadow' | 'knife';
 }
 export type EnemyKind = 'sprout' | 'stump';
 export type Facing = 'north' | 'east' | 'south' | 'west';

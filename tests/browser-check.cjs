@@ -31,7 +31,9 @@ fs.mkdirSync(output, { recursive: true });
   try {
     await page.goto(process.env.TESTPB_URL || 'http://127.0.0.1:4173');
     await page.locator('#home').waitFor();
+    await require('./rogue-flow.cjs')(page, output);
     await checkCharacters(page);
+    await require('./village-flow.cjs').chooseCharacter(page, 'pinkCat');
     await page.waitForFunction(() =>
       [...document.images].every((image) => image.complete && image.naturalWidth > 0)
     );
@@ -80,6 +82,7 @@ fs.mkdirSync(output, { recursive: true });
 
     // Start fresh, finish a whole room through real pointer clicks.
     await page.reload();
+    await require('./village-flow.cjs').chooseCharacter(page, 'pinkCat');
     await openDungeon(page);
     await page.locator('#start-game').click();
     await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -137,6 +140,7 @@ fs.mkdirSync(output, { recursive: true });
     });
     phone.on('pageerror', (error) => errors.push(error.message));
     await phone.goto(process.env.TESTPB_URL || 'http://127.0.0.1:4173');
+    await require('./village-flow.cjs').chooseCharacter(phone, 'pinkCat');
     await phone.screenshot({ path: path.join(output, 'home-mobile.png'), fullPage: true });
     await openDungeon(phone, true);
     await phone.screenshot({ path: path.join(output, 'dungeon-mobile.png'), fullPage: true });

@@ -1,4 +1,9 @@
 const assert = require('node:assert/strict');
+exports.chooseCharacter = async (page, id) => {
+  await page.locator('#home').waitFor();
+  await page.locator('#open-characters').click();
+  await page.locator(`[data-character="${id}"]`).click();
+};
 
 exports.openDungeon = async (page, touch = false) => {
   if (await page.locator('#home').isVisible()) {

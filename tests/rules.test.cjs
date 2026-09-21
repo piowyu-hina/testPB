@@ -9,7 +9,7 @@ test('opening state and data-driven twelve-card deck', () => {
   assert.equal(room.enemies.length, 4);
   assert.equal(room.health, 5);
   assert.deepEqual(room.hand, ['short', 'diagonal', 'rush']);
-  for (const id of Object.keys(data.cards))
+  for (const id of ['short', 'diagonal', 'rush', 'leap'])
     assert.equal([...room.hand, ...room.deck].filter((x) => x === id).length, 3);
 });
 

@@ -3,10 +3,17 @@ import type { CharacterId } from '../data/art.ts';
 
 // In-memory state survives navigation, not application restarts.
 export class GameSession {
-  characterId: CharacterId = 'rogue';
+  private selectedCharacter: CharacterId = 'rogue';
+  get characterId() { return this.selectedCharacter; }
+  set characterId(id: CharacterId) {
+    this.selectedCharacter = id;
+    const loadout = id === 'rogue' ? 'rogue' : 'basic';
+    if (!this.started) this.current = new Journey(this.seed - 1, loadout);
+    else this.current.setLoadout(loadout);
+  }
   private seed = 1;
   private started = false;
-  private current = new Journey(this.seed++);
+  private current = new Journey(this.seed++, this.characterId === 'rogue' ? 'rogue' : 'basic');
   get journey() { return this.current; }
   get canResume() { return this.started && !this.current.finished; }
   enterJourney(): Journey {
@@ -15,7 +22,7 @@ export class GameSession {
     return this.current;
   }
   startNewJourney(): Journey {
-    this.current = new Journey(this.seed++);
+    this.current = new Journey(this.seed++, this.characterId === 'rogue' ? 'rogue' : 'basic');
     this.started = true;
     return this.current;
   }
