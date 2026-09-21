@@ -24,25 +24,12 @@ export async function animate(
 }
 export const pause = (ms: number): Promise<void> =>
   reducedMotion.matches ? Promise.resolve() : new Promise((resolve) => setTimeout(resolve, ms));
+// Instant tile changes while comparing movement feel; impact feedback stays separate.
 export async function travel(
   node: HTMLElement,
-  from: Point,
+  _from: Point,
   to: Point,
-  jump: number
+  _jump: number
 ): Promise<void> {
   place(node, to);
-  await animate(
-    node,
-    [
-      { ...position(from), transform: 'translate(-50%, -50%)' },
-      {
-        ...position([(from[0] + to[0]) / 2, (from[1] + to[1]) / 2]),
-        transform: `translate(-50%, calc(-50% - ${jump}px))`,
-        offset: 0.5
-      },
-      { ...position(to), transform: 'translate(-50%, -50%)' }
-    ],
-    jump > 20 ? 180 : 130,
-    'cubic-bezier(0.1, 0.65, 0.45, 1)'
-  );
 }
