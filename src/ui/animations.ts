@@ -11,10 +11,11 @@ export function place(node: HTMLElement, point: Point): void {
 export async function animate(
   node: Element,
   keyframes: Keyframe[],
-  duration: number
+  duration: number,
+  easing = 'ease-in-out'
 ): Promise<void> {
   if (reducedMotion.matches) return;
-  const animation = node.animate(keyframes, { duration, easing: 'ease-in-out' });
+  const animation = node.animate(keyframes, { duration, easing });
   try {
     await animation.finished;
   } catch {
@@ -41,6 +42,7 @@ export async function travel(
       },
       { ...position(to), transform: 'translate(-50%, -50%)' }
     ],
-    jump > 20 ? 270 : 210
+    jump > 20 ? 180 : 130,
+    'cubic-bezier(0.1, 0.65, 0.45, 1)'
   );
 }

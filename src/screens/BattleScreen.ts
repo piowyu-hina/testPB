@@ -322,15 +322,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     if (action.removedId >= 0) {
       const victim = actor(action.removedId);
-      await animate(
-        victim,
-        [
-          { opacity: 1, scale: 1 },
-          { opacity: 1, scale: 1, offset: 0.6 },
-          { opacity: 0, scale: 0.75 }
-        ],
-        160
-      );
+      await pause(80);
       victim.remove();
       actors.delete(action.removedId);
     }
