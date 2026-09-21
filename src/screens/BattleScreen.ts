@@ -304,14 +304,15 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (!action) return;
     lock();
     // Keep the visible board stable until the movement and impact complete.
-    const contact = action.hitId !== undefined
+    const resisted = action.hitId !== undefined && action.removedId < 0;
+    const contact = resisted
       ? await approach(actor('hero'), action.from, action.to, action.kind === 'leap')
       : action.to;
-    if (action.hitId === undefined) await travel(actor('hero'), action.from, action.to, action.kind === 'leap' ? 30 : 9);
+    if (!resisted) await travel(actor('hero'), action.from, action.to, action.kind === 'leap' ? 30 : 9);
     if (action.hitId !== undefined) {
       elements.hint.textContent = blocked ? '正面格擋 · 這次攻擊沒有造成傷害' : action.removedId >= 0 ? '擊敗怪物' : '命中 · 怪物生命 −1';
       if (blocked) await shield(elements.board, action.to);
-      else await recoil(actor(action.hitId), action.from, action.to);
+      else if (resisted) await recoil(actor(action.hitId), action.from, action.to);
     }
     if (action.hitId !== undefined && action.removedId < 0) {
       const enemy = room.enemies.find(enemy => enemy.id === action.hitId);
@@ -324,14 +325,14 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       await animate(
         victim,
         [
-          { opacity: 1, scale: 1 },
+          { opacity: 1, scale: 1, filter: 'brightness(2)' },
+          { opacity: 1, scale: 1, filter: 'brightness(2)', offset: 0.6 },
           { opacity: 0, scale: 0.75 }
         ],
-        200
+        160
       );
       victim.remove();
       actors.delete(action.removedId);
-      await travel(actor('hero'), contact, action.to, 0);
     }
     if (room.finished) {
       busy = false;
