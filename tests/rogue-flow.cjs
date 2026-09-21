@@ -5,6 +5,11 @@ module.exports = async function checkRogue(page, output) {
   await page.locator('#open-dungeons').click();
   await page.locator('#start-game').click();
   assert.deepEqual(await page.locator('#hand .card').evaluateAll(nodes => nodes.map(n => n.dataset.card)), ['throw', 'shadow', 'lunge']);
+  const layoutBefore = await page.evaluate(() => ({
+    board: document.querySelector('.board-shell').getBoundingClientRect().top,
+    hand: document.querySelector('#hand').getBoundingClientRect().top,
+    hint: document.querySelector('#hint').getBoundingClientRect().top
+  }));
   const origin = await page.locator('[data-actor="hero"]').getAttribute('style');
   await page.locator('[data-card="throw"]').click();
   await page.locator('.tile[data-x="2"][data-y="2"]').hover();
@@ -28,6 +33,14 @@ module.exports = async function checkRogue(page, output) {
   await page.locator('#end-turn').click();
   await idle();
   assert.equal(await page.locator('[data-card="knife"]').count(), 1);
+  assert.equal(await page.locator('#hand .card').count(), 4);
+  const layoutAfter = await page.evaluate(() => ({
+    board: document.querySelector('.board-shell').getBoundingClientRect().top,
+    hand: document.querySelector('#hand').getBoundingClientRect().top,
+    hint: document.querySelector('#hint').getBoundingClientRect().top
+  }));
+  for (const key of Object.keys(layoutBefore))
+    assert.ok(Math.abs(layoutAfter[key] - layoutBefore[key]) < 1, `${key} shifted after adding a fourth card`);
   if (output) await page.screenshot({path: `${output}/rogue-knife-next-turn.png`});
   assert.equal(await page.locator('[data-card="lunge"]').count(), 1);
   const heroBeforeLunge = await page.locator('[data-actor="hero"]').getAttribute('style');

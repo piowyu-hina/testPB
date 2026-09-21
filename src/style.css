@@ -356,7 +356,7 @@ h1 {
   gap: clamp(9px, 1.6vh, 16px);
   justify-content: center;
   width: 100%;
-  min-height: clamp(99px, 17.2vh, 172px);
+  min-height: min(calc(var(--board) * 0.37), 200px);
 }
 .card {
   display: flex;
@@ -542,9 +542,6 @@ noscript {
   .controls {
     margin-top: 25px;
   }
-  .hand {
-    min-height: 0;
-  }
   .hint {
     margin-top: 12px;
   }
@@ -583,7 +580,7 @@ noscript {
   }
   .hand {
     gap: 10px;
-    min-height: 0;
+    min-height: calc(var(--board) * 0.42);
   }
   .card {
     width: 28%;
