@@ -38,21 +38,8 @@
 [data-theme='dark'] body {
   background: radial-gradient(ellipse at 30% 35%, #25262a 0, #161719 75%);
 }
-[data-theme='dark'] .brand,
-[data-theme='dark'] .home-details h1,
 [data-theme='dark'] .end-turn {
   color: #e5e5e7;
-}
-[data-theme='dark'] .eyebrow {
-  color: #a8a9ad;
-}
-[data-theme='dark'] .home-header {
-  border-color: #ffffff18;
-}
-[data-theme='dark'] .portrait-disc {
-  background: linear-gradient(155deg, #303136, #212226);
-  border-color: #ffffff12;
-  box-shadow: none;
 }
 [data-theme='dark'] .quiet-button:not(:disabled):hover {
   background: #303136;

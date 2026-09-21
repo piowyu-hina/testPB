@@ -1,0 +1,22 @@
+<main id="dungeon" class="destination-screen" aria-label="地下城選擇">
+  <header class="destination-header">
+    <button id="dungeon-back" class="quiet-button" type="button" tabindex="-1">‹ 返回村莊</button>
+    <span>地下城</span>
+    <button class="theme-toggle" type="button" tabindex="-1" aria-label="切換背景主題"></button>
+  </header>
+  <section class="destination-card" aria-labelledby="dungeon-title">
+    <img id="dungeon-art" class="destination-art" alt="陽光灑落在森林深處的古老石造遺跡" draggable="false" />
+    <div class="destination-shade"></div>
+    <div class="destination-copy">
+      <p id="dungeon-subtitle" class="scene-eyebrow"></p>
+      <h1 id="dungeon-title"></h1>
+      <p id="dungeon-description" class="destination-description"></p>
+      <p id="dungeon-state" class="destination-state"></p>
+    </div>
+    <div class="expedition-panel">
+      <div class="party-member"><img id="party-icon" alt="出戰角色" draggable="false" /><div><span>出戰角色</span><strong id="party-name"></strong></div></div>
+      <button id="start-game" class="expedition-button" type="button" tabindex="-1"><span id="start-label">出發</span><span aria-hidden="true">→</span></button>
+      <p id="journey-note"></p>
+    </div>
+  </section>
+</main>

@@ -1,4 +1,5 @@
 'use strict';
+const { openDungeon } = require('./village-flow.cjs');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const { Journey } = require('../src/battle/Journey.ts');
@@ -67,6 +68,7 @@ module.exports = async function playJourney(page, output, prefix = '') {
       assert.equal(await page.locator('.room-step.current').textContent(), String(stage + 1));
       assert.equal(await page.locator('#health .empty').count(), 5 - model.health);
       await page.locator('#back-home').click();
+      await openDungeon(page);
       assert.equal(await page.locator('#start-label').textContent(), '繼續旅途');
       await page.locator('#start-game').click();
       assert.equal(await page.locator('#result').isVisible(), false);

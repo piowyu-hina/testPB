@@ -1,24 +1,22 @@
-    <main id="home" class="home" aria-label="主畫面">
-      <header class="home-header">
-        <span class="brand">testPB</span
-        ><button
-          class="theme-toggle"
-          type="button"
-          tabindex="-1"
-          aria-label="切換為淺色背景"
-        ></button>
-      </header>
-      <section class="home-stage" aria-label="角色展示">
-        <div class="portrait-display">
-          <span class="portrait-disc" aria-hidden="true"></span>
-          <img id="home-portrait" alt="莉娜立繪" draggable="false" />
-        </div>
-        <div class="home-details">
-          <span class="eyebrow">旅途的起點</span>
-          <h1 id="hero-name">莉娜</h1>
-          <button id="start-game" class="primary-button" type="button" tabindex="-1">
-            <span id="start-label">出發</span><span aria-hidden="true">→</span>
-          </button>
-        </div>
-      </section>
-    </main>
+<main id="home" class="village" aria-label="村莊">
+  <img id="village-art" class="village-art" alt="森林邊的村莊，廣場中央是公會，右側城門通往森林" draggable="false" />
+  <div class="village-shade"></div>
+  <header class="village-header">
+    <div><p class="scene-eyebrow">冒險的起點</p><h1>林畔村莊</h1></div>
+    <button id="open-settings" class="scene-button" type="button" tabindex="-1"><span aria-hidden="true">⚙</span> 設定</button>
+  </header>
+  <figure class="village-portrait">
+    <img id="home-portrait" alt="莉娜立繪" draggable="false" />
+    <figcaption><span>同行的冒險者</span><strong id="hero-name">莉娜</strong></figcaption>
+  </figure>
+  <nav class="village-places" aria-label="村莊地點">
+    <button id="guild-entry" class="place-marker guild-marker" type="button" disabled><span class="marker-symbol" aria-hidden="true">◇</span><strong>公會</strong><small>尚未開放</small></button>
+    <button id="open-dungeons" class="place-marker dungeon-marker" type="button" tabindex="-1"><span class="marker-symbol" aria-hidden="true">↗</span><strong>地下城</strong><small id="dungeon-entry-note">探索森林遺跡</small></button>
+  </nav>
+  <footer class="village-footer"><span class="village-location">林畔廣場</span><p id="village-status">準備好了，就向森林出發吧。</p></footer>
+  <dialog id="village-settings" class="settings-dialog" aria-labelledby="settings-title">
+    <div class="settings-heading"><h2 id="settings-title">設定</h2><button id="close-settings" class="quiet-button" type="button" tabindex="-1">關閉</button></div>
+    <div class="settings-row"><div><strong>介面主題</strong><p>切換淺色／深色介面</p></div><button class="theme-toggle" type="button" tabindex="-1" aria-label="切換背景主題"></button></div>
+    <p class="settings-note">冒險進度僅保留於本次開啟期間。關閉遊戲後，將重新出發。</p>
+  </dialog>
+</main>

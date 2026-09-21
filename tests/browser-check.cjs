@@ -1,4 +1,5 @@
 'use strict';
+const { openDungeon } = require('./village-flow.cjs');
 // Development-only: use an existing Playwright installation. Not needed to play.
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
@@ -35,6 +36,10 @@ fs.mkdirSync(output, { recursive: true });
       [...document.images].every((image) => image.complete && image.naturalWidth > 0)
     );
     await page.screenshot({ path: path.join(output, 'home.png'), fullPage: true });
+    await openDungeon(page);
+    await page.screenshot({ path: path.join(output, 'dungeon.png'), fullPage: true });
+    await page.locator('#dungeon-back').click();
+    await openDungeon(page);
     await page.locator('#start-game').click();
     await page.locator('.card').first().waitFor();
     await page.waitForFunction(() =>
@@ -59,6 +64,7 @@ fs.mkdirSync(output, { recursive: true });
     assert.equal(await page.locator('#turn').textContent(), '第 1 回合');
     await page.locator('#back-home').click();
     assert.equal(await page.locator('#game').isVisible(), false);
+    await openDungeon(page);
     assert.equal(await page.locator('#start-label').textContent(), '繼續旅途');
     await page.locator('#start-game').click();
     assert.equal(await page.locator('.card').count(), 2);
@@ -73,6 +79,7 @@ fs.mkdirSync(output, { recursive: true });
 
     // Start fresh, finish a whole room through real pointer clicks.
     await page.reload();
+    await openDungeon(page);
     await page.locator('#start-game').click();
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.locator('.card').first().waitFor();
@@ -89,6 +96,7 @@ fs.mkdirSync(output, { recursive: true });
     assert.equal(await page.locator('#result-title').textContent(), '再試一次');
     await page.locator('#result-home').click();
     assert.equal(await page.locator('#result').isVisible(), false);
+    await openDungeon(page);
     assert.equal(await page.locator('#start-label').textContent(), '出發');
     await page.locator('#start-game').click();
     assert.equal(await page.locator('#health .empty').count(), 0);
@@ -110,6 +118,7 @@ fs.mkdirSync(output, { recursive: true });
     await page.locator('#back-home').click();
     assert.ok(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight));
     await page.screenshot({ path: path.join(output, 'home-small.png'), fullPage: true });
+    await openDungeon(page);
     await page.locator('#start-game').click();
     await page.setViewportSize({ width: 390, height: 844 });
     assert.equal(
@@ -128,6 +137,10 @@ fs.mkdirSync(output, { recursive: true });
     phone.on('pageerror', (error) => errors.push(error.message));
     await phone.goto(process.env.TESTPB_URL || 'http://127.0.0.1:4173');
     await phone.screenshot({ path: path.join(output, 'home-mobile.png'), fullPage: true });
+    await openDungeon(phone, true);
+    await phone.screenshot({ path: path.join(output, 'dungeon-mobile.png'), fullPage: true });
+    const startBox = await phone.locator('#start-game').boundingBox();
+    assert.ok(startBox.x >= 0 && startBox.x + startBox.width <= 390 && startBox.y + startBox.height <= 844);
     await phone.locator('#start-game').tap();
     await phone.locator('[data-card="rush"]').tap();
     assert.equal(await phone.locator('.tile.legal').count(), 3);

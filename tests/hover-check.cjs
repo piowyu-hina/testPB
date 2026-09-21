@@ -1,3 +1,4 @@
+const { openDungeon } = require('./village-flow.cjs');
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 
@@ -6,6 +7,7 @@ const assert = require('node:assert/strict');
   try {
     const page = await browser.newPage({ viewport: { width: 1100, height: 850 } });
     await page.goto('http://127.0.0.1:4173');
+    await openDungeon(page);
     await page.locator('#start-game').click();
     const enemies = page.locator('#actors .actor:not(.hero)');
     for (let i = 0; i < await enemies.count(); i++) {

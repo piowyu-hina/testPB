@@ -1,4 +1,5 @@
 'use strict';
+const { openDungeon, toggleVillageTheme } = require('./village-flow.cjs');
 const { chromium } = require('playwright');
 const { spawn } = require('node:child_process');
 const { once } = require('node:events');
@@ -65,13 +66,17 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     assert.ok(page.url().includes('tauri.localhost'), `Unexpected app URL: ${page.url()}`);
     await checkCharacters(page);
     await page.screenshot({ path: path.join(output, 'tauri-home.png') });
+    await openDungeon(page);
+    await page.screenshot({ path: path.join(output, 'tauri-dungeon.png') });
+    await page.locator('#dungeon-back').click();
     assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
-    await page.locator('#home .theme-toggle').click();
+    await toggleVillageTheme(page);
     await page.reload();
-    await page.locator('#start-game').waitFor();
+    await page.locator('#home').waitFor();
     assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
     await page.screenshot({ path: path.join(output, 'tauri-home-light.png') });
-    await page.locator('#home .theme-toggle').click();
+    await toggleVillageTheme(page);
+    await openDungeon(page);
     await page.locator('#start-game').click();
     assert.ok(
       await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight),
@@ -92,6 +97,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     assert.equal(await page.locator('.card').count(), 2);
     await page.locator('#game .theme-toggle').click();
     await page.locator('#back-home').click();
+    await openDungeon(page);
     assert.equal(await page.locator('#start-label').textContent(), '繼續旅途');
     await page.locator('#start-game').click();
     assert.equal(await page.locator('.card').count(), 2);
@@ -112,6 +118,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
       [...document.images].every((image) => image.complete && image.naturalWidth > 0)
     );
     await page.reload();
+    await openDungeon(page);
     await page.locator('#start-game').click();
     await playJourney(page, output, 'tauri-');
     assert.deepEqual(errors, []);

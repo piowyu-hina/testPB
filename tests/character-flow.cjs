@@ -1,4 +1,5 @@
 'use strict';
+const { openDungeon, checkVillage } = require('./village-flow.cjs');
 const assert = require('node:assert/strict');
 module.exports = async function checkCharacters(page) {
   const loaded = () =>
@@ -6,6 +7,7 @@ module.exports = async function checkCharacters(page) {
       [...document.images].every((image) => image.complete && image.naturalWidth > 0)
     );
   await page.locator('#home').waitFor();
+  await checkVillage(page);
   assert.equal(await page.evaluate(() => {
     const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true, button: 2 });
     document.querySelector('#home').dispatchEvent(event);
@@ -21,6 +23,7 @@ module.exports = async function checkCharacters(page) {
     await page.reload();
     await loaded();
     assert.equal(await page.locator('#hero-name').textContent(), name);
+    await openDungeon(page);
     await page.locator('#start-game').click();
     await page.locator('.card').first().click();
     await page.locator('#game').dispatchEvent('pointerdown', { button: 2 });
