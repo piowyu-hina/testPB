@@ -1,7 +1,7 @@
 # testPB
 
 - This is the active Tauri + TypeScript + Vite desktop prototype. Do not use Unity or change the Unity project.
-- The user authorized installing prerequisites and migrating to a standalone Tauri window. Build and test the desktop executable for this task.
+- The user authorized installing prerequisites and migrating to a standalone Tauri window. Current workflow preference: use `npm.cmd run desktop:dev` for iterative art/UI previews. Only rebuild the standalone release after the user requests a packaged update or confirms the batch is ready.
 - The installed game must run offline with embedded assets, without a Node server or console window. Source development uses Vite; double-clicking source index.html is no longer supported.
 - Scope: a village hub with a display-only character portrait, an unavailable guild entrance, settings, and a dungeon selection Screen for Forest Ruins. Forest Ruins uses the three-room 5x5 journey, four movement cards, Thorn Sprouts and Stump Guards (including an elite guard). Room transitions carry health and heal 1 (maximum 5). Returning to the village preserves the room or pending clearance in memory; death or final victory allows a fresh journey.
 - Forest monster skills and art are documented in docs/ForestMonsters.md. Skill/facing stay fixed during player actions; all forecast attacks resolve before enemies move and change intent. Front blocks consume the card/action without damage or movement. UI forecasts must use the same EnemyRules as combat resolution.
@@ -13,5 +13,5 @@
 - Judge character art by its proportions, readability, and intended game style, not color matching the current background (the user will replace it). Earlier white-haired catgirl art is documented in docs/CatgirlPortraitTrial.md and docs/CatgirlHead.md; active artwork is listed in docs/RogueArtTrial.md.
 - Card data and rules must stay separate from rendering. Preview must match the committed result.
 - Previous board chibi remains in assets/characters/heroine/HeroineHead.png for comparison. Active board art comes from the rogue trial above.
-- For code/gameplay changes, verify with npm test, typecheck, browser pointer checks and a real Tauri window. For image-only replacements, skip test suites: inspect the image, build and open the desktop app.
+- For code/gameplay changes, verify with npm test, typecheck, browser pointer checks and a real Tauri window. For image-only replacements, skip test suites: inspect the image and verify it in the running development window.
 - Save local Git checkpoints. Do not publish remotely or create ZIP packages unless requested.
