@@ -1,5 +1,5 @@
-import head from '../../assets/characters/heroine/HeroineHead.png';
-import portrait from '../../assets/characters/heroine/HeroinePortrait.png';
+import head from '../../assets/characters/rogue/Token.png';
+import portrait from '../../assets/characters/rogue/Portrait.png';
 import sprout from '../../assets/monsters/forest/ThornSprout.png';
 import stump from '../../assets/monsters/forest/StumpGuard.png';
 import type { EnemyKind } from '../types/game.ts';
