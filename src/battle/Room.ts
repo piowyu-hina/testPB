@@ -236,7 +236,6 @@ export class Room {
   }
   endTurn(): TurnOutcome | null {
     if (this.finished) return null;
-    this.hand = this.hand.filter(id => id !== 'knife');
     const attacks = this.enemies
       .filter((e) => Room.threatens(e, this.hero))
       .map((e) => ({ id: e.id, from: e.position.slice() as Point }));
@@ -273,8 +272,9 @@ export class Room {
         if (enemy.kind === 'stump') enemy.facing = faceToward(enemy, this.hero);
         if (!equal(from, best)) motions.push({ id: enemy.id, from, to: best.slice() as Point });
       }
-      this.discard.push(...this.hand);
-      this.hand = [];
+      const heldKnives = this.hand.filter(id => id === 'knife');
+      this.discard.push(...this.hand.filter(id => id !== 'knife'));
+      this.hand = heldKnives;
       for (let i = 0; i < 3; i++) this.draw();
       this.actions = 2;
       this.turn++;

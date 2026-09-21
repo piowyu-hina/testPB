@@ -148,7 +148,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         if (!exploring()) {
           const cost = document.createElement('small');
           cost.className = 'card-cost';
-          cost.textContent = id === 'knife' ? '0 行動 · 本回合' : '1 行動';
+          cost.textContent = id === 'knife' ? '0 行動' : '1 行動';
           card.append(cost);
         }
         card.addEventListener('pointerenter', () => {
@@ -260,7 +260,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       token.classList.toggle('occupied', room.enemies.some(enemy => equal(enemy.position, point)));
       token.dataset.point = point.join(',');
       token.innerHTML = groundDaggerIcon;
-      token.title = '飛刀：走到此格回收一張本回合免費小刀';
+      token.title = '飛刀：走到此格獲得一張免費小刀';
       place(token, point);
       $('ground-knives').append(token);
     }

@@ -73,13 +73,19 @@ test('lunge moves one cardinal step, attacks the landing enemy, and cannot jump 
   assert.deepEqual(r.hero, [2, 1]);
   assert.deepEqual(r.enemies.map(e => e.id), [1]);
 });
-test('manual end expires knives but preserves ground tokens; next room starts without tokens', () => {
+test('unused knives persist across turns and can be played later; next room clears them', () => {
   const r = room(); r.hand = ['knife', 'whirl']; r.knives = [[4, 4]];
   r.endTurn();
-  assert.equal([...r.hand, ...r.deck, ...r.discard].includes('knife'), false);
+  assert.equal(r.hand.filter(id => id === 'knife').length, 1);
+  assert.equal(r.hand.length, 4);
+  assert.equal(r.canMove(r.hand.indexOf('knife'), [2, 1]), true);
+  r.move(r.hand.indexOf('knife'), [2, 1]);
+  assert.deepEqual(r.hero, [2, 1]);
+  assert.equal(r.hand.includes('knife'), false);
   assert.deepEqual(r.knives, [[4, 4]]);
-  const j = new Journey(1, 'rogue'); j.room.knives = [[1, 1]]; j.room.enemies = []; j.room.hero = [2, 4];
+  const j = new Journey(1, 'rogue'); j.room.knives = [[1, 1]]; j.room.hand.push('knife'); j.room.enemies = []; j.room.hero = [2, 4];
   assert.equal(j.advance(), true); assert.deepEqual(j.room.knives, []);
+  assert.equal(j.room.hand.includes('knife'), false);
   assert.deepEqual(j.room.hand, ['throw', 'shadow', 'whirl']);
 });
 test('knife moves one cardinal step and can collect another ground knife', () => {
