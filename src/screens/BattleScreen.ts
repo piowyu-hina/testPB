@@ -325,8 +325,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       await animate(
         victim,
         [
-          { opacity: 1, scale: 1, filter: 'brightness(2)' },
-          { opacity: 1, scale: 1, filter: 'brightness(2)', offset: 0.6 },
+          { opacity: 1, scale: 1 },
+          { opacity: 1, scale: 1, offset: 0.6 },
           { opacity: 0, scale: 0.75 }
         ],
         160
