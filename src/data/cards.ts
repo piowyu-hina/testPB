@@ -4,6 +4,7 @@ import type { CardDefinition } from '../types/game.ts';
 export const cards = {
   short: {
     name: '短步',
+    hint: '上下左右移動 1 格',
     offsets: [
       [0, 1],
       [1, 0],
@@ -15,6 +16,7 @@ export const cards = {
   },
   diagonal: {
     name: '斜步',
+    hint: '斜向移動 1 格',
     offsets: [
       [1, 1],
       [1, -1],
@@ -26,7 +28,7 @@ export const cards = {
   },
   rush: {
     name: '突進',
-    hint: '不可穿越',
+    hint: '上下左右移動 2 格，不可穿越敵人',
     offsets: [
       [0, 2],
       [2, 0],
@@ -38,7 +40,7 @@ export const cards = {
   },
   leap: {
     name: '躍步',
-    hint: '可越過敵人',
+    hint: '斜向移動 2 格，可越過敵人',
     offsets: [
       [2, 2],
       [2, -2],

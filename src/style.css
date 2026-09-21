@@ -205,8 +205,15 @@ h1 {
 }
 .actions {
   display: flex;
-  gap: 16px;
+  gap: 6px;
+  align-items: center;
 }
+.actions small { font-size: 12px; white-space: nowrap; color: var(--muted); }
+#end-forecast { display: block; font-size: 11px; line-height: 1.5; margin-top: 4px; color: var(--muted); }
+.battle-help { width: min(560px, calc(100vw - 32px)); max-height: 85svh; overflow: auto; }
+.battle-help ol { padding-left: 22px; line-height: 1.8; font-size: 14px; }
+.battle-help li { margin-bottom: 12px; }
+.battle-help p { font-size: 12px; line-height: 1.6; }
 .action-pip {
   width: 13px;
   height: 18px;
@@ -631,8 +638,10 @@ noscript {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    width: 150px;
+    width: min(300px, 100%);
   }
+  #end-label, #end-forecast { white-space: nowrap; }
+  #end-forecast { margin-top: 0; font-size: 10px; }
   .end-icon {
     width: 44px;
     height: 44px;

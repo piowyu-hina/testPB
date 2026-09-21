@@ -46,6 +46,7 @@ fs.mkdirSync(output, { recursive: true });
       [...document.images].every((image) => image.complete && image.naturalWidth > 0)
     );
     assert.equal(await page.locator('.tile').count(), 25);
+    await require('./battle-ux.cjs')(page);
     assert.equal(await page.locator('.card').count(), 3);
     await page.screenshot({ path: path.join(output, 'desktop.png'), fullPage: true });
     await page.locator('[data-card="rush"]').click();

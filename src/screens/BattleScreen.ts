@@ -138,7 +138,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
               definition.name + (definition.hint ? ` · ${definition.hint}` : '');
         });
         card.addEventListener('pointerleave', () => {
-          elements.hint.textContent = '';
+          render();
         });
         onClick(card, () => {
           if (busy || (!exploring() && (room.finished || room.actions <= 0))) return;
@@ -182,11 +182,23 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const focusedEnemy = room.enemies.find((e) => e.id === (hoveredEnemy >= 0 ? hoveredEnemy : inspectedEnemy));
     const focus = !preview ? focusedEnemy : null;
     renderEnemyInfo($('enemy-info'), !busy && !room.finished ? focusedEnemy : undefined);
-    if (preview?.blocked) elements.hint.textContent = '正面格擋：無傷害，仍消耗卡片與 1 次行動。';
-    else if (!busy && selected < 0 && !focusedEnemy && !room.finished)
-      elements.hint.textContent = '未選牌時點怪物，可查看下一招與弱點';
-    else if (!busy && selected >= 0 && hoveredTile) elements.hint.textContent = '';
     const cleared = exploring();
+    const chosenId = room.availableCards[selected];
+    const chosen = chosenId ? data.cards[chosenId] : undefined;
+    if (!busy) {
+      if (preview?.blocked) elements.hint.textContent = '正面格擋：無傷害，仍消耗卡片與 1 次行動。';
+      else if (cleared) elements.hint.textContent = chosen
+        ? `${chosen.name}：點亮起的格子，走向上方出口 · 不消耗行動`
+        : '清場完成！選下方探索卡，走向上方出口 · 下一間恢復 1 點生命';
+      else if (preview) elements.hint.textContent = `${preview.removedId >= 0 ? '擊敗怪物 · ' : ''}落點受擊預告：${preview.damage} 傷害${preview.damage >= room.health ? ' · 致命' : ''}${room.actions > 1 ? '（仍可再行動）' : '（移動後敵人行動）'}`;
+      else if (chosen) {
+        const hasMove = tiles.some(({ point }) => room.canMove(selected, point));
+        elements.hint.textContent = `${chosen.name} · ${chosen.hint} · ${hasMove ? '點亮起的格子移動' : '目前無可用落點，請換牌'} · 再點此牌取消`;
+      } else if (focusedEnemy) elements.hint.textContent = enemySummary(focusedEnemy);
+      else elements.hint.textContent = room.finished ? '' : '先選一張牌，再點亮起的格子 · 點怪物可查看技能';
+    }
+    const endDamage = room.finished ? 0 : room.damageAt(room.hero);
+    $('end-forecast').textContent = busy || room.finished ? '' : `留在原地受 ${endDamage} 傷害${endDamage >= room.health ? ' · 致命' : ''}`;
     $('room-exit').toggleAttribute('hidden', !cleared);
     elements.game.classList.toggle('exploring', cleared);
     for (const { tile, threats, point } of tiles) {
@@ -234,7 +246,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.ghost.hidden = !preview;
     if (preview) place(elements.ghost, preview.destination);
     renderHealth(room.finished || busy ? 0 : preview ? preview.damage : room.damageAt(room.hero));
-    elements.actions.innerHTML = Array.from(
+    elements.actions.innerHTML = `<small>行動 ${room.actions}/2</small>` + Array.from(
       { length: 2 },
       (_, i) => `<span class="action-pip${i >= room.actions || busy ? ' empty' : ''}"></span>`
     ).join('');
@@ -253,6 +265,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     ).join('');
     elements.end.disabled = busy || room.finished;
     $<HTMLButtonElement>('back-home').disabled = busy;
+    $<HTMLButtonElement>('open-battle-help').disabled = busy;
     elements.game.classList.toggle('choosing', selected >= 0 && !busy);
     elements.game.setAttribute('aria-busy', String(busy));
     syncHand();
@@ -270,6 +283,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       actor.classList.remove('origin-preview', 'victim-preview', 'hovered');
     elements.end.disabled = true;
     $<HTMLButtonElement>('back-home').disabled = true;
+    $<HTMLButtonElement>('open-battle-help').disabled = true;
+    $('end-forecast').textContent = '';
     elements.game.classList.remove('choosing');
     for (const { tile } of tiles) {
       tile.disabled = true;
@@ -449,6 +464,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     render();
   }
   makeTiles();
+  const help = $<HTMLDialogElement>('battle-help');
+  onClick($('open-battle-help'), () => help.showModal());
+  onClick($('close-battle-help'), () => help.close());
   onClick($('enemy-info-close'), () => {
     inspectedEnemy = -1;
     hoveredEnemy = -1;
@@ -460,6 +478,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     reset();
   });
   function leave() {
+    help.close();
     inspectedEnemy = -1;
     selected = -1;
     hoveredTile = null;
@@ -476,7 +495,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       event.button !== 0 ||
       busy ||
       root.hidden ||
-      (event.target instanceof Element && event.target.closest('button, .board-shell, .modal, .enemy-info'))
+      (event.target instanceof Element && event.target.closest('button, dialog, .board-shell, .modal, .enemy-info'))
     )
       return;
     selected = -1;
