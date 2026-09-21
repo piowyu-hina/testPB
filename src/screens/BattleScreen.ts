@@ -209,6 +209,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       tile.classList.toggle('odd', (point[0] + point[1]) % 2 === 1);
       tile.classList.toggle('danger', damage > 0);
       tile.classList.toggle('legal', legal);
+      tile.classList.toggle('inspectable', !busy && !room.finished && selected < 0 && Boolean(room.at(point)));
       tile.classList.toggle('capture', legal && Boolean(room.at(point)));
       tile.classList.toggle('blocked', legal && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
       tile.classList.toggle('landing', Boolean(preview && equal(point, preview.destination)));

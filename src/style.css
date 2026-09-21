@@ -85,9 +85,8 @@ h1 {
 .exploring .actions {
   visibility: hidden;
 }
-.exploring .tile {
-  cursor: pointer;
-}
+.tile { cursor: default; }
+.tile.legal:not(:disabled), .tile.inspectable:not(:disabled) { cursor: pointer; }
 .exploring .tile.legal:not(:disabled):hover {
   background: #d8e3cb;
 }
