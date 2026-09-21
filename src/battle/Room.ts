@@ -4,6 +4,7 @@ import { enemies } from '../data/enemies.ts';
 import { rooms } from '../data/rooms.ts';
 import type { RoomDefinition } from '../data/rooms.ts';
 import type { Point, Enemy, MovePreview, EnemyMotion, TurnOutcome } from '../types/game.ts';
+import { attackOffsets, blocksAttack, enemySkill, faceToward } from './EnemyRules.ts';
 export const data = { cards, enemies };
 export interface MoveAction {
   hitId?: number;
@@ -124,7 +125,7 @@ export class Room {
     return true;
   }
   static threatens(enemy: Enemy, tile: Point) {
-    return data.enemies[enemy.kind].attacks.some(
+    return attackOffsets(enemy).some(
       (o) => enemy.position[0] + o[0] === tile[0] && enemy.position[1] + o[1] === tile[1]
     );
   }
@@ -139,9 +140,11 @@ export class Room {
   preview(index: number, destination: Point): MovePreview | null {
     if (!this.canMove(index, destination)) return null;
     const victim = this.at(destination);
-    const survives = victim && (victim.health ?? 1) > 1;
+    const blocked = victim ? blocksAttack(victim, this.hero) : false;
+    const survives = victim && (blocked || (victim.health ?? 1) > 1);
     const landing = survives ? this.hero : destination;
     return {
+      blocked,
       destination: landing.slice() as Point,
       hitId: victim?.id,
       removedId: victim && !survives ? victim.id : -1,
@@ -159,7 +162,7 @@ export class Room {
       hitId: preview.hitId
     };
     const victim = this.at(destination);
-    if (victim) victim.health = (victim.health ?? 1) - 1;
+    if (victim && !preview.blocked) victim.health = (victim.health ?? 1) - 1;
     this.enemies = this.enemies.filter((e) => e.id !== preview.removedId);
     this.hero = preview.destination.slice() as Point;
     this.discard.push(this.hand.splice(index, 1)[0]);
@@ -183,6 +186,10 @@ export class Room {
           ? -100
           : distanceSquared(position, this.hero);
       for (const enemy of ordered) {
+        const hold = enemySkill(enemy).holdAfter;
+        enemy.skillIndex = ((enemy.skillIndex ?? 0) + 1) % data.enemies[enemy.kind].skills.length;
+        if (hold) continue;
+        if (enemy.kind === 'stump') enemy.facing = faceToward(enemy, this.hero);
         if (Room.threatens(enemy, this.hero)) continue;
         const from = enemy.position.slice() as Point;
         let best = from,
@@ -197,6 +204,7 @@ export class Room {
           }
         }
         enemy.position = best.slice() as Point;
+        if (enemy.kind === 'stump') enemy.facing = faceToward(enemy, this.hero);
         if (!equal(from, best)) motions.push({ id: enemy.id, from, to: best.slice() as Point });
       }
       this.discard.push(...this.hand);

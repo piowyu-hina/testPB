@@ -342,12 +342,6 @@ h1 {
 .actor.hovered img {
   scale: 1.06;
 }
-.actor[data-kind='imp'] img {
-  translate: 0 1.675%;
-}
-.actor[data-kind='bat'] img {
-  translate: 0 1.794%;
-}
 .actor.hero {
   z-index: 3;
   width: 21.24%;

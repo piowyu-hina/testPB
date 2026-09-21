@@ -8,6 +8,9 @@ import type { GameSession } from '../app/GameSession';
 import template from './battle.html?raw';
 import { place, animate, pause, travel } from '../ui/animations';
 import { diagram } from '../ui/cardDiagram';
+import { enemySkill, blocksAttack } from '../battle/EnemyRules';
+import { intentLabel, enemySummary, renderEnemyInfo } from '../ui/enemyInfo';
+import '../enemy.css';
 
 export function mountBattle(host: HTMLElement, session: GameSession, onHome: () => void): Screen {
   const root = mountScreenRoot(host, template);
@@ -35,6 +38,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     selected = -1,
     hoveredTile: Point | null = null,
     hoveredEnemy = -1,
+    inspectedEnemy = -1,
     busy = false,
     handSignature = '';
   const tiles: { tile: HTMLButtonElement; threats: HTMLSpanElement; point: Point }[] = [];
@@ -84,7 +88,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           const enemy = room.at(hoveredTile);
           elements.hint.textContent =
             enemy && selected < 0
-              ? `${enemy.elite ? '精英・' : ''}${data.enemies[enemy.kind].name} · ${data.enemies[enemy.kind].hint}${enemy.elite ? ' · 2 傷害' : ''}`
+              ? enemySummary(enemy)
               : '';
           render();
         });
@@ -96,7 +100,15 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
             render();
           }
         });
-        onClick(tile, () => (exploring() ? walk([x, y]) : move([x, y])));
+        onClick(tile, () => {
+          if (busy) return;
+          const enemy = room.at([x, y]);
+          if (enemy && selected < 0) {
+            inspectedEnemy = enemy.id;
+            render();
+          } else if (exploring()) walk([x, y]);
+          else move([x, y]);
+        });
         elements.tiles.append(tile);
         tiles.push({ tile, threats, point: [x, y] });
       }
@@ -131,6 +143,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         onClick(card, () => {
           if (busy || (!exploring() && (room.finished || room.actions <= 0))) return;
           selected = selected === index ? -1 : index;
+          inspectedEnemy = -1;
           hoveredTile = null;
           hoveredEnemy = -1;
           render();
@@ -161,12 +174,18 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       !busy && hoveredTile
         ? exploring()
           ? room.canExplore(selected, hoveredTile)
-            ? { destination: hoveredTile, removedId: -1, damage: 0 }
+            ? { destination: hoveredTile, removedId: -1, damage: 0, blocked: false }
             : null
           : room.preview(selected, hoveredTile)
         : null;
     const removedId = preview?.removedId ?? -1;
-    const focus = !preview ? room.enemies.find((e) => e.id === hoveredEnemy) : null;
+    const focusedEnemy = room.enemies.find((e) => e.id === (hoveredEnemy >= 0 ? hoveredEnemy : inspectedEnemy));
+    const focus = !preview ? focusedEnemy : null;
+    renderEnemyInfo($('enemy-info'), !busy && !room.finished ? focusedEnemy : undefined);
+    if (preview?.blocked) elements.hint.textContent = '正面格擋：無傷害，仍消耗卡片與 1 次行動。';
+    else if (!busy && selected < 0 && !focusedEnemy && !room.finished)
+      elements.hint.textContent = '標記為下次技能 · 未選牌時點怪物看說明';
+    else if (!busy && selected >= 0 && hoveredTile) elements.hint.textContent = '';
     const cleared = exploring();
     $('room-exit').toggleAttribute('hidden', !cleared);
     elements.game.classList.toggle('exploring', cleared);
@@ -178,6 +197,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       tile.classList.toggle('danger', damage > 0);
       tile.classList.toggle('legal', legal);
       tile.classList.toggle('capture', legal && Boolean(room.at(point)));
+      tile.classList.toggle('blocked', legal && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
       tile.classList.toggle('landing', Boolean(preview && equal(point, preview.destination)));
       tile.classList.toggle('focus-threat', Boolean(focus && Room.threatens(focus, point)));
       tile.classList.toggle('exit-tile', cleared && equal(point, journey.exit));
@@ -185,7 +205,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const enemy = room.at(point);
       tile.setAttribute(
         'aria-label',
-        `${point[0] + 1},${point[1] + 1}${enemy ? ` ${data.enemies[enemy.kind].name}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? '，可移動' : ''}`
+        `${point[0] + 1},${point[1] + 1}${enemy ? ` ${enemySummary(enemy)}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? '，可移動' : ''}`
       );
       if (cleared)
         tile.setAttribute(
@@ -200,6 +220,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       place(sprite, enemy.position);
       sprite.classList.toggle('victim-preview', enemy.id === removedId);
       sprite.classList.toggle('hovered', enemy.id === hoveredEnemy && !busy);
+      const skill = enemySkill(enemy);
+      sprite.dataset.skill = skill.id;
+      sprite.dataset.facing = enemy.facing ?? 'south';
+      const intent = sprite.querySelector<HTMLElement>('.enemy-intent')!;
+      intent.textContent = intentLabel(enemy);
+      intent.title = `${enemySummary(enemy)}。${skill.hint}`;
       const health = sprite.querySelector('.boss-health');
       if (health) {
         health.innerHTML = Array.from({ length: 2 }, (_, i) => `<i class="${i < (enemy.health ?? 2) ? '' : 'empty'}"></i>`).join('');
@@ -239,6 +265,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     selected = -1;
     hoveredTile = null;
     hoveredEnemy = -1;
+    inspectedEnemy = -1;
+    $('enemy-info').hidden = true;
     elements.hint.textContent = '';
     elements.ghost.hidden = true;
     for (const actor of actors.values())
@@ -248,7 +276,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.game.classList.remove('choosing');
     for (const { tile } of tiles) {
       tile.disabled = true;
-      tile.classList.remove('legal', 'landing', 'focus-threat', 'capture');
+      tile.classList.remove('legal', 'landing', 'focus-threat', 'capture', 'blocked');
     }
     for (const card of elements.hand.querySelectorAll<HTMLButtonElement>('.card')) {
       card.disabled = true;
@@ -390,6 +418,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     loadRoom();
   }
   function loadRoom() {
+    inspectedEnemy = -1;
     room = journey.room;
     selected = -1;
     hoveredTile = null;
@@ -409,6 +438,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         `${enemy.elite ? '精英・' : ''}${data.enemies[enemy.kind].name}`
       );
       sprite.dataset.kind = enemy.kind;
+      sprite.insertAdjacentHTML('beforeend', '<span class="enemy-intent" aria-hidden="true"></span>');
       if (enemy.elite) {
         sprite.classList.add('elite');
         sprite.insertAdjacentHTML('beforeend', '<span class="boss-health"></span>');
@@ -423,12 +453,18 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     render();
   }
   makeTiles();
+  onClick($('enemy-info-close'), () => {
+    inspectedEnemy = -1;
+    hoveredEnemy = -1;
+    render();
+  });
   onClick(elements.end, () => enemyTurn());
   onClick($('replay'), () => {
     if (!room.finished || elements.result.hidden) return;
     reset();
   });
   function leave() {
+    inspectedEnemy = -1;
     selected = -1;
     hoveredTile = null;
     hoveredEnemy = -1;
@@ -444,7 +480,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       event.button !== 0 ||
       busy ||
       root.hidden ||
-      (event.target instanceof Element && event.target.closest('button, .board-shell, .modal'))
+      (event.target instanceof Element && event.target.closest('button, .board-shell, .modal, .enemy-info'))
     )
       return;
     selected = -1;

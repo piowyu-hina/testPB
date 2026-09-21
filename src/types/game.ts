@@ -6,11 +6,19 @@ export interface CardDefinition {
   canJump: boolean;
   copies: number;
 }
-export type EnemyKind = 'imp' | 'bat';
-export interface EnemyDefinition {
+export type EnemyKind = 'sprout' | 'stump';
+export type Facing = 'north' | 'east' | 'south' | 'west';
+export interface EnemySkill {
+  id: 'thorns' | 'sweep' | 'roots';
   name: string;
   hint: string;
-  attacks: Point[];
+  pattern: 'adjacent' | 'front' | 'diagonal';
+  guardsFront: boolean;
+  holdAfter: boolean;
+}
+export interface EnemyDefinition {
+  name: string;
+  skills: readonly EnemySkill[];
 }
 export interface Enemy {
   id: number;
@@ -18,8 +26,11 @@ export interface Enemy {
   position: Point;
   elite?: boolean;
   health?: number;
+  skillIndex?: number;
+  facing?: Facing;
 }
 export interface MovePreview {
+  blocked: boolean;
   hitId?: number;
   destination: Point;
   removedId: number;

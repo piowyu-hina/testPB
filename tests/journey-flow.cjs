@@ -4,9 +4,11 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 const { Journey } = require('../src/battle/Journey.ts');
 const { nextStep } = require('./explore-helper.cjs');
+const { enemySkill } = require('../src/battle/EnemyRules.ts');
 
 module.exports = async function playJourney(page, output, prefix = '') {
   const run = new Journey(1);
+  let checkedBlock = false;
   const idle = () =>
     page.waitForFunction(
       () => document.getElementById('game').getAttribute('aria-busy') === 'false'
@@ -16,25 +18,50 @@ module.exports = async function playJourney(page, output, prefix = '') {
     const model = run.room;
     assert.equal(await page.locator('.room-step.current').textContent(), String(stage + 1));
     assert.equal(await page.locator('#health .empty').count(), 5 - model.health);
+    if (stage === 1) {
+      await page.locator('.tile[data-x="1"][data-y="3"]').click();
+      assert.equal(await page.locator('#enemy-info').isVisible(), true);
+      assert.ok((await page.locator('[data-enemy-title]').textContent()).includes('揮枝'));
+      assert.equal(await page.locator('.focus-threat').count(), 1);
+      await page.screenshot({ path: path.join(output, `${prefix}guard-sweep.png`) });
+      await page.locator('#enemy-info-close').click();
+      await page.locator('.tile[data-x="3"][data-y="3"]').click();
+      assert.ok((await page.locator('[data-enemy-current]').textContent()).includes('正面防護解除'));
+      assert.equal(await page.locator('.focus-threat').count(), 4);
+      await page.screenshot({ path: path.join(output, `${prefix}guard-roots.png`) });
+      await page.locator('#enemy-info-close').click();
+    }
     if (stage === 2) {
       assert.equal(await page.locator('.elite-crown').count(), 1);
       await page.screenshot({ path: path.join(output, `${prefix}elite-room.png`) });
     }
     for (let steps = 0; steps < 100 && !model.finished; steps++) {
-      let best = null;
+      let best = null, blockedMove = null;
       model.hand.forEach((_, card) => {
         for (let y = 0; y < 5; y++)
           for (let x = 0; x < 5; x++) {
             const point = [x, y],
               preview = model.preview(card, point);
             if (!preview) continue;
+            if (preview.blocked) blockedMove = { card, point };
             const score =
-              (preview.removedId >= 0 ? 15 : preview.hitId !== undefined ? 12 : 0) -
+              (preview.removedId >= 0 ? 15 : preview.hitId !== undefined && !preview.blocked ? 12 : 0) -
               preview.damage * 10 -
               ((x - 2) ** 2 + (y - 2) ** 2) * 0.1;
             if (!best || score > best.score) best = { card, point, score };
           }
       });
+      if (blockedMove && !checkedBlock) {
+        const card = page.locator(`.card[data-index="${blockedMove.card}"]`);
+        const tile = page.locator(`.tile[data-x="${blockedMove.point[0]}"][data-y="${blockedMove.point[1]}"]`);
+        await card.click();
+        await tile.hover();
+        assert.ok((await tile.getAttribute('class')).includes('blocked'));
+        assert.ok((await page.locator('#hint').textContent()).includes('格擋'));
+        await page.screenshot({ path: path.join(output, `${prefix}guard-block-preview.png`) });
+        await card.click();
+        checkedBlock = true;
+      }
       if (!best) {
         await page.locator('#end-turn').click();
         model.endTurn();
@@ -45,6 +72,10 @@ module.exports = async function playJourney(page, output, prefix = '') {
         if (!model.finished && model.actions === 0) model.endTurn();
       }
       await idle();
+      for (const enemy of model.enemies) {
+        assert.equal(await page.locator(`[data-actor="${enemy.id}"]`).getAttribute('data-skill'), enemySkill(enemy).id);
+        assert.equal(await page.locator(`[data-actor="${enemy.id}"]`).getAttribute('data-facing'), enemy.facing ?? 'south');
+      }
       const boss = model.enemies.find(e => e.elite);
       assert.equal(await page.locator('.boss-health i:not(.empty)').count(), boss ? boss.health : 0);
       assert.equal(await page.locator('#health .empty').count(), 5 - model.health);
@@ -108,4 +139,5 @@ module.exports = async function playJourney(page, output, prefix = '') {
   }
   await page.screenshot({ path: path.join(output, `${prefix}victory.png`) });
   assert.ok(run.won);
+  assert.ok(checkedBlock, 'Journey must exercise the frontal block warning.');
 };

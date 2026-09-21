@@ -17,7 +17,7 @@ test('rush is blocked by an intermediate enemy; invalid moves are atomic', () =>
   const room = new Room();
   room.hero = [2, 2];
   room.hand = ['rush'];
-  room.enemies = [enemy(0, 'imp', [2, 3]), enemy(1, 'bat', [2, 4])];
+  room.enemies = [enemy(0, 'sprout', [2, 3]), enemy(1, 'sprout', [2, 4])];
   const snapshot = JSON.stringify(room);
   assert.equal(room.canMove(0, [2, 4]), false);
   assert.equal(room.move(0, [2, 4]), null);
@@ -38,7 +38,7 @@ test('leap crosses an enemy, attacks only the landing tile and consumes one acti
   const room = new Room();
   room.hero = [2, 2];
   room.hand = ['leap'];
-  room.enemies = [enemy(0, 'imp', [3, 3]), enemy(1, 'bat', [4, 4])];
+  room.enemies = [enemy(0, 'sprout', [3, 3]), enemy(1, 'sprout', [4, 4])];
   assert.equal(room.move(0, [4, 4]).removedId, 1);
   assert.equal(room.at([3, 3]).id, 0);
   assert.equal(room.at([4, 4]), undefined);
@@ -50,7 +50,7 @@ test('preview excludes defeated threats, sums surviving attacks and never mutate
   const room = new Room();
   room.hero = [2, 2];
   room.hand = ['short'];
-  room.enemies = [enemy(0, 'imp', [2, 3]), enemy(1, 'imp', [1, 3]), enemy(2, 'imp', [3, 3])];
+  room.enemies = [enemy(0, 'sprout', [2, 3]), enemy(1, 'sprout', [1, 3]), enemy(2, 'sprout', [3, 3])];
   const before = JSON.stringify(room);
   const preview = room.preview(0, [2, 3]);
   assert.equal(preview.damage, 2);
@@ -65,7 +65,7 @@ test('preview excludes defeated threats, sums surviving attacks and never mutate
 
 test('last capture wins immediately; lethal attack does not draw another hand', () => {
   const room = new Room();
-  room.enemies = [enemy(0, 'imp', [2, 2])];
+  room.enemies = [enemy(0, 'sprout', [2, 2])];
   room.move(2, [2, 2]);
   assert.equal(room.won, true);
   assert.equal(room.endTurn(), null);
@@ -73,7 +73,7 @@ test('last capture wins immediately; lethal attack does not draw another hand', 
   assert.equal(room.move(0, [2, 1]), null);
   const doomed = new Room();
   doomed.health = 1;
-  doomed.enemies = [enemy(0, 'imp', [2, 1])];
+  doomed.enemies = [enemy(0, 'sprout', [2, 1])];
   doomed.endTurn();
   assert.equal(doomed.health, 0);
   assert.equal(doomed.lost, true);

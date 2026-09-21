@@ -43,6 +43,13 @@
         </button>
       </section>
       <div class="hint" id="hint" aria-live="polite"></div>
+      <aside id="enemy-info" class="enemy-info" aria-label="怪物技能" hidden>
+        <button id="enemy-info-close" type="button" tabindex="-1" aria-label="關閉怪物說明">×</button>
+        <strong data-enemy-title></strong>
+        <p data-enemy-current></p>
+        <p data-enemy-cycle></p>
+        <small>未選牌時點怪物，可固定顯示說明。</small>
+      </aside>
     </main>
     <div
       class="modal"

@@ -91,13 +91,16 @@ test('death ends the whole journey and a new journey restores the opening', () =
 });
 
 test('elite damage preview matches resolution, capture removes its entire threat', () => {
-  const room = new Room(1, rooms[2]);
+  const definition = { name: 'Elite damage fixture', hero: [2, 0], enemies: [
+    { id: 0, kind: 'sprout', position: [2, 3], elite: true }
+  ] };
+  const room = new Room(1, definition);
   room.hero = [2, 2];
   assert.equal(room.damageAt(room.hero), 2);
   const hp = room.health;
   assert.equal(room.endTurn().damage, 2);
   assert.equal(room.health, hp - 2);
-  const capture = new Room(1, rooms[2]);
+  const capture = new Room(1, definition);
   capture.hero = [2, 2];
   const preview = capture.preview(0, [2, 3]);
   assert.equal(preview.removedId, -1);
@@ -122,7 +125,7 @@ test('elite damage preview matches resolution, capture removes its entire threat
 
 test('last boss survives first hit without overlap or opening the exit', () => {
   const room = new Room(1, { name: 'Boss', hero: [2, 2], enemies: [
-    { id: 0, kind: 'imp', position: [2, 3], elite: true }
+    { id: 0, kind: 'sprout', position: [2, 3], elite: true }
   ] });
   const cardsBefore = room.hand.length;
   room.move(0, [2, 3]);
@@ -170,7 +173,7 @@ test('100 seeded journeys can be cleared using previews, with bounded damage and
                 preview = room.preview(card, point);
               if (!preview) continue;
               const score =
-                (preview.removedId >= 0 ? 15 : preview.hitId !== undefined ? 12 : 0) -
+                (preview.removedId >= 0 ? 15 : preview.hitId !== undefined && !preview.blocked ? 12 : 0) -
                 preview.damage * 10 -
                 ((x - 2) ** 2 + (y - 2) ** 2) * 0.1;
               if (!best || score > best.score)

@@ -1,0 +1,30 @@
+.enemy-intent {
+  position: absolute; left: 50%; top: -9%; transform: translateX(-50%);
+  padding: 2px 5px; background: #493c28; color: #fff3d3;
+  border: 1px solid #dbc695; border-radius: 5px;
+  font-size: clamp(9px, 1.3vh, 12px); line-height: 1.1; white-space: nowrap;
+}
+.hint { font-size: clamp(11px, 1.6vh, 15px); }
+.actor[data-skill='roots'] .enemy-intent { background: #285b4a; border-color: #92d8a7; }
+.actor[data-skill='roots'] img { filter: drop-shadow(0 0 3px #8dd8a1); }
+.actor.elite .enemy-intent { top: 9%; }
+.tile.blocked:after { border-color: #5276a0; border-style: dashed; }
+.enemy-info {
+  position: absolute; left: calc(100% + 22px); top: 130px; width: 185px;
+  padding: 30px 15px 16px; border: 1px solid #9e9877; border-radius: 12px;
+  background: #f4eedf; color: #354638; box-shadow: 0 8px 28px #0002; z-index: 8;
+  font-size: 13px; line-height: 1.8;
+}
+.enemy-info strong { display: block; line-height: 1.6; }
+.enemy-info p { margin: 12px 0; }
+.enemy-info small { color: #6c705d; font-size: 11px; }
+#enemy-info-close { position: absolute; right: 5px; top: 3px; border: 0; background: none; color: inherit; font-size: 24px; width: 30px; height: 30px; padding: 0; }
+[data-theme='dark'] .enemy-info { background: #26362d; color: #ede9d2; border-color: #65735c; }
+[data-theme='dark'] .enemy-info small { color: #bbbea3; }
+@media (max-width: 850px) {
+  .enemy-info { position: fixed; left: auto; right: 12px; top: 90px; width: 185px; }
+}
+@media (max-width: 600px) {
+  .enemy-info { top: auto; bottom: 12px; left: 12px; right: 12px; width: auto; padding: 16px 38px 16px 16px; font-size: 12px; }
+  .enemy-info p { margin: 6px 0; }
+}
