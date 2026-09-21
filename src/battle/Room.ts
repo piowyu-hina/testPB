@@ -78,7 +78,7 @@ export class Room {
     return this.enemies.find((e) => equal(e.position, tile));
   }
   get availableCards(): readonly CardId[] {
-    return this.won && !this.lost ? ['short', 'diagonal'] : this.hand;
+    return this.won && !this.lost ? ['forward'] : this.hand;
   }
   canExplore(index: number, destination: Point) {
     return this.won && !this.lost && this.matchesCard(index, destination);

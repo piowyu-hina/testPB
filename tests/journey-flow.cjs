@@ -89,7 +89,7 @@ module.exports = async function playJourney(page, output, prefix = '', loadout =
       assert.equal(await page.locator('#result').isVisible(), false);
       assert.equal(await page.locator('#room-exit').isVisible(), true);
       assert.equal(await page.locator('#hand').isVisible(), true);
-      assert.deepEqual(await page.locator('.card').evaluateAll(nodes => nodes.map(n => n.dataset.card)), ['short', 'diagonal']);
+      assert.deepEqual(await page.locator('.card').evaluateAll(nodes => nodes.map(n => n.dataset.card)), ['forward']);
       await page.screenshot({ path: path.join(output, `${prefix}room-${stage + 1}-clear.png`) });
       // Clicking the floor without selecting a card must not move the hero.
       const heroStyle = await page.locator('[data-actor="hero"]').getAttribute('style');
@@ -108,7 +108,7 @@ module.exports = async function playJourney(page, output, prefix = '', loadout =
       await page.emulateMedia({ reducedMotion: 'no-preference' });
       // If combat ended on the exit tile, step away before entering the opened door.
       if (model.hero.join() === run.exit.join()) {
-        const card = model.availableCards.indexOf('short'),
+        const card = model.availableCards.indexOf('forward'),
           point = [2, 3];
         await page.locator(`.card[data-index="${card}"]`).click();
         await page.locator('.tile[data-x="2"][data-y="3"]').click();
@@ -124,7 +124,7 @@ module.exports = async function playJourney(page, output, prefix = '', loadout =
         await target.dispatchEvent('click', { detail: 1 });
         model.explore(card, point);
         await idle();
-        assert.equal(await page.locator('.card').count(), model.hero.join() === run.exit.join() ? 3 : 2);
+        assert.equal(await page.locator('.card').count(), model.hero.join() === run.exit.join() ? 3 : 1);
       }
       await page.emulateMedia({ reducedMotion: 'reduce' });
       assert.deepEqual(model.hero, run.exit);

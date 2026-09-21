@@ -16,32 +16,33 @@ test('exit movement uses reusable walking cards and never spends turns or action
   const health = room.health,
     turn = room.turn;
   assert.equal(room.explore(-1, [2, 1]), null);
-  assert.equal(room.explore(room.hand.indexOf('short'), [2, 4]), null);
-  assert.equal(room.explore(room.hand.indexOf('short'), [5, 0]), null);
+  assert.equal(room.explore(0, [2, 4]), null);
+  assert.equal(room.explore(0, [5, 0]), null);
   assert.deepEqual(room.hero, [2, 0]);
-  assert.ok(room.explore(room.hand.indexOf('short'), [2, 1]));
+  assert.ok(room.explore(0, [2, 1]));
   assert.equal(room.actions, 0);
   assert.equal(room.turn, turn);
   assert.equal(room.health, health);
-  assert.deepEqual(room.availableCards, ['short', 'diagonal']);
+  assert.deepEqual(room.availableCards, ['forward']);
   toExit(room, run.exit);
   assert.equal(room.hand.length + room.deck.length + room.discard.length, 12);
   assert.equal(run.advance(), true);
   assert.equal(run.advance(), false);
 });
 
-test('cleared-room movement preserves combat cards and offers straight and diagonal steps', () => {
+test('cleared-room movement preserves combat cards and offers all adjacent steps', () => {
   const room = new Room();
   room.enemies = [];
   room.hand = ['leap'];
   const before = JSON.stringify([room.hand, room.deck, room.discard]);
-  assert.ok(room.canExplore(1, [3, 1]));
-  assert.equal(room.canExplore(2, [2, 2]), false);
+  assert.ok(room.canExplore(0, [3, 1]));
+  assert.equal(room.canExplore(1, [3, 1]), false);
+  assert.equal(room.canExplore(0, [2, 2]), false);
   for (let i = 0; i < 100; i++) {
     const point = [2, i % 2 ? 0 : 1];
     assert.ok(room.explore(0, point));
     assert.equal(JSON.stringify([room.hand, room.deck, room.discard]), before);
-    assert.deepEqual(room.availableCards, ['short', 'diagonal']);
+    assert.deepEqual(room.availableCards, ['forward']);
     assert.equal(room.turn, 1);
     assert.equal(room.actions, 2);
   }

@@ -4,7 +4,7 @@ exports.nextStep = (room, target) => {
   const point = [...room.hero];
   const axis = point[0] !== target[0] ? 0 : 1;
   point[axis] += Math.sign(target[axis] - point[axis]);
-  return { card: room.availableCards.indexOf('short'), point };
+  return { card: room.availableCards.indexOf('forward'), point };
 };
 exports.toExit = (room, exit) => {
   for (let steps = 0; room.hero.join() !== exit.join() && steps < 10; steps++) {

@@ -132,7 +132,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         card.dataset.card = id;
         card.dataset.index = String(index);
         card.setAttribute('aria-label', definition.name);
-        const illustration = cardArt[id];
+        const illustration = id === 'forward' && room.loadout !== 'rogue' ? undefined : cardArt[id];
         if (illustration) {
           const image = document.createElement('img');
           image.className = 'card-art';
@@ -212,7 +212,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       if (preview?.blocked) elements.hint.textContent = `正面格擋：無傷害，仍消耗卡片與 ${room.cardCost(selected)} 次行動。`;
       else if (cleared) elements.hint.textContent = chosen
         ? `${chosen.name}：點亮起的格子，走向上方出口 · 不消耗行動`
-        : '清場完成！選下方探索卡，走向上方出口 · 下一間恢復 1 點生命';
+        : '清場完成！選「前進」走向上方出口 · 下一間恢復 1 點生命';
       else if (preview) elements.hint.textContent = `${chosenId === 'throw' ? '原地投擲 · ' : ''}${preview.removedId >= 0 ? '擊敗怪物 · ' : ''}落點受擊預告：${preview.damage} 傷害${preview.damage >= room.health ? ' · 致命' : ''}${chosenId !== 'throw' && room.hasKnife(preview.destination) ? ' · 回收，獲得免費小刀' : ''}`;
       else if (chosen) {
         const hasMove = tiles.some(({ point }) => room.canMove(selected, point));
