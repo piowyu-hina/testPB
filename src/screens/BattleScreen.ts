@@ -213,10 +213,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       else if (cleared) elements.hint.textContent = chosen
         ? `${chosen.name}：點亮起的格子，走向上方出口 · 不消耗行動`
         : '清場完成！選「前進」走向上方出口 · 下一間恢復 1 點生命';
-      else if (preview) elements.hint.textContent = `${chosenId === 'throw' ? '原地投擲 · ' : chosenId === 'knife' ? '原地刺擊 · ' : chosenId === 'whirl' ? `原地掃擊 ${preview.hits?.length ?? 0} 隻 · ` : ''}${preview.hits ? `${preview.hits.filter(hit => hit.removed).length} 隻擊敗 · ` : preview.removedId >= 0 ? '擊敗怪物 · ' : ''}留在落點受擊預告：${preview.damage} 傷害${preview.damage >= room.health ? ' · 致命' : ''}${chosenId !== 'throw' && chosenId !== 'knife' && chosenId !== 'whirl' && room.hasKnife(preview.destination) ? ' · 回收，獲得免費小刀' : ''}`;
+      else if (preview) elements.hint.textContent = `${chosenId === 'throw' ? '原地投擲 · ' : chosenId === 'whirl' ? `瞬移落刀 · 掃擊 ${preview.hits?.length ?? 0} 隻 · ` : ''}${preview.hits ? `${preview.hits.filter(hit => hit.removed).length} 隻擊敗 · ` : preview.removedId >= 0 ? '擊敗怪物 · ' : ''}落點受擊預告：${preview.damage} 傷害${preview.damage >= room.health ? ' · 致命' : ''}${chosenId !== 'throw' && room.hasKnife(preview.destination) ? ' · 回收小刀、行動 +1、抽 1 張' : ''}`;
       else if (chosen) {
         const hasMove = tiles.some(({ point }) => room.canMove(selected, point));
-        elements.hint.textContent = `${chosen.name} · ${chosen.hint} · ${hasMove ? chosenId === 'whirl' ? '點自己所在的格子發動' : chosenId === 'knife' ? '點相鄰怪物刺擊' : '點亮起的格子移動' : '目前無可用目標，請換牌'} · 再點此牌取消`;
+        elements.hint.textContent = `${chosen.name} · ${chosen.hint} · ${hasMove ? chosenId === 'whirl' ? '點地上的刀發動' : '點亮起的格子移動' : '目前無可用目標，請換牌'} · 再點此牌取消`;
       } else if (focusedEnemy) elements.hint.textContent = enemySummary(focusedEnemy);
       else elements.hint.textContent = room.finished ? '' : '先選一張牌，再點亮起的格子 · 點怪物可查看技能';
     }
@@ -233,16 +233,16 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       tile.classList.toggle('legal', legal);
       tile.classList.toggle('inspectable', !busy && !room.finished && selected < 0 && Boolean(room.at(point)));
       tile.classList.toggle('capture', legal && Boolean(room.at(point)));
-      tile.classList.toggle('whirl-range', chosenId === 'whirl' && Math.max(Math.abs(point[0] - room.hero[0]), Math.abs(point[1] - room.hero[1])) === 1);
+      tile.classList.toggle('whirl-range', chosenId === 'whirl' && Boolean(preview) && Math.max(Math.abs(point[0] - preview!.destination[0]), Math.abs(point[1] - preview!.destination[1])) === 1);
       tile.classList.toggle('blocked', legal && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
-      tile.classList.toggle('landing', Boolean(preview && equal(point, chosenId === 'throw' || chosenId === 'knife' ? hoveredTile! : preview.destination)));
+      tile.classList.toggle('landing', Boolean(preview && equal(point, chosenId === 'throw' ? hoveredTile! : preview.destination)));
       tile.classList.toggle('focus-threat', Boolean(focus && Room.threatens(focus, point)));
       tile.classList.toggle('exit-tile', cleared && equal(point, journey.exit));
       tile.disabled = busy || (room.finished && !cleared);
       const enemy = room.at(point);
       tile.setAttribute(
         'aria-label',
-        `${point[0] + 1},${point[1] + 1}${enemy ? ` ${enemySummary(enemy)}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? chosenId === 'whirl' ? '，發動迴旋斬' : chosenId === 'knife' ? '，可刺擊' : '，可移動' : ''}`
+        `${point[0] + 1},${point[1] + 1}${enemy ? ` ${enemySummary(enemy)}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? chosenId === 'whirl' ? '，瞬移到此刀並發動迴旋斬' : '，可移動' : ''}`
       );
       if (cleared)
         tile.setAttribute(
@@ -279,8 +279,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       }
     }
     place(actor('hero'), room.hero);
-    actor('hero').classList.toggle('origin-preview', Boolean(preview && chosenId !== 'throw' && chosenId !== 'knife' && chosenId !== 'whirl'));
-    elements.ghost.hidden = !preview || chosenId === 'throw' || chosenId === 'knife' || chosenId === 'whirl';
+    actor('hero').classList.toggle('origin-preview', Boolean(preview && chosenId !== 'throw'));
+    elements.ghost.hidden = !preview || chosenId === 'throw';
     if (preview) place(elements.ghost, preview.destination);
     renderHealth(room.finished || busy ? 0 : preview ? preview.damage : room.damageAt(room.hero));
     elements.actions.innerHTML = `<small>行動 ${room.actions}/2</small>` + Array.from(
@@ -339,14 +339,25 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const action = room.move(selected, destination);
     if (!action) return;
     lock();
+    if (action.pickedKnife)
+      $('ground-knives').querySelector(`[data-point="${action.to.join(',')}"]`)?.remove();
     // Keep the visible board stable until the movement and impact complete.
     const thrown = action.kind === 'throw';
-    const stationary = action.kind === 'knife' || action.kind === 'whirl';
+    const stationary = action.kind === 'whirl';
     const resisted = !thrown && !stationary && action.hitId !== undefined && action.removedId < 0;
     const contact = resisted
       ? await approach(actor('hero'), action.from, action.to, action.kind === 'leap')
       : action.to;
     if (action.kind === 'whirl') {
+      await animate(actor('hero'), [
+        { opacity: 1, scale: 1 },
+        { opacity: 0, scale: 0.8 }
+      ], 110, 'ease-in');
+      place(actor('hero'), action.to);
+      await animate(actor('hero'), [
+        { opacity: 0, scale: 0.8 },
+        { opacity: 1, scale: 1 }
+      ], 110, 'ease-out');
       const effect = document.createElement('div');
       effect.className = 'whirl-effect';
       effect.setAttribute('aria-hidden', 'true');
@@ -410,7 +421,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       busy = false;
       render();
       if (action.pickedKnife) {
-        elements.hint.textContent = '撿回小刀 · 行動 +1';
+        elements.hint.textContent = `撿回小刀 · 行動 +1 · ${action.drawn ? `抽到${data.cards[action.drawn].name}` : '牌堆已空'}`;
         await animate(elements.actions, [
           { transform: 'scale(1)' },
           { transform: 'scale(1.22)', offset: 0.4 },

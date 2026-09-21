@@ -10,6 +10,7 @@ export interface MoveAction {
   hitId?: number;
   hits?: { id: number; blocked: boolean; removed: boolean }[];
   pickedKnife?: boolean;
+  drawn?: CardId;
   from: Point;
   to: Point;
   kind: CardId;
@@ -96,7 +97,7 @@ export class Room {
     this.hero = [...destination];
     return action;
   }
-  private draw() {
+  private draw(): CardId {
     if (!this.deck.length) {
       this.deck.push(...this.discard);
       this.discard = [];
@@ -105,6 +106,7 @@ export class Room {
     const drawn = this.deck.pop();
     if (!drawn) throw new Error('Cannot draw from an empty deck; check card copy counts.');
     this.hand.push(drawn);
+    return drawn;
   }
   shuffle(cards: CardId[]) {
     for (let i = cards.length - 1; i > 0; i--) {
@@ -127,13 +129,12 @@ export class Room {
     this.knives = []; this.loadout = next;
   }
   canMove(index: number, destination: Point) {
-    if (this.finished || this.actions < this.cardCost(index) || !this.matchesCard(index, destination)) return false;
-    const card: CardDefinition = data.cards[this.hand[index]];
+    if (this.finished || this.actions < this.cardCost(index) || !inside(destination)) return false;
+    const card = data.cards[this.hand[index]] as CardDefinition | undefined;
+    if (!card) return false;
+    if (card.effect === 'whirl') return !equal(this.hero, destination) && this.hasKnife(destination) && !this.at(destination);
+    if (!this.matchesCard(index, destination)) return false;
     if (card.effect === 'throw') return Boolean(this.at(destination));
-    if (card.effect === 'knife') return Boolean(this.at(destination));
-    if (card.effect === 'whirl') return this.enemies.some(enemy =>
-      Math.max(Math.abs(enemy.position[0] - this.hero[0]), Math.abs(enemy.position[1] - this.hero[1])) === 1
-    );
     if (card.effect === 'shadow' && this.at(destination) && !this.hasKnife(destination)) return false;
     return true;
   }
@@ -170,23 +171,23 @@ export class Room {
     if (!this.canMove(index, destination)) return null;
     if (this.hand[index] === 'whirl') {
       const hits = this.enemies.filter(enemy =>
-        Math.max(Math.abs(enemy.position[0] - this.hero[0]), Math.abs(enemy.position[1] - this.hero[1])) === 1
+        Math.max(Math.abs(enemy.position[0] - destination[0]), Math.abs(enemy.position[1] - destination[1])) === 1
       ).map(enemy => {
-        const blocked = blocksAttack(enemy, this.hero);
+        const blocked = blocksAttack(enemy, destination);
         return { id: enemy.id, blocked, removed: !blocked && (enemy.health ?? 1) === 1 };
       });
       return {
-        blocked: hits.every(hit => hit.blocked),
-        destination: [...this.hero],
+        blocked: hits.length > 0 && hits.every(hit => hit.blocked),
+        destination: [...destination],
         removedId: hits.find(hit => hit.removed)?.id ?? -1,
         hits,
-        damage: this.damageAt(this.hero, hits.filter(hit => hit.removed).map(hit => hit.id))
+        damage: this.damageAt(destination, hits.filter(hit => hit.removed).map(hit => hit.id))
       };
     }
     const victim = this.at(destination);
     const blocked = victim ? blocksAttack(victim, this.hero) : false;
     const survives = victim && (blocked || (victim.health ?? 1) > 1);
-    const landing = survives || this.hand[index] === 'throw' || this.hand[index] === 'knife' ? this.hero : destination;
+    const landing = survives || this.hand[index] === 'throw' ? this.hero : destination;
     return {
       blocked,
       destination: landing.slice() as Point,
@@ -224,11 +225,12 @@ export class Room {
     this.actions -= cost;
     if (used === 'throw') {
       if (!this.hasKnife(destination)) this.knives.push([...destination]);
-    } else if (used !== 'knife' && used !== 'whirl' && equal(this.hero, destination) && this.hasKnife(destination)) {
+    } else if (equal(this.hero, destination) && this.hasKnife(destination)) {
       this.knives = this.knives.filter(point => !equal(point, destination));
       this.hand.push('knife');
       this.actions = Math.min(2, this.actions + 1);
       action.pickedKnife = true;
+      if (this.deck.length || this.discard.length) action.drawn = this.draw();
     }
     return action;
   }
