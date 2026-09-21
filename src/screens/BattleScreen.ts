@@ -9,7 +9,7 @@ import template from './battle.html?raw';
 import { place, animate, pause, travel } from '../ui/animations';
 import { diagram } from '../ui/cardDiagram';
 import { enemySkill, blocksAttack } from '../battle/EnemyRules';
-import { intentLabel, enemySummary, renderEnemyInfo } from '../ui/enemyInfo';
+import { enemySummary, renderEnemyInfo } from '../ui/enemyInfo';
 import '../enemy.css';
 
 export function mountBattle(host: HTMLElement, session: GameSession, onHome: () => void): Screen {
@@ -184,7 +184,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     renderEnemyInfo($('enemy-info'), !busy && !room.finished ? focusedEnemy : undefined);
     if (preview?.blocked) elements.hint.textContent = '正面格擋：無傷害，仍消耗卡片與 1 次行動。';
     else if (!busy && selected < 0 && !focusedEnemy && !room.finished)
-      elements.hint.textContent = '標記為下次技能 · 未選牌時點怪物看說明';
+      elements.hint.textContent = '未選牌時點怪物，可查看下一招與弱點';
     else if (!busy && selected >= 0 && hoveredTile) elements.hint.textContent = '';
     const cleared = exploring();
     $('room-exit').toggleAttribute('hidden', !cleared);
@@ -223,9 +223,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const skill = enemySkill(enemy);
       sprite.dataset.skill = skill.id;
       sprite.dataset.facing = enemy.facing ?? 'south';
-      const intent = sprite.querySelector<HTMLElement>('.enemy-intent')!;
-      intent.textContent = intentLabel(enemy);
-      intent.title = `${enemySummary(enemy)}。${skill.hint}`;
       const health = sprite.querySelector('.boss-health');
       if (health) {
         health.innerHTML = Array.from({ length: 2 }, (_, i) => `<i class="${i < (enemy.health ?? 2) ? '' : 'empty'}"></i>`).join('');
@@ -438,7 +435,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         `${enemy.elite ? '精英・' : ''}${data.enemies[enemy.kind].name}`
       );
       sprite.dataset.kind = enemy.kind;
-      sprite.insertAdjacentHTML('beforeend', '<span class="enemy-intent" aria-hidden="true"></span>');
       if (enemy.elite) {
         sprite.classList.add('elite');
         sprite.insertAdjacentHTML('beforeend', '<span class="boss-health"></span>');
