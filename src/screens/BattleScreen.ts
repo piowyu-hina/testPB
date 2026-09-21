@@ -8,6 +8,7 @@ import type { GameSession } from '../app/GameSession';
 import template from './battle.html?raw';
 import { place, animate, pause, travel } from '../ui/animations';
 import { diagram } from '../ui/cardDiagram';
+import { cardArt } from '../data/cardArt';
 import { daggerIcon, groundDaggerIcon } from '../ui/dagger';
 import { approach, shield, recoil } from '../ui/battleFeedback';
 import { enemySkill, blocksAttack } from '../battle/EnemyRules';
@@ -131,7 +132,15 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         card.dataset.card = id;
         card.dataset.index = String(index);
         card.setAttribute('aria-label', definition.name);
-        card.innerHTML = diagram(definition);
+        const illustration = cardArt[id];
+        if (illustration) {
+          const image = document.createElement('img');
+          image.className = 'card-art';
+          image.src = illustration;
+          image.alt = '';
+          image.draggable = false;
+          card.append(image);
+        } else card.innerHTML = diagram(definition);
         const label = document.createElement('span');
         label.className = 'card-name';
         label.textContent = definition.name;
