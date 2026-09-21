@@ -79,7 +79,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         if (x === 2 && y === 4) {
           tile.insertAdjacentHTML(
             'beforeend',
-            '<svg id="room-exit" class="exit-door" viewBox="0 0 64 64" aria-hidden="true" hidden><path class="door-frame" d="M12 55V25a20 20 0 0 1 40 0v30H12Z"/><path class="door-interior" d="M21 53V25a11 11 0 0 1 22 0v28Z"/><path class="door-step" d="M9 55h46v6H9Z"/><path class="door-arrow" d="M32 44V25m-7 7 7-7 7 7"/></svg>'
+            '<svg id="room-exit" class="exit-door" viewBox="0 0 64 64" aria-hidden="true" hidden><path class="door-frame" d="M12 55V25a20 20 0 0 1 40 0v30H12Z"/><path class="door-interior" d="M21 53V25a11 11 0 0 1 22 0v28Z"/><path class="door-step" d="M9 55h46v6H9Z"/></svg>'
           );
         }
         tile.addEventListener('pointerenter', () => {

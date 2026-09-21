@@ -112,13 +112,7 @@ h1 {
   stroke: #71694e;
   stroke-width: 2;
 }
-.door-arrow {
-  fill: none;
-  stroke: #f4e4a8;
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
+
 .tile.exit-tile {
   background: #dedbc2;
   box-shadow: inset 0 0 0 2px #a28a59;
