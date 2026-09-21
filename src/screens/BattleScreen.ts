@@ -347,18 +347,19 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       ? await approach(actor('hero'), action.from, action.to, action.kind === 'leap')
       : action.to;
     if (action.kind === 'whirl') {
-      const ring = document.createElement('div');
-      ring.className = 'whirl-effect';
-      ring.setAttribute('aria-hidden', 'true');
-      place(ring, action.from);
-      elements.board.append(ring);
+      const effect = document.createElement('div');
+      effect.className = 'whirl-effect';
+      effect.setAttribute('aria-hidden', 'true');
+      effect.innerHTML = '<svg viewBox="0 0 120 120"><path d="M12 54C27 18 79 17 108 47C78 31 43 34 12 54Z"/><path d="M108 66C92 103 41 103 12 76C41 91 78 85 108 66Z"/></svg>';
+      actor('hero').append(effect);
       try {
-        await animate(ring, [
-          { opacity: 0, scale: 0.35, rotate: '-45deg' },
-          { opacity: 1, scale: 0.9, rotate: '170deg', offset: 0.45 },
-          { opacity: 0, scale: 1.1, rotate: '340deg' }
-        ], 330);
-      } finally { ring.remove(); }
+        await animate(effect.firstElementChild!, [
+          { opacity: 0, transform: 'rotate(-90deg) scale(.8)' },
+          { opacity: 1, transform: 'rotate(80deg) scale(1)', offset: 0.2 },
+          { opacity: 1, transform: 'rotate(250deg) scale(1)', offset: 0.72 },
+          { opacity: 0, transform: 'rotate(310deg) scale(1.05)' }
+        ], 420, 'ease-out');
+      } finally { effect.remove(); }
       const hits = action.hits ?? [];
       elements.hint.textContent = `${hits.filter(hit => !hit.blocked).length} 隻命中${hits.some(hit => hit.blocked) ? ' · 有怪物格擋' : ''}`;
       await Promise.all(hits.map(async hit => {
@@ -402,12 +403,20 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       showResult();
       return;
     }
-    if (!room.hasPlayableCard()) {
+    if (!room.hasPlayableCard() && !room.hand.includes('knife')) {
       await pause(180);
       await enemyTurn(true);
     } else {
       busy = false;
       render();
+      if (action.pickedKnife) {
+        elements.hint.textContent = '撿回小刀 · 行動 +1';
+        await animate(elements.actions, [
+          { transform: 'scale(1)' },
+          { transform: 'scale(1.22)', offset: 0.4 },
+          { transform: 'scale(1)' }
+        ], 320);
+      }
     }
   }
   async function walk(destination: Point) {

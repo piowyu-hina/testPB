@@ -9,6 +9,7 @@ export const data = { cards, enemies };
 export interface MoveAction {
   hitId?: number;
   hits?: { id: number; blocked: boolean; removed: boolean }[];
+  pickedKnife?: boolean;
   from: Point;
   to: Point;
   kind: CardId;
@@ -226,6 +227,8 @@ export class Room {
     } else if (used !== 'knife' && used !== 'whirl' && equal(this.hero, destination) && this.hasKnife(destination)) {
       this.knives = this.knives.filter(point => !equal(point, destination));
       this.hand.push('knife');
+      this.actions = Math.min(2, this.actions + 1);
+      action.pickedKnife = true;
     }
     return action;
   }

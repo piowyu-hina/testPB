@@ -35,18 +35,19 @@ test('shadow obeys queen paths, can attack only knife tile, failed attacks do no
   assert.deepEqual(r.knives, [[2, 2]]);
   assert.deepEqual(r.hand, []);
 });
-test('last paid action collects a free temporary knife; it remains usable at zero actions', () => {
+test('last paid action collects a free temporary knife and restores one action', () => {
   const r = room(); r.enemies = [enemy(0, [2, 2]), enemy(1, [2, 3])];
   r.move(0, [2, 2]);
-  r.move(0, [2, 2]);
-  assert.equal(r.actions, 0);
+  const pickup = r.move(0, [2, 2]);
+  assert.equal(pickup.pickedKnife, true);
+  assert.equal(r.actions, 1);
   assert.deepEqual(r.hand, ['whirl', 'knife']);
-  assert.equal(r.canUseCard(0), false);
+  assert.equal(r.canUseCard(0), true);
   assert.equal(r.hasPlayableCard(), true);
   assert.equal(r.canMove(1, [2, 3]), true);
   r.move(1, [2, 3]);
   assert.deepEqual(r.hero, [2, 2]);
-  assert.equal(r.actions, 0);
+  assert.equal(r.actions, 1);
   assert.equal(r.hand.includes('knife'), false);
   assert.equal(r.discard.includes('knife'), false);
 });
@@ -56,7 +57,7 @@ test('nonlethal shadow strike leaves knife; lethal strike lands and recovers it'
   r.hand = ['shadow', 'shadow'];
   r.move(0, [2, 2]); assert.deepEqual(r.hero, [1, 2]); assert.equal(r.knives.length, 1);
   r.move(0, [2, 2]); assert.deepEqual(r.hero, [2, 2]); assert.deepEqual(r.knives, []);
-  assert.deepEqual(r.hand, ['knife']); assert.equal(r.actions, 0);
+  assert.deepEqual(r.hand, ['knife']); assert.equal(r.actions, 1);
 });
 test('manual end expires knives but preserves ground tokens; next room starts without tokens', () => {
   const r = room(); r.hand = ['knife', 'whirl']; r.knives = [[4, 4]];
