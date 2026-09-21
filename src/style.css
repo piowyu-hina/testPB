@@ -344,8 +344,8 @@ h1 {
 }
 .actor.hero {
   z-index: 3;
-  width: 21.24%;
-  height: 21.24%;
+  width: 18%;
+  height: 18%;
 }
 .actor.ghost {
   opacity: 0.68;
