@@ -158,25 +158,6 @@ h1 {
 .actor.elite img {
   filter: drop-shadow(0 1px 1px #bd8a38);
 }
-.enemy-health {
-  position: absolute;
-  bottom: 0;
-  left: 8%;
-  display: flex;
-  gap: 2px;
-  padding: 2px 3px;
-  border-radius: 8px;
-  background: #fff9ebd9;
-  box-shadow: 0 1px 2px #352b2b44;
-}
-.enemy-health i {
-  width: 9px;
-  height: 9px;
-  display: block;
-  background: #b95349;
-  clip-path: polygon(50% 18%, 62% 5%, 81% 5%, 100% 23%, 100% 48%, 50% 96%, 0 48%, 0 23%, 19% 5%, 38% 5%);
-}
-.enemy-health i.empty { background: #c5bdb4; }
 @media (max-height: 720px) {
   .journey-progress {
     gap: 4px;

@@ -20,16 +20,15 @@ module.exports = async function playJourney(page, output, prefix = '', loadout =
     assert.equal(await page.locator('#health .empty').count(), 5 - model.health);
     if (stage === 1) {
       await page.locator('.tile[data-x="1"][data-y="3"]').click();
-      assert.equal(await page.locator('#enemy-info').isVisible(), true);
-      assert.ok((await page.locator('[data-enemy-title]').textContent()).includes('揮枝'));
+      assert.match(await page.locator('#hint').textContent(), /古木守衛 · 生命 2\/2/);
       assert.equal(await page.locator('.focus-threat').count(), 1);
       await page.screenshot({ path: path.join(output, `${prefix}guard-sweep.png`) });
-      await page.locator('#enemy-info-close').click();
+      await page.locator('.tile[data-x="1"][data-y="3"]').click();
       await page.locator('.tile[data-x="3"][data-y="3"]').click();
-      assert.ok((await page.locator('[data-enemy-current]').textContent()).includes('正面防護解除'));
+      assert.match(await page.locator('#hint').textContent(), /古木守衛 · 生命 2\/2/);
       assert.equal(await page.locator('.focus-threat').count(), 4);
       await page.screenshot({ path: path.join(output, `${prefix}guard-roots.png`) });
-      await page.locator('#enemy-info-close').click();
+      await page.locator('.tile[data-x="3"][data-y="3"]').click();
     }
     if (stage === 2) {
       assert.equal(await page.locator('.elite-crown').count(), 1);
@@ -76,8 +75,7 @@ module.exports = async function playJourney(page, output, prefix = '', loadout =
         assert.equal(await page.locator(`[data-actor="${enemy.id}"]`).getAttribute('data-skill'), enemySkill(enemy).id);
         assert.equal(await page.locator(`[data-actor="${enemy.id}"]`).getAttribute('data-facing'), enemy.facing ?? 'south');
       }
-      const boss = model.enemies.find(e => e.elite);
-      assert.equal(await page.locator('.boss-health i:not(.empty)').count(), boss ? boss.health : 0);
+      assert.equal(await page.locator('.enemy-health').count(), 0);
       assert.equal(await page.locator('#health .empty').count(), 5 - model.health);
       assert.equal(
         await page.locator('#turn').textContent(),

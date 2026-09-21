@@ -12,7 +12,7 @@ import { cardArt } from '../data/cardArt';
 import { daggerIcon, groundDaggerIcon } from '../ui/dagger';
 import { approach, shield, recoil } from '../ui/battleFeedback';
 import { enemySkill, blocksAttack } from '../battle/EnemyRules';
-import { enemySummary, renderEnemyInfo } from '../ui/enemyInfo';
+import { enemySummary } from '../ui/enemyInfo';
 import '../enemy.css';
 
 export function mountBattle(host: HTMLElement, session: GameSession, onHome: () => void): Screen {
@@ -89,11 +89,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           if (busy || (room.finished && !exploring())) return;
           hoveredTile = [x, y];
           hoveredEnemy = room.at(hoveredTile)?.id ?? -1;
-          const enemy = room.at(hoveredTile);
-          elements.hint.textContent =
-            enemy && selected < 0
-              ? enemySummary(enemy, room.hasKnife(enemy.position))
-              : '';
           render();
         });
         tile.addEventListener('pointerleave', () => {
@@ -108,7 +103,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           if (busy) return;
           const enemy = room.at([x, y]);
           if (enemy && selected < 0) {
-            inspectedEnemy = enemy.id;
+            inspectedEnemy = inspectedEnemy === enemy.id ? -1 : enemy.id;
+            render();
+          } else if (!enemy && selected < 0 && !exploring()) {
+            inspectedEnemy = -1;
             render();
           } else if (exploring()) walk([x, y]);
           else move([x, y]);
@@ -204,7 +202,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const removedId = preview?.removedId ?? -1;
     const focusedEnemy = room.enemies.find((e) => e.id === (hoveredEnemy >= 0 ? hoveredEnemy : inspectedEnemy));
     const focus = !preview ? focusedEnemy : null;
-    renderEnemyInfo($('enemy-info'), !busy && !room.finished ? focusedEnemy : undefined, Boolean(focusedEnemy && room.hasKnife(focusedEnemy.position)));
     const cleared = exploring();
     const chosenId = room.availableCards[selected];
     const chosen = chosenId ? data.cards[chosenId] : undefined;
@@ -217,8 +214,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       else if (chosen) {
         const hasMove = tiles.some(({ point }) => room.canMove(selected, point));
         elements.hint.textContent = `${chosen.name} · ${chosen.hint} · ${hasMove ? '點亮起的格子移動' : '目前無可用目標，請換牌'} · 再點此牌取消`;
-      } else if (focusedEnemy) elements.hint.textContent = enemySummary(focusedEnemy, room.hasKnife(focusedEnemy.position));
-      else elements.hint.textContent = room.finished ? '' : '先選一張牌，再點亮起的格子 · 點怪物可查看技能';
+      } else if (focusedEnemy) elements.hint.textContent = enemySummary(focusedEnemy);
+      else elements.hint.textContent = room.finished ? '' : '先選一張牌，再點亮起的格子 · 點怪物可查看生命';
     }
     const endDamage = room.finished ? 0 : room.damageAt(room.hero);
     $('end-forecast').textContent = busy || room.finished ? '' : `留在原地受 ${endDamage} 傷害${endDamage >= room.health ? ' · 致命' : ''}`;
@@ -241,7 +238,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const enemy = room.at(point);
       tile.setAttribute(
         'aria-label',
-        `${point[0] + 1},${point[1] + 1}${enemy ? ` ${enemySummary(enemy, room.hasKnife(enemy.position))}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? '，可移動' : ''}`
+        `${point[0] + 1},${point[1] + 1}${enemy ? ` ${enemySummary(enemy)}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? '，可移動' : ''}`
       );
       if (cleared)
         tile.setAttribute(
@@ -271,12 +268,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const skill = enemySkill(enemy);
       sprite.dataset.skill = skill.id;
       sprite.dataset.facing = enemy.facing ?? 'south';
-      const health = sprite.querySelector('.enemy-health');
-      if (health) {
-        const maximum = enemy.maxHealth ?? (enemy.elite ? 2 : 1);
-        health.innerHTML = Array.from({ length: maximum }, (_, i) => `<i class="${i < (enemy.health ?? maximum) ? '' : 'empty'}"></i>`).join('');
-        health.setAttribute('aria-label', `${enemy.health} / ${maximum}`);
-      }
     }
     place(actor('hero'), room.hero);
     actor('hero').classList.toggle('origin-preview', Boolean(preview && chosenId !== 'throw'));
@@ -313,7 +304,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     hoveredTile = null;
     hoveredEnemy = -1;
     inspectedEnemy = -1;
-    $('enemy-info').hidden = true;
     elements.hint.textContent = '';
     elements.ghost.hidden = true;
     for (const actor of actors.values())
@@ -361,9 +351,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       else if (action.removedId < 0) await recoil(actor(action.hitId), action.from, action.to);
     }
     if (action.hitId !== undefined && action.removedId < 0) {
-      const enemy = room.enemies.find(enemy => enemy.id === action.hitId);
-      const health = actor(action.hitId).querySelector('.enemy-health');
-      if (health && enemy) [...health.children].forEach((pip, i) => pip.classList.toggle('empty', i >= (enemy.health ?? 1)));
       if (!thrown) await travel(actor('hero'), contact, action.from, 0);
     }
     if (action.removedId >= 0) {
@@ -539,9 +526,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         `${enemy.elite ? '精英・' : ''}${data.enemies[enemy.kind].name}`
       );
       sprite.dataset.kind = enemy.kind;
-      if ((enemy.maxHealth ?? 1) > 1) {
-        sprite.insertAdjacentHTML('beforeend', `<span class="enemy-health${enemy.elite ? ' boss-health' : ''}"></span>`);
-      }
       if (enemy.elite) {
         sprite.classList.add('elite');
         sprite.insertAdjacentHTML(
@@ -558,11 +542,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   const help = $<HTMLDialogElement>('battle-help');
   onClick($('open-battle-help'), () => help.showModal());
   onClick($('close-battle-help'), () => help.close());
-  onClick($('enemy-info-close'), () => {
-    inspectedEnemy = -1;
-    hoveredEnemy = -1;
-    render();
-  });
   onClick(elements.end, () => enemyTurn());
   onClick($('replay'), () => {
     if (!room.finished || elements.result.hidden) return;
@@ -586,10 +565,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       event.button !== 0 ||
       busy ||
       root.hidden ||
-      (event.target instanceof Element && event.target.closest('button, dialog, .board-shell, .modal, .enemy-info'))
+      (event.target instanceof Element && event.target.closest('button, dialog, .board-shell, .modal'))
     )
       return;
     selected = -1;
+    inspectedEnemy = -1;
     hoveredTile = null;
     hoveredEnemy = -1;
     elements.hint.textContent = '';
