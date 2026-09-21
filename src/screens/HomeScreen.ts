@@ -1,17 +1,22 @@
 import { heroArt } from '../data/art';
-import { element as $, onClick } from '../ui/dom';
+import { element, mountScreenRoot, onClick } from '../ui/dom';
+import type { Screen } from '../app/ScreenManager';
+import type { GameSession } from '../app/GameSession';
+import template from './home.html?raw';
+import '../home.css';
 
-export function mountHome(onStart: () => void) {
+export function mountHome(host: HTMLElement, session: GameSession, onStart: () => void): Screen {
+  const root = mountScreenRoot(host, template);
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => element<T>(id, root);
   const portrait = $<HTMLImageElement>('home-portrait');
   portrait.src = heroArt.portrait;
   portrait.alt = `${heroArt.name}立繪`;
   $('hero-name').textContent = heroArt.name;
   onClick($('start-game'), onStart);
   return {
-    show(resume: boolean) {
-      $('home').hidden = false;
-      $('start-label').textContent = resume ? '繼續旅途' : '出發';
-    },
-    hide() { $('home').hidden = true; }
+    root,
+    enter() {
+      $('start-label').textContent = session.canResume ? '繼續旅途' : '出發';
+    }
   };
 }

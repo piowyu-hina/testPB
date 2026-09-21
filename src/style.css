@@ -45,6 +45,9 @@ button:focus-visible {
 [hidden] {
   display: none !important;
 }
+.screen-root {
+  display: contents;
+}
 .game {
   width: var(--board);
   padding: 20px 0 10px;

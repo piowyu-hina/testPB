@@ -1,12 +1,17 @@
 import { Room, data, equal } from '../battle/Room';
-import { Journey } from '../battle/Journey';
+import type { Journey } from '../battle/Journey';
 import { heroArt, enemyArt } from '../data/art';
 import type { Point, CardDefinition } from '../types/game';
-import { element as $, onClick } from '../ui/dom';
+import { element, mountScreenRoot, onClick } from '../ui/dom';
+import type { Screen } from '../app/ScreenManager';
+import type { GameSession } from '../app/GameSession';
+import template from './battle.html?raw';
 import { place, animate, pause, travel } from '../ui/animations';
 import { diagram } from '../ui/cardDiagram';
 
-export function mountBattle(onHome: () => void) {
+export function mountBattle(host: HTMLElement, session: GameSession, onHome: () => void): Screen {
+  const root = mountScreenRoot(host, template);
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => element<T>(id, root);
   const elements = {
     game: $('game'),
     board: $('board'),
@@ -27,7 +32,6 @@ export function mountBattle(onHome: () => void) {
     '<svg class="heart" viewBox="0 0 32 30" aria-hidden="true"><path d="M16 27C12 23 2 16 2 9C2 1 12-1 16 6C20-1 30 1 30 9C30 16 20 23 16 27Z"/></svg>';
   let journey: Journey,
     room: Room,
-    seed = 1,
     selected = -1,
     hoveredTile: Point | null = null,
     hoveredEnemy = -1,
@@ -382,7 +386,7 @@ export function mountBattle(onHome: () => void) {
     elements.game.inert = true;
   }
   function reset() {
-    journey = new Journey(seed++);
+    journey = session.startNewJourney();
     loadRoom();
   }
   function loadRoom() {
@@ -425,7 +429,6 @@ export function mountBattle(onHome: () => void) {
     reset();
   });
   function leave() {
-    if (busy) return;
     selected = -1;
     hoveredTile = null;
     hoveredEnemy = -1;
@@ -433,15 +436,14 @@ export function mountBattle(onHome: () => void) {
     elements.result.hidden = true;
     elements.game.inert = false;
     render();
-    onHome();
   }
-  onClick($('back-home'), leave);
-  onClick($('result-home'), leave);
+  onClick($('back-home'), onHome);
+  onClick($('result-home'), onHome);
   document.addEventListener('pointerdown', (event) => {
     if (
       event.button !== 0 ||
       busy ||
-      elements.game.hidden ||
+      root.hidden ||
       (event.target instanceof Element && event.target.closest('button, .board-shell, .modal'))
     )
       return;
@@ -451,17 +453,24 @@ export function mountBattle(onHome: () => void) {
     elements.hint.textContent = '';
     render();
   });
-  reset();
+  journey = session.journey;
+  loadRoom();
   return {
+    root,
+    canLeave: () => !busy,
+    leave,
     enter() {
-      if (journey.finished) reset();
+      const next = session.enterJourney();
+      if (journey !== next) {
+        journey = next;
+        loadRoom();
+      }
       const heroImage = actor('hero').querySelector('img')!;
       heroImage.src = heroArt.image;
       heroImage.alt = heroArt.name;
       elements.ghost.querySelector<HTMLImageElement>('img')!.src = heroArt.image;
       render();
       if (room.won) showResult();
-    },
-    canResume: () => !journey.finished
+    }
   };
 }
