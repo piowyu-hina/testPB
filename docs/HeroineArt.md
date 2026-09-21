@@ -1,6 +1,6 @@
 # New heroine
 
-Built-in image_gen. Fresh design without old character references. Assets: assets/HeroinePortrait.png and assets/HeroineHead.png. Previous characters removed from the game; history remains in Git.
+Built-in image_gen. Fresh design without old character references. Assets: assets/characters/heroine/HeroinePortrait.png and assets/characters/heroine/HeroineHead.png. Previous characters removed from the game; history remains in Git.
 
 ## Portrait prompt
 

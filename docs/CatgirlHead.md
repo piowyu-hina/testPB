@@ -1,6 +1,6 @@
 # Matching catgirl board head
 
-Built-in GPT Image used the user-provided art-previews/catgirl-source.png as identity reference. Saved to assets/HeroineHead.png, used for board actor, movement ghost, and favicon. Portrait remains unchanged.
+Built-in GPT Image used the user-provided art-previews/catgirl-source.png as identity reference. Saved to assets/characters/heroine/HeroineHead.png, used for board actor, movement ghost, and favicon. Portrait remains unchanged.
 
 ## Prompt
 

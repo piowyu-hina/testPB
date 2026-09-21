@@ -2,8 +2,8 @@
 
 使用內建 GPT Image / image_gen 生成，非 CLI。生成後直接複製至專案，沒有後製修改。
 
-- `assets/Village.png`：村莊 Screen 背景。中央公會、右側森林入口，文字與按鈕由 HTML 繪製。
-- `assets/ForestRuins.png`：地下城選擇背景。左側文字，右側遺跡入口。
+- `assets/scenes/village/Village.png`：村莊 Screen 背景。中央公會、右側森林入口，文字與按鈕由 HTML 繪製。
+- `assets/scenes/forest/ForestRuins.png`：地下城選擇背景。左側文字，右側遺跡入口。
 - 角色繼續使用既有 `HeroinePortrait.png` 與 `HeroineHead.png`，本次沒有修改人物素材。
 
 ## 村莊完整提示詞

@@ -30,8 +30,8 @@
 
 使用內建 GPT Image / image_gen，未使用 CLI。生成結果直接複製，保留透明背景：
 
-- `assets/ThornSprout.png`
-- `assets/StumpGuard.png`
+- `assets/monsters/forest/ThornSprout.png`
+- `assets/monsters/forest/StumpGuard.png`
 
 舊 `Imp.png`、`Bat.png` 不再由遊戲匯入，保留作歷史素材，本次沒有刪除。
 

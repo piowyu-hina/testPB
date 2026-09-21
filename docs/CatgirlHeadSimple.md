@@ -1,6 +1,6 @@
 # Simplified board head
 
-User requested the hero head adopt the existing monsters' simple style. Built-in GPT Image used assets/Imp.png and assets/Bat.png as style targets and the previous HeroineHead.png as identity reference. Output: assets/HeroineHead.png. Home portrait and monsters unchanged.
+User requested the hero head adopt the existing monsters' simple style. Built-in GPT Image used assets/archive/monsters/Imp.png and assets/archive/monsters/Bat.png as style targets and the previous HeroineHead.png as identity reference. Output: assets/characters/heroine/HeroineHead.png. Home portrait and monsters unchanged.
 
 ## Prompt
 

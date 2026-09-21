@@ -1,4 +1,4 @@
-import forestImage from '../../assets/ForestRuins.png';
+import forestImage from '../../assets/scenes/forest/ForestRuins.png';
 
 export const forestRuins = {
   name: '森林遺跡',

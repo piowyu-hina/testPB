@@ -4,7 +4,7 @@ import type { Screen } from '../app/ScreenManager';
 import type { GameSession } from '../app/GameSession';
 import template from './home.html?raw';
 import '../hub.css';
-import villageImage from '../../assets/Village.png';
+import villageImage from '../../assets/scenes/village/Village.png';
 
 export function mountHome(host: HTMLElement, session: GameSession, onStart: () => void): Screen {
   const root = mountScreenRoot(host, template);

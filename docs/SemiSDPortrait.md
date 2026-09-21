@@ -2,7 +2,7 @@
 
 User requested proportion adjustment while preserving the face and outfit. Do not judge character suitability by matching the current background colors: the background will change.
 
-Built-in GPT Image edit of the prior HeroinePortrait.png. Output assets/HeroinePortrait.png upscaled to 2x with existing RealESRGAN_x4plus_anime_6B tooling. Board head remains unchanged in this portrait-only iteration.
+Built-in GPT Image edit of the prior HeroinePortrait.png. Output assets/characters/heroine/HeroinePortrait.png upscaled to 2x with existing RealESRGAN_x4plus_anime_6B tooling. Board head remains unchanged in this portrait-only iteration.
 
 ## Prompt
 

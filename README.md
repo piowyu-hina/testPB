@@ -43,7 +43,7 @@ src/
   screens/HomeScreen.ts     主畫面、立繪查看
   ui/                      共用 DOM、步法圖案、動畫
   main.ts                   啟動入口
-assets/                     既有角色 PNG
+assets/                     角色、怪物、場景、候選圖與歷史素材（見 assets/README.md）
 src-tauri/                  原生視窗、Rust 入口與權限設定
 tests/                      規則、瀏覽器、原生視窗檢查
 ```
