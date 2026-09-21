@@ -11,7 +11,7 @@ export function diagram(card: CardDefinition): string {
     }
   } else {
     const extent = Math.max(1, ...card.offsets.flat().map(Math.abs));
-    const pitch = 60 / (extent * 2 + 0.7);
+    const pitch = 72 / (extent * 2 + 0.76);
     const size = pitch * 0.76;
     for (let y = extent; y >= -extent; y--)
       for (let x = -extent; x <= extent; x++) {
@@ -23,5 +23,5 @@ export function diagram(card: CardDefinition): string {
       }
   }
   marks += '<circle class="origin" cx="50" cy="40" r="6"/>';
-  return `<svg viewBox="0 0 100 80" aria-hidden="true">${marks}</svg>`;
+  return `<svg viewBox="8 0 84 80" aria-hidden="true">${marks}</svg>`;
 }
