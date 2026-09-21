@@ -17,6 +17,16 @@
 .hand { gap: 12px; }
 .bonus-hand .card { border-color: #a68c50; }
 .bonus-hand .card-cost { color: #80632b; }
+.bonus-hand .card[data-card="whirl"] { border-color: #bd788b; }
+.whirl-charge { display: flex; justify-content: center; margin: 12px 0 -12px; }
+.whirl-charge[hidden] { display: none; }
+.whirl-claim { min-width: 132px; display: inline-flex; justify-content: center; align-items: center; gap: 10px; padding: 7px 12px; border: 1px solid #9b858c; border-radius: 9px; background: transparent; color: var(--muted); font: inherit; font-size: 12px; cursor: default; }
+.whirl-claim.ready { background: #714f60; border-color: #c58ea0; color: #fff8ef; cursor: pointer; }
+.whirl-claim.ready:hover { background: #865b70; }
+.whirl-charge-pips { display: flex; gap: 3px; }
+.whirl-charge-pips i { width: 7px; height: 7px; border-radius: 2px; transform: rotate(45deg); border: 1px solid currentColor; opacity: .55; }
+.whirl-charge-pips i.filled { background: currentColor; opacity: 1; }
+.game:has(.whirl-charge:not([hidden])) .hint { margin-top: 18px; }
 .exploring .exit-door { filter: drop-shadow(0 0 7px #e8d388); animation: exit-beacon 1.8s ease-in-out infinite; }
 .exploring .door-interior { fill: #568c6c; }
 .board-shell { position: relative; }

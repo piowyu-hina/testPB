@@ -25,6 +25,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     actors: $('actors'),
     hand: $('hand'),
     bonusHand: $('bonus-hand'),
+    whirlCharge: $('whirl-charge'),
+    whirlPips: $('whirl-charge-pips'),
+    claimWhirl: $<HTMLButtonElement>('claim-whirl'),
     health: $('health'),
     actions: $('actions'),
     hint: $('hint'),
@@ -148,7 +151,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         if (!exploring()) {
           const cost = document.createElement('small');
           cost.className = 'card-cost';
-          cost.textContent = id === 'knife' ? '0 行動' : '1 行動';
+          cost.textContent = id === 'knife' || id === 'whirl' ? '0 行動' : '1 行動';
           card.append(cost);
         }
         card.addEventListener('pointerenter', () => {
@@ -167,11 +170,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           hoveredEnemy = -1;
           render();
         });
-        (id === 'knife' && !exploring() ? elements.bonusHand : elements.hand).append(card);
+        ((id === 'knife' || id === 'whirl') && !exploring() ? elements.bonusHand : elements.hand).append(card);
       });
       elements.hand.append(elements.bonusHand);
     }
-    elements.bonusHand.hidden = exploring() || !room.hand.includes('knife');
+    elements.bonusHand.hidden = exploring() || !room.hand.some(id => id === 'knife' || id === 'whirl');
     elements.hand.style.setProperty('--hand-slots', String(Math.max(3, room.availableCards.length)));
     [...root.querySelectorAll<HTMLButtonElement>('.card')].forEach((card) => {
       const index = Number(card.dataset.index);
@@ -213,7 +216,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       else if (cleared) elements.hint.textContent = chosen
         ? `${chosen.name}：點亮起的格子，走向上方出口 · 不消耗行動`
         : '清場完成！選「前進」走向上方出口 · 下一間恢復 1 點生命';
-      else if (preview) elements.hint.textContent = `${chosenId === 'throw' ? '原地投擲 · ' : chosenId === 'whirl' ? `瞬移落刀 · 掃擊 ${preview.hits?.length ?? 0} 隻 · ` : ''}${preview.hits ? `${preview.hits.filter(hit => hit.removed).length} 隻擊敗 · ` : preview.removedId >= 0 ? '擊敗怪物 · ' : ''}落點受擊預告：${preview.damage} 傷害${preview.damage >= room.health ? ' · 致命' : ''}${chosenId !== 'throw' && room.hasKnife(preview.destination) ? ' · 回收小刀、行動 +1、抽 1 張' : ''}`;
+      else if (preview) elements.hint.textContent = `${chosenId === 'throw' ? '原地投擲 · ' : chosenId === 'whirl' ? `瞬移落刀 · 掃擊 ${preview.hits?.length ?? 0} 隻 · ` : ''}${preview.hits ? `${preview.hits.filter(hit => hit.removed).length} 隻擊敗 · ` : preview.removedId >= 0 ? '擊敗怪物 · ' : ''}落點受擊預告：${preview.damage} 傷害${preview.damage >= room.health ? ' · 致命' : ''}${chosenId !== 'throw' && chosenId !== 'whirl' && room.hasKnife(preview.destination) ? ' · 回收小刀、行動 +1、抽 1 張' : ''}`;
       else if (chosen) {
         const hasMove = tiles.some(({ point }) => room.canMove(selected, point));
         elements.hint.textContent = `${chosen.name} · ${chosen.hint} · ${hasMove ? chosenId === 'whirl' ? '點地上的刀發動' : '點亮起的格子移動' : '目前無可用目標，請換牌'} · 再點此牌取消`;
@@ -300,6 +303,21 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       (_, i) =>
         `<span class="room-step${i < journey.stage ? ' complete' : ''}${i === journey.stage ? ' current' : ''}" ${i === journey.stage ? 'aria-current="step"' : ''}>${i + 1}</span>`
     ).join('');
+    const showWhirlCharge = room.loadout === 'rogue' && !room.finished;
+    elements.whirlCharge.hidden = !showWhirlCharge;
+    if (showWhirlCharge) {
+      const ready = room.canClaimWhirl();
+      elements.whirlPips.innerHTML = Array.from({ length: Room.whirlChargeMax }, (_, i) =>
+        `<i class="${i < room.whirlCharge ? 'filled' : ''}"></i>`
+      ).join('');
+      elements.claimWhirl.disabled = busy || !ready;
+      elements.claimWhirl.classList.toggle('ready', ready && !busy);
+      elements.claimWhirl.setAttribute('aria-label', ready
+        ? '迴旋斬蓄滿，點擊領取本回合卡片'
+        : `迴旋斬蓄力 ${room.whirlCharge} / ${Room.whirlChargeMax}${room.whirlCharge === Room.whirlChargeMax ? '，需要可落腳的小刀' : ''}`);
+      elements.claimWhirl.title = room.whirlCharge === Room.whirlChargeMax && !ready
+        ? '需要場上有可落腳的小刀' : '打出普通卡蓄力；領取後限本回合使用';
+    }
     elements.end.disabled = busy || room.finished;
     $<HTMLButtonElement>('back-home').disabled = busy;
     $<HTMLButtonElement>('open-battle-help').disabled = busy;
@@ -319,6 +337,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     for (const actor of actors.values())
       actor.classList.remove('origin-preview', 'victim-preview', 'hovered');
     elements.end.disabled = true;
+    elements.claimWhirl.disabled = true;
     $<HTMLButtonElement>('back-home').disabled = true;
     $<HTMLButtonElement>('open-battle-help').disabled = true;
     $('end-forecast').textContent = '';
@@ -339,7 +358,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const action = room.move(selected, destination);
     if (!action) return;
     lock();
-    if (action.pickedKnife)
+    if (action.consumedKnife)
       $('ground-knives').querySelector(`[data-point="${action.to.join(',')}"]`)?.remove();
     // Keep the visible board stable until the movement and impact complete.
     const thrown = action.kind === 'throw';
@@ -550,6 +569,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   function loadRoom() {
     inspectedEnemy = -1;
     room = journey.room;
+    if (room.loadout === 'rogue' && cardArt.whirl) {
+      const preload = new Image();
+      preload.src = cardArt.whirl;
+    }
     selected = -1;
     hoveredTile = null;
     hoveredEnemy = -1;
@@ -591,6 +614,14 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     render();
   });
   onClick(elements.end, () => enemyTurn());
+  onClick(elements.claimWhirl, () => {
+    if (busy || !room.claimWhirl()) return;
+    selected = room.hand.indexOf('whirl');
+    hoveredTile = null;
+    hoveredEnemy = -1;
+    inspectedEnemy = -1;
+    render();
+  });
   onClick($('replay'), () => {
     if (!room.finished || elements.result.hidden) return;
     reset();

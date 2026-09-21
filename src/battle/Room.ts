@@ -9,6 +9,7 @@ export const data = { cards, enemies };
 export interface MoveAction {
   hitId?: number;
   hits?: { id: number; blocked: boolean; removed: boolean }[];
+  consumedKnife?: boolean;
   pickedKnife?: boolean;
   drawn?: CardId;
   from: Point;
@@ -27,6 +28,7 @@ export const equal = (a: Point, b: Point) => a[0] === b[0] && a[1] === b[1];
 export const inside = (p: Point) =>
   Array.isArray(p) && p.length === 2 && p.every((v) => Number.isInteger(v) && v >= 0 && v < 5);
 const distanceSquared = (a: Point, b: Point) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
+const isTemporaryCard = (id: CardId) => id === 'knife' || id === 'whirl';
 const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a);
 function rng(seed: number) {
   let value = seed >>> 0;
@@ -39,6 +41,7 @@ function rng(seed: number) {
 }
 
 export class Room {
+  static readonly whirlChargeMax = 4;
   hero: Point;
   health: number;
   actions: number;
@@ -48,6 +51,7 @@ export class Room {
   deck: CardId[];
   discard: CardId[];
   knives: Point[] = [];
+  whirlCharge = 0;
   loadout: Loadout;
   private random: () => number;
   constructor(seed = 1, definition: RoomDefinition = rooms[0], health = 5, loadout: Loadout = 'basic') {
@@ -120,13 +124,23 @@ export class Room {
     for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) if (this.canMove(index, [x, y])) return true;
     return false;
   }
-  hasPlayableCard() { return this.hand.some((_, i) => this.canUseCard(i)); }
+  hasPlayableCard() { return this.hand.some((_, i) => this.canUseCard(i)) || this.canClaimWhirl(); }
+  canClaimWhirl() {
+    return this.loadout === 'rogue' && !this.finished && this.whirlCharge === Room.whirlChargeMax &&
+      !this.hand.includes('whirl') && this.knives.some(point => !equal(point, this.hero) && !this.at(point));
+  }
+  claimWhirl() {
+    if (!this.canClaimWhirl()) return false;
+    this.whirlCharge = 0;
+    this.hand.push('whirl');
+    return true;
+  }
   setLoadout(next: Loadout) {
     if (next === this.loadout) return;
     const previous = loadouts[this.loadout], target = loadouts[next];
-    const convert = (pile: CardId[]) => pile.filter(id => id !== 'knife').map(id => target[Math.max(0, previous.indexOf(id)) % target.length]);
+    const convert = (pile: CardId[]) => pile.filter(id => !isTemporaryCard(id)).map(id => target[Math.max(0, previous.indexOf(id)) % target.length]);
     this.hand = convert(this.hand); this.deck = convert(this.deck); this.discard = convert(this.discard);
-    this.knives = []; this.loadout = next;
+    this.knives = []; this.whirlCharge = 0; this.loadout = next;
   }
   canMove(index: number, destination: Point) {
     if (this.finished || this.actions < this.cardCost(index) || !inside(destination)) return false;
@@ -221,16 +235,21 @@ export class Room {
     }
     this.hero = preview.destination.slice() as Point;
     const used = this.hand.splice(index, 1)[0];
-    if (used !== 'knife') this.discard.push(used);
+    if (!isTemporaryCard(used)) this.discard.push(used);
     this.actions -= cost;
+    if (this.loadout === 'rogue' && loadouts.rogue.includes(used))
+      this.whirlCharge = Math.min(Room.whirlChargeMax, this.whirlCharge + 1);
     if (used === 'throw') {
       if (!this.hasKnife(destination)) this.knives.push([...destination]);
     } else if (equal(this.hero, destination) && this.hasKnife(destination)) {
       this.knives = this.knives.filter(point => !equal(point, destination));
-      this.hand.push('knife');
-      this.actions = Math.min(2, this.actions + 1);
-      action.pickedKnife = true;
-      if (this.deck.length || this.discard.length) action.drawn = this.draw();
+      action.consumedKnife = true;
+      if (used !== 'whirl') {
+        action.pickedKnife = true;
+        this.hand.push('knife');
+        this.actions = Math.min(2, this.actions + 1);
+        if (this.deck.length || this.discard.length) action.drawn = this.draw();
+      }
     }
     return action;
   }
@@ -273,7 +292,7 @@ export class Room {
         if (!equal(from, best)) motions.push({ id: enemy.id, from, to: best.slice() as Point });
       }
       const heldKnives = this.hand.filter(id => id === 'knife');
-      this.discard.push(...this.hand.filter(id => id !== 'knife'));
+      this.discard.push(...this.hand.filter(id => !isTemporaryCard(id)));
       this.hand = heldKnives;
       for (let i = 0; i < 3; i++) this.draw();
       this.actions = 2;
