@@ -1,2 +1,4 @@
 // Simple vector token stays legible at board size and matches the card diagrams.
 export const daggerIcon = '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="m30 5 12 1-1 12-19 18-9-9Z" fill="#e8f0ed" stroke="#384e52" stroke-width="2.5"/><path d="m33 12-15 18" stroke="#9bb6b2" stroke-width="2"/><path d="m10 25 13 13M9 39l8-8" stroke="#815a43" stroke-width="6" stroke-linecap="round"/></svg>';
+
+export const groundDaggerIcon = '<svg viewBox="0 0 72 48" aria-hidden="true"><ellipse cx="37" cy="34" rx="27" ry="6" fill="#283b35" opacity=".22"/><g transform="rotate(-18 36 25)"><path d="M29 20H51L66 26 51 32H29Z" fill="#faf6df" stroke="#344e45" stroke-width="2.5" stroke-linejoin="round"/><path d="M33 26H58" stroke="#9eafa1" stroke-width="2"/><path d="M27 16V36" stroke="#bc995b" stroke-width="5" stroke-linecap="round"/><path d="M10 26H22" stroke="#354b42" stroke-width="8" stroke-linecap="round"/><path d="M15 23V29" stroke="#b1b493" stroke-width="2"/></g></svg>';

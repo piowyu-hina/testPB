@@ -8,7 +8,7 @@ import type { GameSession } from '../app/GameSession';
 import template from './battle.html?raw';
 import { place, animate, pause, travel } from '../ui/animations';
 import { diagram } from '../ui/cardDiagram';
-import { daggerIcon } from '../ui/dagger';
+import { daggerIcon, groundDaggerIcon } from '../ui/dagger';
 import { approach, shield, recoil } from '../ui/battleFeedback';
 import { enemySkill, blocksAttack } from '../battle/EnemyRules';
 import { enemySummary, renderEnemyInfo } from '../ui/enemyInfo';
@@ -23,6 +23,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     tiles: $('tiles'),
     actors: $('actors'),
     hand: $('hand'),
+    bonusHand: $('bonus-hand'),
     health: $('health'),
     actions: $('actions'),
     hint: $('hint'),
@@ -120,7 +121,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (signature !== handSignature) {
       handSignature = signature;
       elements.hand.replaceChildren();
-      $('bonus-hand').replaceChildren();
+      elements.bonusHand.replaceChildren();
       room.availableCards.forEach((id, index) => {
         const definition: CardDefinition = data.cards[id],
           card = document.createElement('button');
@@ -130,7 +131,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         card.dataset.card = id;
         card.dataset.index = String(index);
         card.setAttribute('aria-label', definition.name);
-        card.innerHTML = diagram(definition);
+        card.innerHTML = diagram(definition, id);
         const label = document.createElement('span');
         label.className = 'card-name';
         label.textContent = definition.name;
@@ -157,11 +158,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           hoveredEnemy = -1;
           render();
         });
-        (id === 'knife' && !exploring() ? $('bonus-hand') : elements.hand).append(card);
+        (id === 'knife' && !exploring() ? elements.bonusHand : elements.hand).append(card);
       });
+      elements.hand.append(elements.bonusHand);
     }
-    $('bonus-hand').hidden = exploring() || !room.hand.includes('knife');
-    elements.game.classList.toggle('has-bonus', !$('bonus-hand').hidden);
+    elements.bonusHand.hidden = exploring() || !room.hand.includes('knife');
+    elements.hand.style.setProperty('--hand-slots', String(Math.max(3, room.availableCards.length)));
     [...root.querySelectorAll<HTMLButtonElement>('.card')].forEach((card) => {
       const index = Number(card.dataset.index);
       card.classList.toggle('selected', index === selected);
@@ -246,7 +248,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const token = document.createElement('div');
       token.className = 'ground-knife';
       token.dataset.point = point.join(',');
-      token.innerHTML = daggerIcon;
+      token.innerHTML = groundDaggerIcon;
       token.title = '飛刀：走到此格回收一張本回合免費小刀';
       place(token, point);
       $('ground-knives').append(token);
