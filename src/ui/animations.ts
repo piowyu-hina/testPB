@@ -9,7 +9,7 @@ export function place(node: HTMLElement, point: Point): void {
   Object.assign(node.style, position(point));
 }
 export async function animate(
-  node: HTMLElement,
+  node: Element,
   keyframes: Keyframe[],
   duration: number
 ): Promise<void> {

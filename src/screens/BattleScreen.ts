@@ -363,6 +363,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         ],
         220
       );
+      const previousHealth = room.health;
       if (journey.advance()) {
         loadRoom();
         lock();
@@ -374,6 +375,28 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           ],
           240
         );
+        const recovered = room.health - previousHealth;
+        const arrival = $('room-arrival');
+        $('arrival-stage').textContent = `森林遺跡 · 第 ${journey.stage + 1} / ${journey.total} 間`;
+        $('arrival-name').textContent = journey.definition.name;
+        $('arrival-recovery').textContent = recovered > 0 ? `生命恢復 +${recovered}` : '生命已滿';
+        arrival.hidden = false;
+        try {
+          await Promise.all([
+            animate(arrival, [
+              { opacity: 0, transform: 'translate(-50%, -40%)' },
+              { opacity: 1, transform: 'translate(-50%, -50%)', offset: 0.15 },
+              { opacity: 1, transform: 'translate(-50%, -50%)', offset: 0.8 },
+              { opacity: 0, transform: 'translate(-50%, -55%)' }
+            ], 950),
+            ...[...elements.health.children].slice(previousHealth, room.health).map(heart => animate(heart, [
+              { filter: 'none', scale: 1 },
+              { filter: 'brightness(1.7) drop-shadow(0 0 6px #e5c67d)', scale: 1.3, offset: 0.3 },
+              { filter: 'brightness(1.3) drop-shadow(0 0 4px #e5c67d)', scale: 1.1, offset: 0.7 },
+              { filter: 'none', scale: 1 }
+            ], 850))
+          ]);
+        } finally { arrival.hidden = true; }
       }
     }
     busy = false;
