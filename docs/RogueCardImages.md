@@ -1,10 +1,10 @@
-# 莉娜卡牌插圖試作
+﻿# 盜賊卡牌圖片
 
-三張圖片由內建 image_gen 個別生成，放在 `assets/cards/rogue/`。它們是透明背景的插圖，由現有 HTML 卡框顯示；其他牌沿用走法圖。
+卡牌圖放在 `assets/cards/rogue/`，由遊戲既有的卡框呈現。
 
-- `Throw.png`：短刀與粉色飛行線。
-- `Shadow.png`：莉娜朝落地短刀移動，青色弧線表示路徑。
-- `Whirl.png`：莉娜旋身，粉色環形斬痕。
-- `Knife.png`：戴手套的手握短刀，與飛行中的飛刀形成不同姿態；用於臨時的 0 行動小刀卡。
+- `Throw.png`：飛刀與動作軌跡。
+- `Shadow.png`：白色垂耳狗向飛刀突進。
+- `Whirl.png`：白色垂耳狗旋身攻擊。
+- `Knife.png`：手持短刀。
 
-追影與迴旋斬最初生成版誤畫馬尾，已參照 `assets/characters/rogue/Portrait.png` 改為披散長髮、側邊蝴蝶結與頭頂翹髮。三張圖片尚屬視覺試作，之後若修改請保留角色特徵並在實際牌面尺寸檢查。
+`Shadow.png` 與 `Whirl.png` 參照棋盤角色 `assets/characters/rogue/Token.png`，讓牌面動作和棋盤小人能被辨認為同一角色。
