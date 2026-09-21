@@ -16,10 +16,6 @@
   letter-spacing: 0.08em;
   color: var(--ink);
 }
-.home-mark {
-  color: #aa8150;
-  font-size: 24px;
-}
 .home-stage {
   min-height: min(670px, 78svh);
   display: grid;

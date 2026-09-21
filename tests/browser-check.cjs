@@ -4,7 +4,6 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const fs = require('node:fs');
-const { pathToFileURL } = require('node:url');
 const playJourney = require('./journey-flow.cjs');
 const checkCharacters = require('./character-flow.cjs');
 const output = path.resolve(__dirname, '../test-results');

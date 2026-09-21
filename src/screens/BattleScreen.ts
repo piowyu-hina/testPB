@@ -295,7 +295,7 @@ export function mountBattle(onHome: () => void) {
     const action = room.explore(selected, destination);
     if (!action) return;
     lock();
-    await travel(actor('hero'), action.from, action.to, action.kind === 'leap' ? 30 : 9);
+    await travel(actor('hero'), action.from, action.to, 9);
     if (equal(destination, journey.exit)) {
       await animate(
         elements.board,
@@ -376,11 +376,7 @@ export function mountBattle(onHome: () => void) {
   }
   function showResult() {
     if (exploring()) return;
-    elements.resultTitle.textContent = room.lost
-      ? '再試一次'
-      : journey.won
-        ? '旅途完成！'
-        : '房間通過';
+    elements.resultTitle.textContent = room.lost ? '再試一次' : '旅途完成！';
     $('replay').textContent = '再來一局';
     elements.result.hidden = false;
     elements.game.inert = true;
@@ -422,7 +418,6 @@ export function mountBattle(onHome: () => void) {
     elements.ghost.querySelector<HTMLImageElement>('img')!.src = heroArt.image;
     render();
   }
-  elements.ghost.querySelector<HTMLImageElement>('img')!.src = heroArt.image;
   makeTiles();
   onClick(elements.end, () => enemyTurn());
   onClick($('replay'), () => {
