@@ -87,7 +87,7 @@ h1 {
 .tile { cursor: default; }
 .tile.legal:not(:disabled), .tile.inspectable:not(:disabled) { cursor: pointer; }
 .exploring .tile.legal:not(:disabled):hover {
-  background: #d8e3cb;
+  background: #b9ddaa55;
 }
 .exit-door {
   position: absolute;
@@ -112,8 +112,7 @@ h1 {
 }
 
 .tile.exit-tile {
-  background: #dedbc2;
-  box-shadow: inset 0 0 0 2px #a28a59;
+  background: radial-gradient(circle, #e7d59766, transparent 72%);
 }
 .elite-crown {
   position: absolute;
@@ -163,20 +162,22 @@ h1 {
   background: #cfc6b4;
 }
 .board-shell {
-  background: linear-gradient(145deg, #5f605c, #40423f);
-  border: 1px solid #30322f;
-  border-radius: 18px;
-  padding: clamp(10px, 1.7vh, 17px);
+  background: #253a2e;
+  border: 1px solid #425943;
+  border-radius: 13px;
+  padding: clamp(8px, 1.2vh, 12px);
   box-shadow:
-    inset 0 1px 0 #858780,
-    0 7px 0 #2c2e2a,
-    0 18px 32px #1d201d22;
+    inset 0 1px 0 #7f957555,
+    0 5px 0 #172a20,
+    0 18px 32px #101b1740;
 }
 .board {
-  --tile-gap: 5px;
+  --tile-gap: 0px;
   position: relative;
   width: 100%;
   aspect-ratio: 1;
+  background: #344b3c url('../assets/tiles/ForestFloor.svg') center / 100% 100% no-repeat;
+  border-radius: 5px;
 }
 .tiles {
   display: grid;
@@ -189,44 +190,36 @@ h1 {
 .tile {
   position: relative;
   border: 0;
-  border-radius: 7px;
+  border-radius: 9px;
   padding: 0;
-  background: #efeadf;
-  box-shadow:
-    inset 0 1px 0 #ffffff80,
-    0 2px 0 #34363055;
+  background: transparent;
+  box-shadow: none;
   isolation: isolate;
 }
-.tile.odd {
-  background: #dcdbd3;
-}
 .tile.danger {
-  background: #e7c4b0;
-}
-.tile.odd.danger {
-  background: #d9b7a4;
+  background: radial-gradient(ellipse at center, #d16a566b 0%, #c45e4d42 62%, transparent 78%);
 }
 .tile.focus-threat,
 .tile.odd.danger.focus-threat {
-  background: #db9f8f;
+  background: radial-gradient(ellipse at center, #d05d4d91 0%, #b94c3e59 65%, transparent 80%);
 }
 .tile.legal:after {
   content: '';
   position: absolute;
-  inset: 3px;
-  border: 3px solid #428b7d;
-  border-radius: 7px;
+  inset: 7px;
+  border: 3px solid #b4e2b2;
+  border-radius: 13px;
   z-index: 1;
   pointer-events: none;
 }
 .tile.landing {
-  background: #b8d9c8;
+  background: radial-gradient(ellipse at center, #b1d6aa8c, #9bcba365 65%, transparent 80%);
 }
 .tile.landing:after {
-  border-color: #256b5c;
+  border-color: #d4f3c7;
 }
 .tile.landing.danger {
-  background: #c8b7a0;
+  background: radial-gradient(ellipse at center, #c9ae817c, #b88b7266 65%, transparent 80%);
 }
 .tile.legal:not(.capture):before {
   content: '';
@@ -236,10 +229,11 @@ h1 {
   border-radius: 50%;
   left: 43%;
   top: 43%;
-  background: #428b7d;
+  background: #b4e2b2;
+  box-shadow: 0 1px 3px #1a3727;
 }
 .tile.capture:after {
-  border-color: #aa5142;
+  border-color: #ec7865;
   border-width: 4px;
 }
 .tile.legal {
@@ -503,4 +497,4 @@ body { height: 100svh; min-height: 0; align-items: center; overflow: hidden; }
 .screen-curtain-panel.right { background: linear-gradient(270deg, #181b1a, #353a35); border-left: 2px solid #bda77b; }
 .screen-root { display: flow-root; width: 720px; height: 1280px; overflow: hidden; transform-origin: top left; }
 .heart { width: 27px; height: 27px; }
-.board-shell { padding: 17px; }
+.board-shell { padding: 12px; }
