@@ -24,6 +24,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     tiles: $('tiles'),
     actors: $('actors'),
     tileInfo: $('tile-info'),
+    touchInfo: $('touch-info'),
+    cardDetails: $('card-details'),
     hand: $('hand'),
     bonusHand: $('bonus-hand'),
     health: $('health'),
@@ -47,7 +49,25 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     busy = false,
     handSignature = '',
     knifeLessonShown = false,
-    knifeLessonPending = false;
+    knifeLessonPending = false,
+    inspectedTile: Point | null = null,
+    cardHoldTimer = 0,
+    heldCard: HTMLButtonElement | null = null,
+    dismissDetailsClick = false;
+  const touchLayout = () => matchMedia('(hover: none) and (pointer: coarse)').matches;
+  function closeCardDetails() { elements.cardDetails.hidden = true; }
+  function openCardDetails(id: keyof typeof data.cards) {
+    const definition = data.cards[id];
+    elements.cardDetails.replaceChildren();
+    const name = document.createElement('strong');
+    name.textContent = definition.name;
+    const effect = document.createElement('p');
+    effect.textContent = definition.hint ?? '';
+    const cost = document.createElement('small');
+    cost.textContent = id === 'forward' ? '清場後使用 · 不消耗行動' : `${(definition as CardDefinition).cost ?? 1} 行動${id === 'knife' ? ' · 使用後消失' : ''}`;
+    elements.cardDetails.append(name, effect, cost);
+    elements.cardDetails.hidden = false;
+  }
   const tiles: { tile: HTMLButtonElement; threats: HTMLSpanElement; point: Point }[] = [];
   const actors = new Map<number | 'hero', HTMLDivElement>();
   const exploring = () => room.won && !journey.finished;
@@ -89,12 +109,14 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           );
         }
         tile.addEventListener('pointerenter', () => {
+          if (touchLayout()) return;
           if (busy || (room.finished && !exploring())) return;
           hoveredTile = [x, y];
           hoveredEnemy = room.at(hoveredTile)?.id ?? -1;
           render();
         });
         tile.addEventListener('pointerleave', () => {
+          if (touchLayout()) return;
           if (hoveredTile && equal(hoveredTile, [x, y])) {
             hoveredTile = null;
             hoveredEnemy = -1;
@@ -102,8 +124,20 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
             render();
           }
         });
+        tile.addEventListener('pointerdown', (event) => {
+          if (!touchLayout() || event.pointerType !== 'touch' || busy || selected >= 0) return;
+          inspectedTile = [x, y];
+          inspectedEnemy = room.at(inspectedTile)?.id ?? -1;
+          render();
+        });
         onClick(tile, () => {
           if (busy) return;
+          if (touchLayout() && selected < 0) {
+            inspectedTile = [x, y];
+            inspectedEnemy = room.at(inspectedTile)?.id ?? -1;
+            render();
+            return;
+          }
           const enemy = room.at([x, y]);
           if (enemy && selected < 0) {
             inspectedEnemy = inspectedEnemy === enemy.id ? -1 : enemy.id;
@@ -158,15 +192,47 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           card.append(requirement);
         }
         card.addEventListener('pointerenter', () => {
+          if (touchLayout()) return;
           if (!busy)
             elements.hint.textContent =
               definition.name + (definition.hint ? ` · ${definition.hint}` : '');
         });
         card.addEventListener('pointerleave', () => {
+          if (touchLayout()) return;
           render();
         });
+        card.addEventListener('pointerdown', (event) => {
+          if (!touchLayout() || event.pointerType !== 'touch' || busy) return;
+          heldCard = null;
+          clearTimeout(cardHoldTimer);
+          const startX = event.clientX, startY = event.clientY;
+          const onMove = (move: PointerEvent) => {
+            if (Math.hypot(move.clientX - startX, move.clientY - startY) > 12) clearTimeout(cardHoldTimer);
+          };
+          const stop = () => {
+            clearTimeout(cardHoldTimer);
+            card.removeEventListener('pointermove', onMove);
+            card.removeEventListener('pointerup', stop);
+            card.removeEventListener('pointercancel', stop);
+          };
+          card.addEventListener('pointermove', onMove);
+          card.addEventListener('pointerup', stop);
+          card.addEventListener('pointercancel', stop);
+          cardHoldTimer = window.setTimeout(() => {
+            heldCard = card;
+            openCardDetails(id);
+          }, 420);
+        });
+        card.addEventListener('click', (event) => {
+          if (heldCard !== card) return;
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          heldCard = null;
+        }, true);
         onClick(card, () => {
           if (busy || (!exploring() && !room.canUseCard(index))) return;
+          closeCardDetails();
+          inspectedTile = null;
           selected = selected === index ? -1 : index;
           if (id === 'shadow') knifeLessonPending = false;
           inspectedEnemy = -1;
@@ -207,9 +273,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   function renderTileInfo(preview: ReturnType<Room['preview']>) {
     const panel = elements.tileInfo;
-    panel.hidden = !hoveredTile || busy || (room.finished && !exploring());
-    if (panel.hidden || !hoveredTile) return;
-    const point = hoveredTile;
+    const point = touchLayout() ? inspectedTile : hoveredTile;
+    panel.hidden = !point || busy || (room.finished && !exploring());
+    if (panel.hidden || !point) return;
     const enemy = room.at(point);
     const onHero = equal(point, room.hero);
     const title = enemy ? enemySummary(enemy) : onHero ? '目前位置' : exploring() && equal(point, journey.exit) ? '出口' : '空地';
@@ -243,6 +309,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const detail = document.createElement('span');
       detail.textContent = line;
       panel.append(detail);
+    }
+    if (touchLayout()) {
+      elements.touchInfo.replaceChildren(...Array.from(panel.childNodes).map(node => node.cloneNode(true)));
+      panel.hidden = true;
+      return;
     }
     const tile = tiles.find(({ point: tilePoint }) => equal(tilePoint, point))!.tile.getBoundingClientRect();
     const board = elements.board.getBoundingClientRect();
@@ -366,6 +437,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.game.classList.toggle('choosing', selected >= 0 && !busy);
     elements.game.setAttribute('aria-busy', String(busy));
     syncHand();
+    if (touchLayout() && !inspectedTile) elements.touchInfo.textContent = selected >= 0 && !exploring()
+      ? `${data.cards[room.availableCards[selected]].name} · 點亮起的格子行動`
+      : elements.hint.textContent ?? '';
   }
   function lock() {
     busy = true;
@@ -376,6 +450,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.hint.textContent = '';
     elements.ghost.hidden = true;
     elements.tileInfo.hidden = true;
+    inspectedTile = null;
+    closeCardDetails();
     for (const actor of actors.values())
       actor.classList.remove('origin-preview', 'victim-preview', 'hovered');
     elements.end.disabled = true;
@@ -581,6 +657,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   function loadRoom() {
     inspectedEnemy = -1;
+    inspectedTile = null;
+    closeCardDetails();
     room = journey.room;
     selected = -1;
     hoveredTile = null;
@@ -624,6 +702,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   function leave() {
     help.close();
     inspectedEnemy = -1;
+    inspectedTile = null;
+    closeCardDetails();
     selected = -1;
     hoveredTile = null;
     hoveredEnemy = -1;
@@ -634,6 +714,18 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   onClick($('back-home'), onHome);
   onClick($('result-home'), onHome);
+  document.addEventListener('pointerdown', (event) => {
+    if (elements.cardDetails.hidden || root.hidden || !(event.target instanceof Element) || event.target.closest('#card-details')) return;
+    closeCardDetails();
+    dismissDetailsClick = true;
+    event.stopPropagation();
+  }, true);
+  document.addEventListener('click', (event) => {
+    if (!dismissDetailsClick) return;
+    dismissDetailsClick = false;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, true);
   document.addEventListener('pointerdown', (event) => {
     if (
       event.button !== 0 ||
