@@ -7,7 +7,7 @@ import { mountDungeon } from './screens/DungeonScreen';
 import { element } from './ui/dom';
 import { GameSession } from './app/GameSession';
 import { ScreenManager } from './app/ScreenManager';
-import { animate } from './ui/animations';
+import { animate, pause } from './ui/animations';
 
 document.addEventListener('contextmenu', (event) => event.preventDefault());
 const session = new GameSession();
@@ -16,17 +16,33 @@ const stage = element('stage');
 const curtain = document.createElement('div');
 curtain.className = 'screen-curtain';
 curtain.hidden = true;
+const leftPanel = document.createElement('div');
+const rightPanel = document.createElement('div');
+leftPanel.className = 'screen-curtain-panel left';
+rightPanel.className = 'screen-curtain-panel right';
+curtain.append(leftPanel, rightPanel);
 stage.append(curtain);
 async function transitionScreen(swap: () => void): Promise<void> {
+  leftPanel.style.transform = 'translateX(-100%)';
+  rightPanel.style.transform = 'translateX(100%)';
   curtain.hidden = false;
   try {
-    await animate(curtain, [{ opacity: 0 }, { opacity: 1 }], 160, 'ease-in');
-    curtain.style.opacity = '1';
+    await Promise.all([
+      animate(leftPanel, [{ transform: 'translateX(-100%)' }, { transform: 'translateX(0)' }], 210, 'cubic-bezier(.25,.8,.3,1)'),
+      animate(rightPanel, [{ transform: 'translateX(100%)' }, { transform: 'translateX(0)' }], 210, 'cubic-bezier(.25,.8,.3,1)')
+    ]);
+    leftPanel.style.transform = 'translateX(0)';
+    rightPanel.style.transform = 'translateX(0)';
     swap();
-    await animate(curtain, [{ opacity: 1 }, { opacity: 0 }], 190, 'ease-out');
+    await pause(55);
+    await Promise.all([
+      animate(leftPanel, [{ transform: 'translateX(0)' }, { transform: 'translateX(-100%)' }], 240, 'cubic-bezier(.4,0,.3,1)'),
+      animate(rightPanel, [{ transform: 'translateX(0)' }, { transform: 'translateX(100%)' }], 240, 'cubic-bezier(.4,0,.3,1)')
+    ]);
   } finally {
     curtain.hidden = true;
-    curtain.style.opacity = '0';
+    leftPanel.style.transform = 'translateX(-100%)';
+    rightPanel.style.transform = 'translateX(100%)';
   }
 }
 function fitStage() {
