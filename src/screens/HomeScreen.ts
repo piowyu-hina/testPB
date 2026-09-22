@@ -1,4 +1,4 @@
-import { characters, type CharacterId } from '../data/art';
+import { characters } from '../data/art';
 import { element, mountScreenRoot, onClick } from '../ui/dom';
 import type { Screen } from '../app/ScreenManager';
 import type { GameSession } from '../app/GameSession';
@@ -7,11 +7,14 @@ import '../hub.css';
 import villageImage from '../../assets/scenes/village/Village.png';
 import { setSoundEnabled, soundEnabled } from '../ui/sound';
 
+// Milliseconds each idle-sway frame is shown. Frames play forward then
+// backward (ping-pong) so any sequence loops seamlessly with no jump cut.
+const IDLE_FRAME_MS = 220;
+
 export function mountHome(host: HTMLElement, session: GameSession, onStart: () => void): Screen {
   const root = mountScreenRoot(host, template);
   const $ = <T extends HTMLElement = HTMLElement>(id: string) => element<T>(id, root);
   const portrait = $<HTMLImageElement>('home-portrait');
-  const picker = $<HTMLDialogElement>('character-picker');
   const soundToggle = $<HTMLButtonElement>('sound-toggle');
   function renderSound() {
     const enabled = soundEnabled();
@@ -21,41 +24,32 @@ export function mountHome(host: HTMLElement, session: GameSession, onStart: () =
   }
   onClick(soundToggle, () => { setSoundEnabled(!soundEnabled()); renderSound(); });
   renderSound();
+  let idleTimer = 0;
+  function stopIdleAnimation() {
+    if (!idleTimer) return;
+    clearInterval(idleTimer);
+    idleTimer = 0;
+  }
+  function startIdleAnimation(frames: string[]) {
+    stopIdleAnimation();
+    let index = 0;
+    let direction = 1;
+    portrait.src = frames[0];
+    idleTimer = window.setInterval(() => {
+      index += direction;
+      if (index >= frames.length - 1) { index = frames.length - 1; direction = -1; }
+      else if (index <= 0) { index = 0; direction = 1; }
+      portrait.src = frames[index];
+    }, IDLE_FRAME_MS);
+  }
   function renderCharacter() {
     const selected = characters[session.characterId];
-    portrait.src = selected.portrait;
-    portrait.alt = `${selected.name}立繪`;
     $('hero-name').textContent = selected.name;
-    root.querySelectorAll<HTMLButtonElement>('[data-character]').forEach(button => {
-      button.setAttribute('aria-pressed', String(button.dataset.character === session.characterId));
-    });
+    portrait.alt = `${selected.name}立繪`;
+    if (selected.idleFrames?.length) startIdleAnimation(selected.idleFrames);
+    else { stopIdleAnimation(); portrait.src = selected.portrait; }
   }
-  for (const id of Object.keys(characters) as CharacterId[]) {
-    const character = characters[id];
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.tabIndex = -1;
-    button.className = 'character-choice';
-    button.dataset.character = id;
-    const image = document.createElement('img');
-    image.src = character.image;
-    image.alt = '';
-    image.draggable = false;
-    const label = document.createElement('strong');
-    label.textContent = character.name;
-    button.append(image, label);
-    onClick(button, () => {
-      session.characterId = id;
-      renderCharacter();
-      picker.close();
-    });
-    $('character-options').append(button);
-  }
-  onClick($('open-characters'), () => { renderCharacter(); picker.showModal(); });
-  onClick($('close-characters'), () => picker.close());
-  portrait.src = characters[session.characterId].portrait;
-  portrait.alt = `${characters[session.characterId].name}立繪`;
-  $('hero-name').textContent = characters[session.characterId].name;
+  renderCharacter();
   $<HTMLImageElement>('village-art').src = villageImage;
   onClick($('open-dungeons'), onStart);
   const settings = $<HTMLDialogElement>('village-settings');
@@ -71,6 +65,6 @@ export function mountHome(host: HTMLElement, session: GameSession, onStart: () =
         : '準備好了，就向森林出發吧。';
       $('dungeon-entry-note').textContent = session.canResume ? '旅途中 · 可繼續' : '探索森林遺跡';
     },
-    leave() { settings.close(); picker.close(); }
+    leave() { settings.close(); stopIdleAnimation(); }
   };
 }

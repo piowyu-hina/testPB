@@ -1,9 +1,8 @@
 import { cards, loadouts } from '../data/cards.ts';
 import type { CardId, Loadout } from '../data/cards.ts';
 import { enemies } from '../data/enemies.ts';
-import { rooms } from '../data/rooms.ts';
-import type { RoomDefinition } from '../data/rooms.ts';
-import type { Point, Enemy, MovePreview, EnemyMotion, TurnOutcome, CardDefinition } from '../types/game.ts';
+import { forestRuins } from '../data/dungeons/forest.ts';
+import type { Point, Enemy, MovePreview, EnemyMotion, TurnOutcome, CardDefinition, RoomDefinition } from '../types/game.ts';
 import { attackOffsets, blocksAttack, enemySkill, faceToward } from './EnemyRules.ts';
 export const data = { cards, enemies };
 export const HAND_LIMIT = 5;
@@ -50,7 +49,7 @@ export class Room {
   knives: Point[] = [];
   loadout: Loadout;
   private random: () => number;
-  constructor(seed = 1, definition: RoomDefinition = rooms[0], health = 5, loadout: Loadout = 'basic') {
+  constructor(seed = 1, definition: RoomDefinition = forestRuins.rooms[0], health = 5, loadout: Loadout = 'basic') {
     this.loadout = loadout;
     this.hero = [...definition.hero];
     this.health = Math.max(0, Math.min(5, health));

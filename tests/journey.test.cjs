@@ -3,7 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { Journey } = require('../src/battle/Journey.ts');
 const { Room } = require('../src/battle/Room.ts');
-const { rooms } = require('../src/data/rooms.ts');
+const { rooms } = require('../src/data/dungeons/forest.ts').forestRuins;
 
 const { toExit } = require('./explore-helper.cjs');
 

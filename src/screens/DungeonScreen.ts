@@ -1,7 +1,7 @@
 import type { Screen } from '../app/ScreenManager';
 import type { GameSession } from '../app/GameSession';
-import { forestRuins } from '../data/dungeons';
-import { characters } from '../data/art';
+import { dungeons } from '../data/dungeons/index';
+import { characters, dungeonArt } from '../data/art';
 import { element, mountScreenRoot, onClick } from '../ui/dom';
 import template from './dungeon.html?raw';
 import '../hub.css';
@@ -9,10 +9,11 @@ import '../hub.css';
 export function mountDungeon(host: HTMLElement, session: GameSession, onBack: () => void, onStart: () => void): Screen {
   const root = mountScreenRoot(host, template);
   const $ = <T extends HTMLElement = HTMLElement>(id: string) => element<T>(id, root);
-  $<HTMLImageElement>('dungeon-art').src = forestRuins.image;
-  $('dungeon-title').textContent = forestRuins.name;
-  $('dungeon-subtitle').textContent = forestRuins.subtitle;
-  $('dungeon-description').textContent = forestRuins.description;
+  const dungeon = dungeons[session.dungeonId];
+  $<HTMLImageElement>('dungeon-art').src = dungeonArt[session.dungeonId];
+  $('dungeon-title').textContent = dungeon.name;
+  $('dungeon-subtitle').textContent = dungeon.subtitle;
+  $('dungeon-description').textContent = dungeon.description;
   $<HTMLImageElement>('party-icon').src = characters[session.characterId].image;
   $('party-name').textContent = characters[session.characterId].name;
   onClick($('dungeon-back'), onBack);

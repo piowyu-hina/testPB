@@ -1,4 +1,18 @@
 export type Point = [number, number];
+export interface RoomDefinition {
+  name: string;
+  hero: Point;
+  enemies: Enemy[];
+}
+export interface DungeonDefinition {
+  id: string;
+  name: string;
+  subtitle: string;
+  description: string;
+  rooms: RoomDefinition[];
+  /** Index of the first currently-active room; earlier rooms stay in data for later restoration. Defaults to 0. */
+  startIndex?: number;
+}
 export interface CardDefinition {
   name: string;
   hint?: string;

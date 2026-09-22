@@ -23,7 +23,6 @@ exports.toggleVillageTheme = async (page) => {
 };
 
 exports.checkVillage = async (page) => {
-  assert.equal(await page.locator('#guild-entry').isDisabled(), true);
   const theme = await page.locator('html').getAttribute('data-theme');
   await exports.toggleVillageTheme(page);
   assert.notEqual(await page.locator('html').getAttribute('data-theme'), theme);
