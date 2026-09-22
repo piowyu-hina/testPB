@@ -13,10 +13,10 @@
     "windows": [{
       "label": "main",
       "title": "testPB",
-      "width": 1100,
-      "height": 850,
-      "minWidth": 700,
-      "minHeight": 540,
+      "width": 576,
+      "height": 1024,
+      "minWidth": 360,
+      "minHeight": 640,
       "center": true,
       "resizable": true,
       "backgroundColor": "#171c1b"

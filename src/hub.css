@@ -95,73 +95,37 @@
 .expedition-button:hover { background: #fff0c5; }
 .expedition-button:active { transform: translateY(2px); box-shadow: 0 2px 0 #8d7548; }
 #journey-note { grid-column: 1 / -1; margin: 0; font-size: 12px; line-height: 1.7; color: #c9d2bf; }
-@media (max-height: 650px) and (min-width: 601px) {
-  .village, .destination-screen { height: calc(100svh - 24px); margin: 12px auto; }
-  .village-header { padding: 20px 28px; }
-  .village-portrait { height: 64%; bottom: 14%; width: 21%; }
-  .village-footer { padding: 8px 28px; }
-  .destination-screen { gap: 8px; }
-  .destination-copy { top: 7%; }
-  .destination-description { margin: 14px 0; font-size: 14px; }
-  .destination-copy h1 { font-size: 36px; }
-  .expedition-panel { bottom: 5%; padding-top: 12px; gap: 8px; }
-  .party-member img { width: 48px; height: 48px; }
-}
-@media (max-width: 600px) {
-  .village, .destination-screen { width: calc(100vw - 24px); height: calc(100svh - 24px); min-height: 580px; margin: 12px auto; }
-  .village-header { padding: 22px 20px; }
-  .village-art { object-position: 61% center; }
-  .village-portrait { left: 5%; bottom: 20%; width: 35%; height: 40%; border-radius: 48px 48px 10px 10px; }
-  .village-portrait figcaption { padding: 30px 12px 12px; }
-  .village-portrait figcaption span { font-size: 10px; }
-  .village-portrait figcaption strong { font-size: 20px; }
-  .place-marker { min-width: 132px; padding: 12px 15px; }
-  .guild-marker { left: 66%; top: 36%; }
-  .dungeon-marker { left: 70%; top: 62%; }
-  .village-footer { padding: 18px 20px; display: block; }
-  .village-footer p { margin-bottom: 0; line-height: 1.6; font-size: 12px; }
-  .destination-screen { gap: 12px; }
-  .destination-copy { left: 8%; right: 8%; top: 8%; width: auto; }
-  .destination-copy h1 { font-size: 36px; }
-  .destination-description { font-size: 14px; max-width: 240px; }
-  .destination-art { object-position: 60% center; }
-  .destination-shade { background: linear-gradient(180deg, #102a26df, #102a2650 60%, #102a26f5); }
-  .expedition-panel { left: 8%; right: 8%; bottom: 5%; grid-template-columns: 1fr; gap: 16px; }
-  .expedition-button { width: 100%; }
-}
-@media (orientation: portrait) and (hover: none) and (pointer: coarse) {
-  .village, .destination-screen { width: 696px; height: 1256px; min-height: 0; margin: 12px auto; }
-  .village-header { padding: 22px 20px; }
-  .village-art { object-position: 61% center; }
-  .village-portrait { left: 5%; bottom: 20%; width: 35%; height: 40%; border-radius: 48px 48px 10px 10px; }
-  .guild-marker { left: 66%; top: 36%; }
-  .dungeon-marker { left: 70%; top: 62%; }
-  .village-footer { padding: 18px 20px; display: block; }
-  .destination-screen { gap: 12px; }
-  .destination-copy { left: 8%; right: 8%; top: 8%; width: auto; }
-  .destination-art { object-position: 60% center; }
-  .destination-shade { background: linear-gradient(180deg, #102a26df, #102a2650 60%, #102a26f5); }
-  .expedition-panel { left: 8%; right: 8%; bottom: 5%; grid-template-columns: 1fr; gap: 16px; }
-  .expedition-button { width: 100%; }
-  .scene-eyebrow { font-size: 20px; }
-  .village-header h1 { font-size: 42px; }
-  .scene-button { font-size: 24px; }
-  .village-portrait figcaption span { font-size: 18px; }
-  .village-portrait figcaption strong { font-size: 32px; }
-  #open-characters { font-size: 20px; }
-  .place-marker { min-width: 190px; padding: 20px 24px; }
-  .place-marker strong { font-size: 32px; }
-  .place-marker small { font-size: 18px; }
-  .marker-symbol { font-size: 36px; }
-  .village-footer p { font-size: 20px; }
-  .village-location { font-size: 18px; }
-  .destination-header .quiet-button, .destination-header > span { font-size: 22px; }
-  .destination-copy h1 { font-size: 48px; }
-  .destination-description { max-width: 420px; font-size: 24px; }
-  .destination-state { font-size: 20px; }
-  .party-member img { width: 80px; height: 80px; }
-  .party-member span { font-size: 18px; }
-  .party-member strong { font-size: 26px; }
-  .expedition-button { padding: 24px; font-size: 28px; }
-  #journey-note { font-size: 20px; }
-}
+.village, .destination-screen { width: 696px; height: 1256px; min-height: 0; margin: 12px auto; }
+.village-header { padding: 22px 20px; }
+.village-art { object-position: 61% center; }
+.village-portrait { left: 5%; bottom: 20%; width: 35%; height: 40%; border-radius: 48px 48px 10px 10px; }
+.guild-marker { left: 66%; top: 36%; }
+.dungeon-marker { left: 70%; top: 62%; }
+.village-footer { padding: 18px 20px; display: block; }
+.destination-screen { gap: 12px; }
+.destination-copy { left: 8%; right: 8%; top: 8%; width: auto; }
+.destination-art { object-position: 60% center; }
+.destination-shade { background: linear-gradient(180deg, #102a26df, #102a2650 60%, #102a26f5); }
+.expedition-panel { left: 8%; right: 8%; bottom: 5%; grid-template-columns: 1fr; gap: 16px; }
+.expedition-button { width: 100%; }
+.scene-eyebrow { font-size: 20px; }
+.village-header h1 { font-size: 42px; }
+.scene-button { font-size: 24px; }
+.village-portrait figcaption span { font-size: 18px; }
+.village-portrait figcaption strong { font-size: 32px; }
+#open-characters { font-size: 20px; }
+.place-marker { min-width: 190px; padding: 20px 24px; }
+.place-marker strong { font-size: 32px; }
+.place-marker small { font-size: 18px; }
+.marker-symbol { font-size: 36px; }
+.village-footer p { font-size: 20px; }
+.village-location { font-size: 18px; }
+.destination-header .quiet-button, .destination-header > span { font-size: 22px; }
+.destination-copy h1 { font-size: 48px; }
+.destination-description { max-width: 420px; font-size: 24px; }
+.destination-state { font-size: 20px; }
+.party-member img { width: 80px; height: 80px; }
+.party-member span { font-size: 18px; }
+.party-member strong { font-size: 26px; }
+.expedition-button { padding: 24px; font-size: 28px; }
+#journey-note { font-size: 20px; }

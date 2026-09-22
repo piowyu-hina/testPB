@@ -31,6 +31,9 @@ fs.mkdirSync(output, { recursive: true });
   try {
     await page.goto(process.env.TESTPB_URL || 'http://127.0.0.1:4173');
     await page.locator('#home').waitFor();
+    const desktopStage = await page.locator('#stage').boundingBox();
+    assert.ok(Math.abs(desktopStage.width / desktopStage.height - 9 / 16) < 0.001);
+    assert.ok(desktopStage.x > 0, 'desktop stage should be centered');
     await require('./rogue-flow.cjs')(page, output);
     await checkCharacters(page);
     await require('./village-flow.cjs').chooseCharacter(page, 'pinkCat');

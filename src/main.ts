@@ -12,14 +12,12 @@ document.addEventListener('contextmenu', (event) => event.preventDefault());
 const session = new GameSession();
 const host = element('app');
 const stage = element('stage');
-const portraitTouch = matchMedia('(orientation: portrait) and (hover: none) and (pointer: coarse)');
-function fitPortraitStage() {
-  host.style.transform = portraitTouch.matches ? `scale(${stage.clientWidth / 720})` : '';
+function fitStage() {
+  host.style.transform = `scale(${stage.getBoundingClientRect().width / 720})`;
 }
-new ResizeObserver(fitPortraitStage).observe(stage);
-portraitTouch.addEventListener('change', fitPortraitStage);
-window.addEventListener('resize', fitPortraitStage);
-fitPortraitStage();
+new ResizeObserver(fitStage).observe(stage);
+window.addEventListener('resize', fitStage);
+fitStage();
 const screens = {
   home: mountHome(host, session, () => navigation.go('dungeon')),
   dungeon: mountDungeon(host, session, () => navigation.go('home'), () => navigation.go('battle')),
