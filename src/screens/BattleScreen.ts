@@ -313,23 +313,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (touchLayout()) {
       elements.touchInfo.replaceChildren(...Array.from(panel.childNodes).map(node => node.cloneNode(true)));
       panel.hidden = true;
-      return;
     }
-    const tile = tiles.find(({ point: tilePoint }) => equal(tilePoint, point))!.tile.getBoundingClientRect();
-    const board = elements.board.getBoundingClientRect();
-    const stage = host.getBoundingClientRect();
-    const scale = stage.width / host.offsetWidth;
-    const { width, height } = panel.getBoundingClientRect();
-    const margin = 10;
-    const beside = stage.right - board.right >= width + margin * 2;
-    const left = beside ? board.right + 8 : board.left - stage.left >= width + margin * 2
-      ? board.left - width - 8 : tile.left + tile.width / 2 - width / 2;
-    const top = beside || board.left - stage.left >= width + margin * 2 ? tile.top
-      : tile.top - stage.top >= height + 8 ? tile.top - height - 8 : tile.bottom + 8;
-    const screenLeft = Math.max(stage.left + margin, Math.min(left, stage.right - width - margin));
-    const screenTop = Math.max(stage.top + margin, Math.min(top, stage.bottom - height - margin));
-    panel.style.left = `${(screenLeft - stage.left) / scale}px`;
-    panel.style.top = `${(screenTop - stage.top) / scale}px`;
   }
   function render() {
     if (!room) return;

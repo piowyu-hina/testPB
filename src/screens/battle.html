@@ -25,19 +25,23 @@
         <div id="journey-progress" class="journey-progress" aria-label="房間進度"></div>
         <div id="actions" class="actions" aria-label="剩餘行動"></div>
       </div>
+      <div class="battle-info">
+        <div class="hint" id="hint" aria-live="polite"></div>
+        <div id="tile-info" class="tile-info" role="status" hidden></div>
+        <div id="touch-info" class="touch-info" aria-live="polite"></div>
+        <aside id="card-details" class="card-details" aria-live="polite" hidden></aside>
+      </div>
       <section class="board-shell" aria-label="棋盤">
         <div id="room-arrival" class="room-arrival" role="status" hidden><small id="arrival-stage"></small><strong id="arrival-name"></strong><span id="arrival-recovery"></span></div>
         <div class="board" id="board">
           <div class="tiles" id="tiles"></div>
           <div class="actors" id="actors"></div>
           <div id="ground-knives" class="ground-knives" aria-label="地上的飛刀"></div>
-          <div id="tile-info" class="tile-info" role="tooltip" hidden></div>
           <div class="actor hero ghost" id="ghost" hidden>
             <img alt="落點預覽" draggable="false" />
           </div>
         </div>
       </section>
-      <div id="touch-info" class="touch-info" aria-live="polite"></div>
       <section class="controls" aria-label="手牌與回合">
         <div class="hand" id="hand"></div>
         <div id="bonus-hand" class="bonus-hand" aria-label="免費小刀" hidden></div>
@@ -45,8 +49,6 @@
           <span id="end-label">結束回合</span><small id="end-forecast"></small>
         </button>
       </section>
-      <div class="hint" id="hint" aria-live="polite"></div>
-      <aside id="card-details" class="card-details" aria-live="polite" hidden></aside>
       <dialog id="battle-help" class="settings-dialog battle-help" aria-labelledby="battle-help-title">
         <div class="settings-heading"><h2 id="battle-help-title">怎麼玩</h2><button id="close-battle-help" class="quiet-button" type="button" tabindex="-1">回到棋盤</button></div>
         <ol>
