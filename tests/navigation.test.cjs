@@ -34,6 +34,31 @@ test('navigation supports a third screen, prevents leaving during animation, and
   assert.deepEqual(visible(), ['village']);
 });
 
+test('screen transition swaps once and blocks navigation until it finishes', async () => {
+  const calls = [];
+  const screens = Object.fromEntries(['home', 'dungeon', 'battle'].map(id => [id, {
+    root: { hidden: false },
+    enter: () => calls.push(`enter:${id}`),
+    leave: () => calls.push(`leave:${id}`)
+  }]));
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  const navigation = new ScreenManager(screens, async swap => {
+    await gate;
+    swap();
+  });
+  assert.equal(navigation.go('home'), true);
+  assert.equal(navigation.go('dungeon'), true);
+  assert.equal(navigation.go('battle'), false);
+  assert.equal(screens.home.root.hidden, false);
+  assert.equal(screens.dungeon.root.hidden, true);
+  release();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(screens.home.root.hidden, true);
+  assert.equal(screens.dungeon.root.hidden, false);
+  assert.deepEqual(calls, ['enter:home', 'leave:home', 'enter:dungeon']);
+});
+
 test('session preserves battle and cleared-room progress across entries; defeat and final victory start fresh', () => {
   const session = new GameSession();
   assert.equal(session.canResume, false);

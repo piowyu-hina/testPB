@@ -495,7 +495,8 @@ noscript {
   --stage-height: calc(var(--stage-width) * 1.7777778);
 }
 body { height: 100svh; min-height: 0; align-items: center; overflow: hidden; }
-#stage { display: block; flex: none; width: var(--stage-width); height: var(--stage-height); overflow: hidden; }
+#stage { position: relative; display: block; flex: none; width: var(--stage-width); height: var(--stage-height); overflow: hidden; }
+.screen-curtain { position: absolute; inset: 0; z-index: 30; background: #1d1e1e; opacity: 0; pointer-events: auto; }
 .screen-root { display: flow-root; width: 720px; height: 1280px; overflow: hidden; transform-origin: top left; }
 .heart { width: 27px; height: 27px; }
 .board-shell { padding: 17px; }

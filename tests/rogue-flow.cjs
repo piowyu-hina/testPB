@@ -4,6 +4,7 @@ module.exports = async function checkRogue(page, output) {
   await require('./village-flow.cjs').chooseCharacter(page, 'rogue');
   await page.locator('#open-dungeons').click();
   await page.locator('#start-game').click();
+  await page.locator('#game').waitFor({ state: 'visible' });
   assert.deepEqual(await page.locator('#hand .card').evaluateAll(nodes => nodes.map(n => n.dataset.card)), ['throw', 'shadow', 'lunge']);
   const openingCardWidth = await page.locator('#hand .card').first().evaluate(node => node.getBoundingClientRect().width);
   assert.equal(await page.locator('[data-card="shadow"] .card-requirement').count(), 0);

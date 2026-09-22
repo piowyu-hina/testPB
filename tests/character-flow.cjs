@@ -41,6 +41,7 @@ module.exports = async function checkCharacters(page) {
       await page.locator('[data-actor="hero"] img').getAttribute('src')
     );
     await page.locator('#back-home').click();
+    await page.locator('#home').waitFor({ state: 'visible' });
     const alternative = id === 'rogue' ? 'pinkCat' : 'rogue';
     await page.locator('#open-characters').click();
     await page.locator(`[data-character="${alternative}"]`).click();
@@ -48,9 +49,11 @@ module.exports = async function checkCharacters(page) {
     assert.equal(await page.locator('#start-label').textContent(), '繼續旅途');
     const icon = await page.locator('#party-icon').getAttribute('src');
     await page.locator('#start-game').click();
+    await page.locator('#game').waitFor({ state: 'visible' });
     assert.equal(await page.locator('[data-actor="hero"] img').getAttribute('src'), icon);
     assert.equal(await page.locator('#ghost img').getAttribute('src'), icon);
     await page.locator('#back-home').click();
+    await page.locator('#home').waitFor({ state: 'visible' });
   }
   await loaded();
   await page.reload();

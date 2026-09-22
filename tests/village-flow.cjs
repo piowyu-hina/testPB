@@ -6,10 +6,12 @@ exports.chooseCharacter = async (page, id) => {
 };
 
 exports.openDungeon = async (page, touch = false) => {
+  await page.locator('.screen-curtain').waitFor({ state: 'hidden' });
   if (await page.locator('#home').isVisible()) {
     await page.locator('#open-dungeons')[touch ? 'tap' : 'click']();
   }
   await page.locator('#dungeon').waitFor();
+  await page.locator('.screen-curtain').waitFor({ state: 'hidden' });
 };
 
 exports.toggleVillageTheme = async (page) => {
@@ -34,6 +36,7 @@ exports.checkVillage = async (page) => {
     assert.equal(await page.locator('#dungeon-title').textContent(), '森林遺跡');
     assert.equal(await page.locator('#start-label').textContent(), '出發');
     await page.locator('#dungeon-back').click();
+    await page.locator('#home').waitFor({ state: 'visible' });
     assert.equal(await page.locator('#home').isVisible(), true);
   }
 };
