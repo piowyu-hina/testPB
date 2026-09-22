@@ -20,6 +20,9 @@ module.exports = async function checkRogue(page, output) {
   await idle();
   assert.equal(await page.locator('[data-actor="hero"]').getAttribute('style'), origin);
   assert.equal(await page.locator('.ground-knife').count(), 1);
+  await page.locator('#turn').hover();
+  await page.locator('.tile[data-x="2"][data-y="2"]').hover();
+  assert.match(await page.locator('#tile-info').innerText(), /地上小刀/);
   assert.equal(await page.locator('[data-card="shadow"] .card-requirement').isVisible(), false);
   assert.match(await page.locator('#hint').textContent(), /用追影移到小刀格/);
   assert.equal(await page.locator('[data-actor="0"]').count(), 0);

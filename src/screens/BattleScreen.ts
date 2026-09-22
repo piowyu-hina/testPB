@@ -23,6 +23,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     board: $('board'),
     tiles: $('tiles'),
     actors: $('actors'),
+    tileInfo: $('tile-info'),
     hand: $('hand'),
     bonusHand: $('bonus-hand'),
     health: $('health'),
@@ -204,6 +205,56 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       `生命 ${room.health} / 5${incoming ? `，預計受到 ${incoming} 傷害` : ''}`
     );
   }
+  function renderTileInfo(preview: ReturnType<Room['preview']>) {
+    const panel = elements.tileInfo;
+    panel.hidden = !hoveredTile || busy || (room.finished && !exploring());
+    if (panel.hidden || !hoveredTile) return;
+    const point = hoveredTile;
+    const enemy = room.at(point);
+    const onHero = equal(point, room.hero);
+    const title = enemy ? enemySummary(enemy) : onHero ? '目前位置' : exploring() && equal(point, journey.exit) ? '出口' : '空地';
+    const lines: string[] = [];
+    if (enemy) {
+      const skill = enemySkill(enemy);
+      lines.push(`下一招：${skill.name} · ${skill.hint}`);
+      if (enemy.facing && skill.guardsFront) lines.push(`面向：${{ north: '上', east: '右', south: '下', west: '左' }[enemy.facing]}`);
+    }
+    if (room.hasKnife(point)) lines.push('地上小刀 · 踏入可回收、補行動並抽牌');
+    const threats = room.enemies.filter(e => Room.threatens(e, point));
+    if (threats.length) lines.push(`停留受 ${room.damageAt(point)} 傷害：${threats.map(e => `${data.enemies[e.kind].name}${e.elite ? '（精英）' : ''}`).join('、')}`);
+    else if (!exploring()) lines.push('停留受 0 傷害');
+    const chosenId = room.availableCards[selected];
+    if (chosenId) {
+      if (preview) {
+        if (preview.blocked) lines.push(`${data.cards[chosenId].name}：正面格擋，消耗行動`);
+        else if (chosenId === 'throw') lines.push(`飛刀：原地攻擊${preview.removedId >= 0 ? '並擊敗' : ''}，刀留此格`);
+        else if (preview.removedId >= 0) lines.push(`${data.cards[chosenId].name}：移入並擊敗怪物`);
+        else if (enemy) lines.push(`${data.cards[chosenId].name}：命中後退回原格`);
+        else lines.push(`${data.cards[chosenId].name}：移到此格`);
+        if (chosenId !== 'throw' && room.hasKnife(preview.destination)) lines.push('回收小刀 · 行動 +1 · 抽 1 張');
+        if (!exploring()) lines.push(`行動後受 ${preview.damage} 傷害`);
+      } else lines.push(`${data.cards[chosenId].name}無法作用於此格`);
+    }
+    panel.replaceChildren();
+    const heading = document.createElement('strong');
+    heading.textContent = title;
+    panel.append(heading);
+    for (const line of lines) {
+      const detail = document.createElement('span');
+      detail.textContent = line;
+      panel.append(detail);
+    }
+    const tile = tiles.find(({ point: tilePoint }) => equal(tilePoint, point))!.tile.getBoundingClientRect();
+    const board = elements.board.getBoundingClientRect();
+    const width = panel.offsetWidth, height = panel.offsetHeight, margin = 10;
+    const beside = window.innerWidth - board.right >= width + margin * 2;
+    const left = beside ? board.right + 8 : board.left >= width + margin * 2
+      ? board.left - width - 8 : tile.left + tile.width / 2 - width / 2;
+    const top = beside || board.left >= width + margin * 2 ? tile.top
+      : tile.top >= height + 8 ? tile.top - height - 8 : tile.bottom + 8;
+    panel.style.left = `${Math.max(margin, Math.min(left, window.innerWidth - width - margin))}px`;
+    panel.style.top = `${Math.max(margin, Math.min(top, window.innerHeight - height - margin))}px`;
+  }
   function render() {
     if (!room) return;
     const preview =
@@ -220,6 +271,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const cleared = exploring();
     const chosenId = room.availableCards[selected];
     const chosen = chosenId ? data.cards[chosenId] : undefined;
+    renderTileInfo(preview);
     if (!busy) {
       if (preview?.blocked) elements.hint.textContent = `正面格擋：無傷害，仍消耗卡片與 ${room.cardCost(selected)} 次行動。`;
       else if (cleared) elements.hint.textContent = chosen
@@ -323,6 +375,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     inspectedEnemy = -1;
     elements.hint.textContent = '';
     elements.ghost.hidden = true;
+    elements.tileInfo.hidden = true;
     for (const actor of actors.values())
       actor.classList.remove('origin-preview', 'victim-preview', 'hovered');
     elements.end.disabled = true;
