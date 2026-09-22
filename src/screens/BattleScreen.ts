@@ -44,7 +44,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     hoveredEnemy = -1,
     inspectedEnemy = -1,
     busy = false,
-    handSignature = '';
+    handSignature = '',
+    knifeLessonShown = false,
+    knifeLessonPending = false;
   const tiles: { tile: HTMLButtonElement; threats: HTMLSpanElement; point: Point }[] = [];
   const actors = new Map<number | 'hero', HTMLDivElement>();
   const exploring = () => room.won && !journey.finished;
@@ -149,6 +151,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           cost.textContent = id === 'knife' ? '0 行動' : '1 行動';
           card.append(cost);
         }
+        if (id === 'shadow') {
+          const requirement = document.createElement('span');
+          requirement.className = 'card-requirement';
+          card.append(requirement);
+        }
         card.addEventListener('pointerenter', () => {
           if (!busy)
             elements.hint.textContent =
@@ -160,6 +167,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         onClick(card, () => {
           if (busy || (!exploring() && !room.canUseCard(index))) return;
           selected = selected === index ? -1 : index;
+          if (id === 'shadow') knifeLessonPending = false;
           inspectedEnemy = -1;
           hoveredTile = null;
           hoveredEnemy = -1;
@@ -173,6 +181,13 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.hand.style.setProperty('--hand-slots', String(Math.max(3, room.availableCards.length)));
     [...root.querySelectorAll<HTMLButtonElement>('.card')].forEach((card) => {
       const index = Number(card.dataset.index);
+      const shadowUnavailable = card.dataset.card === 'shadow' && !exploring() && !room.canUseCard(index);
+      const reason = !shadowUnavailable ? '' : room.knives.length === 0
+        ? '需要場上小刀' : room.actions < room.cardCost(index)
+          ? '行動不足' : '無可到達刀格';
+      card.classList.toggle('shadow-unavailable', shadowUnavailable);
+      card.querySelector<HTMLElement>('.card-requirement')?.replaceChildren(reason);
+      card.setAttribute('aria-label', reason ? `追影，${reason}` : data.cards[room.availableCards[index]].name);
       card.classList.toggle('selected', index === selected);
       card.setAttribute('aria-pressed', String(index === selected));
       card.disabled = busy || (!exploring() && !room.canUseCard(index));
@@ -215,7 +230,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         const hasMove = tiles.some(({ point }) => room.canMove(selected, point));
         elements.hint.textContent = `${chosen.name} · ${chosen.hint} · ${hasMove ? '點亮起的格子移動' : '目前無可用目標，請換牌'} · 再點此牌取消`;
       } else if (focusedEnemy) elements.hint.textContent = enemySummary(focusedEnemy);
-      else elements.hint.textContent = room.finished ? '' : '先選一張牌，再點亮起的格子 · 點怪物可查看生命';
+      else elements.hint.textContent = room.finished ? '' : knifeLessonPending
+        ? '飛刀已落地 · 用追影移到小刀格，撿刀可補 1 行動並抽牌'
+        : '先選一張牌，再點亮起的格子 · 點怪物可查看生命';
     }
     const endDamage = room.finished ? 0 : room.damageAt(room.hero);
     $('end-forecast').textContent = busy || room.finished ? '' : `留在原地受 ${endDamage} 傷害${endDamage >= room.health ? ' · 致命' : ''}`;
@@ -370,6 +387,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       render();
       showResult();
       return;
+    }
+    if (thrown && room.knives.length && !knifeLessonShown) {
+      knifeLessonShown = true;
+      knifeLessonPending = true;
     }
     if (!room.hasPlayableCard() && !room.hand.includes('knife')) {
       await pause(180);

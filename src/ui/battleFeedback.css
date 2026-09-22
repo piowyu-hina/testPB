@@ -14,6 +14,11 @@
 .hand { gap: 12px; }
 .bonus-hand .card { border-color: #a68c50; }
 .bonus-hand .card-cost { color: #80632b; }
+.card-requirement { display: none; }
+.card.shadow-unavailable { opacity: 1; border-color: #8c907e; }
+.card.shadow-unavailable .card-art { opacity: .42; }
+.card.shadow-unavailable .card-name, .card.shadow-unavailable .card-cost { opacity: .65; }
+.card.shadow-unavailable .card-requirement { display: block; position: absolute; top: 7px; left: 3px; right: 3px; z-index: 1; padding: 2px 0; border-radius: 4px; background: #355b4c; color: #fff9eb; font-size: clamp(8px, 1.3vh, 11px); line-height: 1.2; white-space: nowrap; text-align: center; }
 .exploring .exit-door { filter: drop-shadow(0 0 7px #e8d388); animation: exit-beacon 1.8s ease-in-out infinite; }
 .exploring .door-interior { fill: #568c6c; }
 .board-shell { position: relative; }

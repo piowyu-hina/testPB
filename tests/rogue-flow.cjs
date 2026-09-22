@@ -5,6 +5,8 @@ module.exports = async function checkRogue(page, output) {
   await page.locator('#open-dungeons').click();
   await page.locator('#start-game').click();
   assert.deepEqual(await page.locator('#hand .card').evaluateAll(nodes => nodes.map(n => n.dataset.card)), ['throw', 'shadow', 'lunge']);
+  assert.equal(await page.locator('[data-card="shadow"] .card-requirement').isVisible(), true);
+  assert.match(await page.locator('[data-card="shadow"]').getAttribute('aria-label'), /需要場上小刀/);
   const layoutBefore = await page.evaluate(() => ({
     board: document.querySelector('.board-shell').getBoundingClientRect().top,
     hand: document.querySelector('#hand').getBoundingClientRect().top,
@@ -18,6 +20,8 @@ module.exports = async function checkRogue(page, output) {
   await idle();
   assert.equal(await page.locator('[data-actor="hero"]').getAttribute('style'), origin);
   assert.equal(await page.locator('.ground-knife').count(), 1);
+  assert.equal(await page.locator('[data-card="shadow"] .card-requirement').isVisible(), false);
+  assert.match(await page.locator('#hint').textContent(), /用追影移到小刀格/);
   assert.equal(await page.locator('[data-actor="0"]').count(), 0);
   if (output) await page.screenshot({path: `${output}/rogue-ground-knife.png`});
   await page.locator('[data-card="shadow"]').click();
