@@ -346,8 +346,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         ? '飛刀已落地 · 用追影移到小刀格，撿刀可補 1 行動並抽牌'
         : '先選一張牌，再點亮起的格子 · 點怪物可查看生命';
     }
-    const endDamage = room.finished ? 0 : room.damageAt(room.hero);
-    $('end-forecast').textContent = busy || room.finished ? '' : `留在原地受 ${endDamage} 傷害${endDamage >= room.health ? ' · 致命' : ''}`;
     $('room-exit').toggleAttribute('hidden', !cleared);
     elements.game.classList.toggle('exploring', cleared);
     for (const { tile, threats, point } of tiles) {
@@ -409,23 +407,13 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     ).join('');
     elements.actions.setAttribute('aria-label', `剩餘 ${room.actions} 次行動`);
     elements.turn.textContent = cleared ? '' : `第 ${room.turn} 回合`;
-    const progress = $('journey-progress');
-    progress.setAttribute(
-      'aria-label',
-      `第 ${journey.stage + 1} / ${journey.total} 間 · ${journey.definition.name}`
-    );
-    progress.title = `第 ${journey.stage + 1} / ${journey.total} 間 · ${journey.definition.name}`;
-    progress.innerHTML = Array.from(
-      { length: journey.total },
-      (_, i) =>
-        `<span class="room-step${i < journey.stage ? ' complete' : ''}${i === journey.stage ? ' current' : ''}" ${i === journey.stage ? 'aria-current="step"' : ''}>${i + 1}</span>`
-    ).join('');
     elements.end.disabled = busy || room.finished;
     $<HTMLButtonElement>('back-home').disabled = busy;
     $<HTMLButtonElement>('open-battle-help').disabled = busy;
     elements.game.classList.toggle('choosing', selected >= 0 && !busy);
     elements.game.setAttribute('aria-busy', String(busy));
     syncHand();
+    elements.touchInfo.dataset.mode = inspectedTile ? 'tile' : 'hint';
     if (touchLayout() && !inspectedTile) elements.touchInfo.textContent = selected >= 0 && !exploring()
       ? `${data.cards[room.availableCards[selected]].name} · 點亮起的格子行動`
       : elements.hint.textContent ?? '';
@@ -446,7 +434,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.end.disabled = true;
     $<HTMLButtonElement>('back-home').disabled = true;
     $<HTMLButtonElement>('open-battle-help').disabled = true;
-    $('end-forecast').textContent = '';
     elements.game.classList.remove('choosing');
     for (const { tile } of tiles) {
       tile.disabled = true;

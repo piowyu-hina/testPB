@@ -23,5 +23,6 @@ module.exports = async function checkBattleUx(page) {
   await page.locator('#turn').hover();
   assert.equal(await page.locator('.card.selected').count(), 0);
   assert.match(await page.locator('#hint').textContent(), /先選一張牌/);
-  assert.match(await page.locator('#end-forecast').textContent(), /留在原地受 0 傷害/);
+  assert.equal(await page.locator('#end-turn').innerText(), '結束回合');
+  assert.equal(await page.locator('#journey-progress').count(), 0);
 };

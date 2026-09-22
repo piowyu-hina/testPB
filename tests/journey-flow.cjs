@@ -16,7 +16,6 @@ module.exports = async function playJourney(page, output, prefix = '', loadout =
   await page.emulateMedia({ reducedMotion: 'reduce' });
   for (let stage = 0; stage < 3; stage++) {
     const model = run.room;
-    assert.equal(await page.locator('.room-step.current').textContent(), String(stage + 1));
     assert.equal(await page.locator('#health .empty').count(), 5 - model.health);
     if (stage === 1) {
       await page.locator('.tile[data-x="1"][data-y="3"]').click();
@@ -94,7 +93,6 @@ module.exports = async function playJourney(page, output, prefix = '', loadout =
       await page.locator('.tile[data-x="0"][data-y="0"]').click();
       await idle();
       assert.equal(await page.locator('[data-actor="hero"]').getAttribute('style'), heroStyle);
-      assert.equal(await page.locator('.room-step.current').textContent(), String(stage + 1));
       assert.equal(await page.locator('#health .empty').count(), 5 - model.health);
       await page.locator('#back-home').click();
       await openDungeon(page);
