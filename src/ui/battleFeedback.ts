@@ -32,12 +32,14 @@ export async function heartBurst(board: HTMLElement, point: Point): Promise<void
   burst.textContent = '♥';
   place(burst, point);
   board.append(burst);
+  const drift = (Math.random() < .5 ? -1 : 1) * (16 + Math.random() * 14);
+  const tilt = Math.round(drift * .65);
   try {
     await animate(burst, [
-      { opacity: 0, transform: 'translate(-50%, -25%) scale(.5)' },
-      { opacity: 1, transform: 'translate(-50%, -65%) scale(1.15)', offset: .18 },
-      { opacity: 1, transform: 'translate(-50%, -105%) scale(1)', offset: .72 },
-      { opacity: 0, transform: 'translate(-50%, -145%) scale(.85)' }
+      { opacity: 0, transform: 'translate(-50%, -25%) rotate(0deg) scale(.5)' },
+      { opacity: 1, transform: `translate(calc(-50% + ${drift * .2}px), -65%) rotate(${tilt * .3}deg) scale(1.15)`, offset: .18 },
+      { opacity: 1, transform: `translate(calc(-50% + ${drift * .75}px), -105%) rotate(${tilt * .75}deg) scale(1)`, offset: .72 },
+      { opacity: 0, transform: `translate(calc(-50% + ${drift}px), -145%) rotate(${tilt}deg) scale(.85)` }
     ], 750, 'ease-out');
   } finally { burst.remove(); }
 }
