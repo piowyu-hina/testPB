@@ -163,13 +163,13 @@ h1 {
   background: #cfc6b4;
 }
 .board-shell {
-  background: linear-gradient(145deg, #76766f, #565751);
-  border: 1px solid #494a46;
+  background: linear-gradient(145deg, #5f605c, #40423f);
+  border: 1px solid #30322f;
   border-radius: 18px;
   padding: clamp(10px, 1.7vh, 17px);
   box-shadow:
-    inset 0 1px 0 #aaa99e,
-    0 7px 0 #3d3f3a,
+    inset 0 1px 0 #858780,
+    0 7px 0 #2c2e2a,
     0 18px 32px #1d201d22;
 }
 .board {
