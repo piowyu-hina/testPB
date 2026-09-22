@@ -23,21 +23,22 @@ test('front block leaves knife but neither kills nor duplicates a knife on same 
   assert.equal(r.enemies[0].health, 1);
   assert.deepEqual(r.knives, [[2, 2]]);
 });
-test('shadow only targets knife tiles along clear straight or diagonal paths', () => {
+test('shadow targets any knife tile regardless of angle or intervening monsters', () => {
   const r = room(); r.enemies = [enemy(0, [2, 2], 'stump', { facing: 'south' }), enemy(1, [4, 4])];
   r.hand = ['shadow'];
   assert.equal(r.canMove(0, [2, 3]), false);
   assert.equal(r.canMove(0, [2, 4]), false);
   assert.equal(r.canMove(0, [3, 1]), false);
   assert.equal(r.canMove(0, [2, 2]), false);
-  r.knives = [[2, 2], [3, 1], [2, 4]];
+  r.knives = [[2, 2], [3, 1], [2, 4], [4, 3]];
   assert.equal(r.canMove(0, [3, 1]), true);
-  assert.equal(r.canMove(0, [2, 4]), false); // The nearer guard blocks this route.
+  assert.equal(r.canMove(0, [2, 4]), true); // The nearer guard does not block teleportation.
+  assert.equal(r.canMove(0, [4, 3]), true); // The knife is not on a straight or diagonal line.
   assert.equal(r.canMove(0, [2, 3]), false);
   assert.equal(r.canMove(0, [3, 2]), false);
   r.move(0, [2, 2]);
   assert.deepEqual(r.hero, [2, 0]);
-  assert.deepEqual(r.knives, [[2, 2], [3, 1], [2, 4]]);
+  assert.deepEqual(r.knives, [[2, 2], [3, 1], [2, 4], [4, 3]]);
   assert.deepEqual(r.hand, []);
 });
 test('an enemy standing on a ground knife deals one extra damage and loses it after moving away', () => {

@@ -6,11 +6,11 @@ import { element, mountScreenRoot, onClick } from '../ui/dom';
 import type { Screen } from '../app/ScreenManager';
 import type { GameSession } from '../app/GameSession';
 import template from './battle.html?raw';
-import { place, animate, pause, travel } from '../ui/animations';
+import { place, animate, pause, travel, teleport } from '../ui/animations';
 import { diagram } from '../ui/cardDiagram';
 import { cardArt } from '../data/cardArt';
 import { daggerIcon, groundDaggerIcon } from '../ui/dagger';
-import { approach, shield, recoil } from '../ui/battleFeedback';
+import { approach, contactPoint, shield, recoil } from '../ui/battleFeedback';
 import { enemySkill, blocksAttack } from '../battle/EnemyRules';
 import { enemySummary } from '../ui/enemyInfo';
 import '../enemy.css';
@@ -466,8 +466,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const thrown = action.kind === 'throw';
     const resisted = !thrown && action.hitId !== undefined && action.removedId < 0;
     const contact = resisted
-      ? await approach(actor('hero'), action.from, action.to, action.kind === 'leap')
+      ? action.kind === 'shadow'
+        ? contactPoint(action.from, action.to)
+        : await approach(actor('hero'), action.from, action.to, action.kind === 'leap')
       : action.to;
+    if (resisted && action.kind === 'shadow') await teleport(actor('hero'), contact);
     if (thrown) {
       const projectile = document.createElement('div');
       projectile.className = 'knife-projectile';
@@ -475,14 +478,20 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       elements.board.append(projectile);
       try { await travel(projectile, action.from, action.to, 0); }
       finally { projectile.remove(); }
-    } else if (!resisted) await travel(actor('hero'), action.from, action.to, action.kind === 'leap' ? 30 : 9);
+    } else if (!resisted) {
+      if (action.kind === 'shadow') await teleport(actor('hero'), action.to);
+      else await travel(actor('hero'), action.from, action.to, action.kind === 'leap' ? 30 : 9);
+    }
     if (action.hitId !== undefined) {
       elements.hint.textContent = blocked ? '正面格擋 · 這次攻擊沒有造成傷害' : action.removedId >= 0 ? '擊敗怪物' : '命中 · 怪物生命 −1';
       if (blocked) await shield(elements.board, action.to);
       else if (action.removedId < 0) await recoil(actor(action.hitId), action.from, action.to);
     }
     if (action.hitId !== undefined && action.removedId < 0) {
-      if (!thrown) await travel(actor('hero'), contact, action.from, 0);
+      if (!thrown) {
+        if (action.kind === 'shadow') await teleport(actor('hero'), action.from);
+        else await travel(actor('hero'), contact, action.from, 0);
+      }
     }
     if (action.removedId >= 0) {
       const victim = actor(action.removedId);

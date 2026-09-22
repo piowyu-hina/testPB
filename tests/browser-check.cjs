@@ -191,7 +191,7 @@ fs.mkdirSync(output, { recursive: true });
     await phone.locator('#start-game').tap();
     assert.equal(await phone.locator('#touch-info').innerText(), '');
     await phone.locator('[data-card="shadow"]').tap({ force: true });
-    assert.match(await phone.locator('#touch-info').innerText(), /^追影\n沿直線或斜線/);
+    assert.match(await phone.locator('#touch-info').innerText(), /^追影\n瞬移至場上任意小刀格/);
     assert.match(await phone.locator('#touch-info .hint-warning').innerText(), /需要場上小刀/);
     assert.equal(await phone.locator('.card.selected').count(), 0);
     await phone.screenshot({ path: path.join(output, 'rogue-shadow-warning-mobile.png') });

@@ -46,3 +46,8 @@ export async function travel(
     'cubic-bezier(0.1, 0.65, 0.45, 1)'
   );
 }
+export async function teleport(node: HTMLElement, to: Point): Promise<void> {
+  await animate(node, [{ opacity: 1, scale: 1 }, { opacity: 0, scale: 0.82 }], 75);
+  place(node, to);
+  await animate(node, [{ opacity: 0, scale: 0.82 }, { opacity: 1, scale: 1 }], 90);
+}

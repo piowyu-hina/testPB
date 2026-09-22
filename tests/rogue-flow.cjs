@@ -8,7 +8,7 @@ module.exports = async function checkRogue(page, output) {
   assert.equal(await page.locator('[data-card="shadow"] .card-requirement').count(), 0);
   assert.equal(await page.locator('#hint').innerText(), '');
   await page.locator('[data-card="shadow"]').hover();
-  assert.match(await page.locator('#hint').innerText(), /^追影\n沿直線或斜線/);
+  assert.match(await page.locator('#hint').innerText(), /^追影\n瞬移至場上任意小刀格/);
   assert.match(await page.locator('#hint .hint-warning').innerText(), /需要場上小刀/);
   assert.match(await page.locator('[data-card="shadow"]').getAttribute('aria-label'), /需要場上小刀/);
   if (output) await page.screenshot({path: `${output}/rogue-shadow-warning.png`});

@@ -3,11 +3,12 @@ import type { CardDefinition, Point } from '../types/game.ts';
 const cross: Point[] = [[0, 1], [1, 0], [0, -1], [-1, 0]];
 const around: Point[] = [...cross, [1, 1], [1, -1], [-1, -1], [-1, 1]];
 const rays = (directions: Point[], distance = 4): Point[] => directions.flatMap(([x, y]) => Array.from({ length: distance }, (_, i) => [x * (i + 1), y * (i + 1)] as Point));
+const anywhere: Point[] = Array.from({ length: 81 }, (_, i) => [i % 9 - 4, Math.floor(i / 9) - 4] as Point).filter(([x, y]) => x !== 0 || y !== 0);
 
 // Relative landing tiles; positive y points up. Shared by rules and card diagrams.
 export const cards = {
   throw: { name: '飛刀', hint: '原地攻擊十字方向第一隻怪物，刀留在命中格', offsets: rays(cross), canJump: false, copies: 6, cost: 1, effect: 'throw' },
-  shadow: { name: '追影', hint: '沿直線或斜線移向小刀格；不能穿過怪物，空格或擊敗後才移入撿刀', offsets: rays(around), canJump: false, copies: 4, cost: 1, effect: 'shadow' },
+  shadow: { name: '追影', hint: '瞬移至場上任意小刀格；若有怪物先攻擊，成功落地才撿刀', offsets: anywhere, canJump: true, copies: 4, cost: 1, effect: 'shadow' },
   lunge: { name: '突進', hint: '上下左右移動 1 格，攻擊落點怪物', offsets: cross, canJump: false, copies: 6, cost: 1 },
   knife: { name: '小刀', hint: '十字移動 1 格並攻擊落點；可留到下一回合', offsets: cross, canJump: false, copies: 0, cost: 0, effect: 'knife' },
   forward: { name: '前進', hint: '清場後走向周圍一格，可重複使用且不消耗行動', offsets: around, canJump: false, copies: 0 },
