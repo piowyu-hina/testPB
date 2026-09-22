@@ -459,6 +459,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       $('ground-knives').querySelector(`[data-point="${action.to.join(',')}"]`)?.remove();
     // Keep the visible board stable until the movement and impact complete.
     const thrown = action.kind === 'throw';
+    if (!thrown)
+      playSound(action.kind === 'shadow' ? 'blink' : ['rush', 'leap', 'lunge'].includes(action.kind) ? 'dash' : 'step');
     const resisted = !thrown && action.hitId !== undefined && action.removedId < 0;
     const contact = resisted
       ? action.kind === 'shadow'
@@ -533,6 +535,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const action = room.explore(selected, destination);
     if (!action) return;
     lock();
+    playSound('step');
     await travel(actor('hero'), action.from, action.to, 9);
     if (equal(destination, journey.exit)) await advanceRoom();
     busy = false;
