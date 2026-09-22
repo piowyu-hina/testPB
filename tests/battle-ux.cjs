@@ -8,10 +8,12 @@ module.exports = async function checkBattleUx(page) {
   assert.match(await page.locator('#hint').textContent(), /不可穿越敵人/);
   await page.locator('.tile[data-x="2"][data-y="2"]').hover();
   assert.match(await page.locator('#tile-info').innerText(), /刺芽團子.*生命 1\/1/);
+  assert.equal(await page.locator('#hint').isVisible(), false);
   assert.match(await page.locator('#tile-info').innerText(), /下一招：刺擊/);
   assert.match(await page.locator('#tile-info').innerText(), /突進：移入並擊敗怪物/);
   await page.locator('#turn').hover();
   assert.equal(await page.locator('#tile-info').isVisible(), false);
+  assert.equal(await page.locator('#hint').isVisible(), true);
   await page.locator('#open-battle-help').click();
   assert.equal(await page.locator('#battle-help').isVisible(), true);
   await page.locator('#battle-help li').first().click();

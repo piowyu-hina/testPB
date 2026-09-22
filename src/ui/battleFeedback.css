@@ -10,6 +10,11 @@
 .battle-info > div { position: absolute; top: 0; left: 0; width: 100%; max-height: 110px; box-sizing: border-box; padding: 4px 10px; overflow-y: auto; scrollbar-width: none; color: inherit; font-family: 'Microsoft JhengHei UI', 'Microsoft JhengHei', system-ui, sans-serif; line-height: 1.4; }
 .battle-info > div::-webkit-scrollbar { display: none; }
 .battle-info .hint { display: block; min-height: 0; margin: 0; color: inherit; text-align: left; white-space: pre-line; }
+.battle-info .hint[hidden] { display: none; }
+.battle-info .hint.warning { color: #e68178; }
+.battle-info .touch-info.warning { color: #e68178; }
+[data-theme='light'] .battle-info .hint.warning { color: #a72e2e; }
+[data-theme='light'] .battle-info .touch-info.warning { color: #a72e2e; }
 .battle-info .tile-info, .battle-info .touch-info[data-mode="tile"] { font-size: 24px; line-height: 1.3; }
 .tile-info strong, .tile-info span { display: block; }
 .tile-info strong, .touch-info strong { margin-bottom: 3px; color: #8dbba6; }
@@ -46,14 +51,11 @@
 .card-details p { font-size: 22px; }
 .card-details small { font-size: 18px; }
 .game .room-arrival strong { font-size: 30px; }
-.game .card.shadow-unavailable .card-requirement { font-size: 11px; }
 .knife-projectile { z-index: 7; }
 .hand .card[data-card="knife"] { border-color: #a68c50; }
-.card-requirement { display: none; }
 .card.shadow-unavailable { opacity: 1; border-color: #8c907e; }
 .card.shadow-unavailable .card-art { opacity: .42; }
 .card.shadow-unavailable .card-name { opacity: .65; }
-.card.shadow-unavailable .card-requirement { display: block; position: absolute; top: 7px; left: 3px; right: 3px; z-index: 1; padding: 2px 0; border-radius: 4px; background: #355b4c; color: #fff9eb; font-size: clamp(8px, 1.3vh, 11px); line-height: 1.2; white-space: nowrap; text-align: center; }
 .exploring .exit-door { filter: drop-shadow(0 0 7px #e8d388); animation: exit-beacon 1.8s ease-in-out infinite; }
 .exploring .door-interior { fill: #568c6c; }
 .board-shell { position: relative; }

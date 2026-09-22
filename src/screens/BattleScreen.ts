@@ -180,16 +180,13 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         label.className = 'card-name';
         label.textContent = definition.name;
         card.append(label);
-        if (id === 'shadow') {
-          const requirement = document.createElement('span');
-          requirement.className = 'card-requirement';
-          card.append(requirement);
-        }
         card.addEventListener('pointerenter', () => {
           if (touchLayout()) return;
-          if (!busy)
-            elements.hint.textContent =
-              definition.name + (definition.hint ? ` · ${definition.hint}` : '');
+          if (!busy) {
+            const reason = id === 'shadow' ? shadowRequirement(index) : '';
+            elements.hint.textContent = reason ? `追影：${reason}` : definition.name + (definition.hint ? ` · ${definition.hint}` : '');
+            elements.hint.classList.toggle('warning', Boolean(reason));
+          }
         });
         card.addEventListener('pointerleave', () => {
           if (touchLayout()) return;
@@ -241,12 +238,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.hand.style.setProperty('--card-overlap', `${Math.max(0, Math.ceil((handCount * 150 + Math.max(0, handCount - 1) * 8 - 600) / Math.max(1, handCount - 1)))}px`);
     [...root.querySelectorAll<HTMLButtonElement>('.card')].forEach((card) => {
       const index = Number(card.dataset.index);
-      const shadowUnavailable = card.dataset.card === 'shadow' && !exploring() && !room.canUseCard(index);
-      const reason = !shadowUnavailable ? '' : room.knives.length === 0
-        ? '需要場上小刀' : room.actions < room.cardCost(index)
-          ? '行動不足' : '無可到達刀格';
+      const reason = card.dataset.card === 'shadow' ? shadowRequirement(index) : '';
+      const shadowUnavailable = Boolean(reason);
       card.classList.toggle('shadow-unavailable', shadowUnavailable);
-      card.querySelector<HTMLElement>('.card-requirement')?.replaceChildren(reason);
       card.setAttribute('aria-label', reason ? `追影，${reason}` : data.cards[room.availableCards[index]].name);
       card.classList.toggle('selected', index === selected);
       card.setAttribute('aria-pressed', String(index === selected));
@@ -264,10 +258,17 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       `生命 ${room.health} / 5${incoming ? `，預計受到 ${incoming} 傷害` : ''}`
     );
   }
+  function shadowRequirement(index: number): string {
+    if (exploring() || room.canUseCard(index)) return '';
+    if (room.knives.length === 0) return '需要場上小刀';
+    if (room.actions < room.cardCost(index)) return '行動不足';
+    return '無可到達刀格';
+  }
   function renderTileInfo(preview: ReturnType<Room['preview']>) {
     const panel = elements.tileInfo;
     const point = touchLayout() ? inspectedTile : hoveredTile;
     panel.hidden = !point || busy || (room.finished && !exploring());
+    elements.hint.hidden = !panel.hidden;
     if (panel.hidden || !point) return;
     const enemy = room.at(point);
     const onHero = equal(point, room.hero);
@@ -338,6 +339,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       else elements.hint.textContent = room.finished ? '' : knifeLessonPending
         ? '飛刀已落地 · 用追影移到小刀格，撿刀可補 1 行動並抽牌'
         : '先選牌，再點亮起的格子\n點怪物查看生命';
+      const unavailableShadow = !cleared && !preview && !chosen && !focusedEnemy && !knifeLessonPending
+        ? room.availableCards.findIndex((id, index) => id === 'shadow' && Boolean(shadowRequirement(index)))
+        : -1;
+      elements.hint.classList.toggle('warning', unavailableShadow >= 0);
+      if (unavailableShadow >= 0) elements.hint.textContent = `追影：${shadowRequirement(unavailableShadow)}`;
     }
     $('room-exit').toggleAttribute('hidden', !cleared);
     elements.game.classList.toggle('exploring', cleared);
@@ -407,6 +413,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.game.setAttribute('aria-busy', String(busy));
     syncHand();
     elements.touchInfo.dataset.mode = inspectedTile ? 'tile' : 'hint';
+    elements.touchInfo.classList.toggle('warning', !inspectedTile && elements.hint.classList.contains('warning'));
     if (touchLayout() && !inspectedTile) elements.touchInfo.textContent = selected >= 0 && !exploring()
       ? `${data.cards[room.availableCards[selected]].name} · 點亮起的格子行動`
       : elements.hint.textContent ?? '';
