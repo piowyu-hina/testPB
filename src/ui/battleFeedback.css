@@ -42,16 +42,25 @@
   .card-details { left: auto; right: 16px; bottom: 80px; transform: none; width: min(340px, calc(55vw - 20px)); max-height: calc(100svh - 110px); }
 }
 @media (orientation: portrait) and (hover: none) and (pointer: coarse) {
-  :root { --board: min(calc(100vw - 32px), calc((100svh - 315px) / 1.35), 688px); }
-  body { align-items: flex-start; }
-  .game { width: var(--board); margin: 0; padding: max(12px, env(safe-area-inset-top)) 0 max(8px, env(safe-area-inset-bottom)); }
+  :root { --board: 660px; }
+  .game { width: var(--board); margin: 0 auto; padding: max(12px, env(safe-area-inset-top)) 0 max(8px, env(safe-area-inset-bottom)); }
+  .heading .quiet-button, #turn { font-size: 22px; }
+  .actions small { font-size: 20px; }
   .heading { margin-bottom: clamp(8px, 1.2svh, 15px); }
   .status { margin-bottom: clamp(8px, 1.2svh, 14px); }
-  .touch-info { margin-top: 10px; }
-  .controls { margin-top: clamp(12px, 1.5svh, 20px); padding: 0 0 84px; }
+  .touch-info { height: 98px; margin-top: 10px; font-size: 20px; }
+  .controls { margin-top: clamp(12px, 1.5svh, 20px); padding: 0 0 102px; }
   .hand { gap: clamp(8px, 1.2vw, 14px); min-height: 0; }
   .hand .card { max-width: 200px; width: calc((100% - (var(--hand-slots, 3) - 1) * clamp(8px, 1.2vw, 14px)) / var(--hand-slots, 3)); }
+  .card-name { font-size: 22px; }
+  .hand .card .card-cost { font-size: 18px; }
   .end-turn { left: 50%; top: auto; right: auto; bottom: 0; transform: translateX(-50%); width: min(300px, 100%); }
+  #end-label { font-size: 22px; }
+  #end-forecast { font-size: 17px; }
+  .card-details { width: 560px; max-height: 420px; bottom: 510px; padding: 20px 24px; }
+  .card-details strong { font-size: 26px; }
+  .card-details p { font-size: 22px; }
+  .card-details small { font-size: 18px; }
 }
 .knife-projectile { z-index: 7; }
 .card-cost { display: block; font-size: clamp(8px, 1.2vh, 10px); line-height: 1.3; color: #69614f; white-space: nowrap; }

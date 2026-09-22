@@ -130,7 +130,7 @@
   .expedition-button { width: 100%; }
 }
 @media (orientation: portrait) and (hover: none) and (pointer: coarse) {
-  .village, .destination-screen { width: calc(100vw - 24px); height: calc(100svh - 24px); min-height: 0; margin: 12px auto; }
+  .village, .destination-screen { width: 696px; height: 1256px; min-height: 0; margin: 12px auto; }
   .village-header { padding: 22px 20px; }
   .village-art { object-position: 61% center; }
   .village-portrait { left: 5%; bottom: 20%; width: 35%; height: 40%; border-radius: 48px 48px 10px 10px; }
@@ -143,4 +143,25 @@
   .destination-shade { background: linear-gradient(180deg, #102a26df, #102a2650 60%, #102a26f5); }
   .expedition-panel { left: 8%; right: 8%; bottom: 5%; grid-template-columns: 1fr; gap: 16px; }
   .expedition-button { width: 100%; }
+  .scene-eyebrow { font-size: 20px; }
+  .village-header h1 { font-size: 42px; }
+  .scene-button { font-size: 24px; }
+  .village-portrait figcaption span { font-size: 18px; }
+  .village-portrait figcaption strong { font-size: 32px; }
+  #open-characters { font-size: 20px; }
+  .place-marker { min-width: 190px; padding: 20px 24px; }
+  .place-marker strong { font-size: 32px; }
+  .place-marker small { font-size: 18px; }
+  .marker-symbol { font-size: 36px; }
+  .village-footer p { font-size: 20px; }
+  .village-location { font-size: 18px; }
+  .destination-header .quiet-button, .destination-header > span { font-size: 22px; }
+  .destination-copy h1 { font-size: 48px; }
+  .destination-description { max-width: 420px; font-size: 24px; }
+  .destination-state { font-size: 20px; }
+  .party-member img { width: 80px; height: 80px; }
+  .party-member span { font-size: 18px; }
+  .party-member strong { font-size: 26px; }
+  .expedition-button { padding: 24px; font-size: 28px; }
+  #journey-note { font-size: 20px; }
 }

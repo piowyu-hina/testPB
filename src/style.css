@@ -50,6 +50,7 @@ button:focus-visible {
 .screen-root {
   display: contents;
 }
+#stage { display: contents; }
 .game {
   width: var(--board);
   padding: 20px 0 10px;
@@ -631,4 +632,13 @@ noscript {
   *:after {
     transition: none !important;
   }
+}
+@media (orientation: portrait) and (hover: none) and (pointer: coarse) {
+  :root {
+    --stage-width: min(100vw, calc(100svh * 0.5625));
+    --stage-height: calc(var(--stage-width) * 1.7777778);
+  }
+  body { height: 100svh; min-height: 0; align-items: center; overflow: hidden; }
+  #stage { display: block; flex: none; width: var(--stage-width); height: var(--stage-height); overflow: hidden; }
+  .screen-root { display: flow-root; width: 720px; height: 1280px; overflow: hidden; transform-origin: top left; }
 }
