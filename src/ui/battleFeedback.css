@@ -41,6 +41,18 @@
   .touch-info { grid-column: 2; grid-row: 4; height: 68px; margin: 0; }
   .card-details { left: auto; right: 16px; bottom: 80px; transform: none; width: min(340px, calc(55vw - 20px)); max-height: calc(100svh - 110px); }
 }
+@media (orientation: portrait) and (hover: none) and (pointer: coarse) {
+  :root { --board: min(calc(100vw - 32px), calc((100svh - 315px) / 1.35), 688px); }
+  body { align-items: flex-start; }
+  .game { width: var(--board); margin: 0; padding: max(12px, env(safe-area-inset-top)) 0 max(8px, env(safe-area-inset-bottom)); }
+  .heading { margin-bottom: clamp(8px, 1.2svh, 15px); }
+  .status { margin-bottom: clamp(8px, 1.2svh, 14px); }
+  .touch-info { margin-top: 10px; }
+  .controls { margin-top: clamp(12px, 1.5svh, 20px); padding: 0 0 84px; }
+  .hand { gap: clamp(8px, 1.2vw, 14px); min-height: 0; }
+  .hand .card { max-width: 200px; width: calc((100% - (var(--hand-slots, 3) - 1) * clamp(8px, 1.2vw, 14px)) / var(--hand-slots, 3)); }
+  .end-turn { left: 50%; top: auto; right: auto; bottom: 0; transform: translateX(-50%); width: min(300px, 100%); }
+}
 .knife-projectile { z-index: 7; }
 .card-cost { display: block; font-size: clamp(8px, 1.2vh, 10px); line-height: 1.3; color: #69614f; white-space: nowrap; }
 .bonus-hand { display: contents; }
