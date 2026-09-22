@@ -380,12 +380,8 @@ h1 {
   flex-shrink: 0;
 }
 .card:disabled {
-  opacity: 1;
-  background: #dedad0;
-  border-color: #9a968e;
-  box-shadow: inset 0 0 0 4px #eae5d9, 0 4px 0 #8d887f;
+  opacity: 0.44;
 }
-.card:disabled .card-art, .card:disabled svg { opacity: .56; }
 .card svg {
   display: block;
   width: 100%;

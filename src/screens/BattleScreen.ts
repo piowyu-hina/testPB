@@ -253,11 +253,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       });
     }
     const handCount = room.availableCards.length;
-    const cardWidth = handCount <= 3 ? 180 : handCount === 4 ? 140 : 110;
+    const cardWidth = handCount <= 3 ? 180 : handCount === 4 ? 155 : 132;
+    const naturalWidth = handCount * cardWidth + Math.max(0, handCount - 1) * 8;
     const handWidth = exploring() ? 680 : 586; // Leave a fixed 84px turn button and 10px gap on the right.
     elements.hand.style.width = `${handWidth}px`;
     elements.hand.style.setProperty('--hand-card-width', `${cardWidth}px`);
-    elements.hand.style.setProperty('--card-overlap', '0px');
+    elements.hand.style.setProperty('--card-overlap', `${Math.max(0, Math.ceil((naturalWidth - handWidth) / Math.max(1, handCount - 1)))}px`);
     [...root.querySelectorAll<HTMLButtonElement>('.card')].forEach((card) => {
       const index = Number(card.dataset.index);
       const reason = card.dataset.card === 'shadow' ? shadowRequirement(index) : '';
