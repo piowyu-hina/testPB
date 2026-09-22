@@ -91,25 +91,33 @@ h1 {
 }
 .exit-door {
   position: absolute;
-  width: 76%;
-  height: 90%;
-  left: 12%;
-  top: 3%;
+  width: 84%;
+  height: 94%;
+  left: 8%;
+  top: 1%;
   pointer-events: none;
 }
+.door-shadow { fill: #162f26a8; }
 .door-frame {
-  fill: #778671;
-  stroke: #3c5346;
-  stroke-width: 3;
+  fill: #aaa98e;
+  stroke: #4e624f;
+  stroke-width: 4;
+  stroke-linejoin: round;
 }
 .door-interior {
-  fill: #233b30;
+  fill: #213b34;
 }
+.door-glow { fill: #d5d394; opacity: .58; }
+.door-stone-lines { fill: none; stroke: #68765e; stroke-width: 2.5; stroke-linecap: round; }
+.door-moss { fill: none; stroke: #5e844a; stroke-width: 7; stroke-linecap: round; }
+.door-vine { fill: none; stroke: #416a46; stroke-width: 3; stroke-linecap: round; }
+.door-leaves { fill: #62894f; stroke: #3d6441; stroke-width: 1.4; }
 .door-step {
-  fill: #c4b596;
-  stroke: #71694e;
-  stroke-width: 2;
+  fill: #bcb99b;
+  stroke: #53634e;
+  stroke-width: 3;
 }
+.door-step-line { fill: none; stroke: #69755c; stroke-width: 2; }
 
 .tile.exit-tile {
   background: radial-gradient(circle, #e7d59766, transparent 72%);
