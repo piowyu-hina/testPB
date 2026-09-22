@@ -69,16 +69,12 @@
 .card.shadow-unavailable { opacity: 1; border-color: #8c907e; }
 .card.shadow-unavailable .card-art { opacity: .42; }
 .card.shadow-unavailable .card-name { opacity: .65; }
-.exploring .exit-door { filter: drop-shadow(0 0 7px #e8d388); animation: exit-beacon 1.8s ease-in-out infinite; }
-.exploring .door-glow { fill: #e7dc9b; }
 .board-shell { position: relative; }
 .room-arrival { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 88%; padding: 22px 12px; z-index: 8; text-align: center; border: 1px solid #d6c18b; border-radius: 12px; background: #203c32f2; color: #fff1ce; box-shadow: 0 8px 30px #0004; pointer-events: none; }
 .room-arrival small, .room-arrival strong, .room-arrival span { display: block; }
 .room-arrival small { font-size: 12px; letter-spacing: .1em; }
 .room-arrival strong { font-size: clamp(20px, 3vh, 30px); margin: 10px 0; }
 .room-arrival span { font-size: 14px; color: #c6e7ab; }
-@keyframes exit-beacon { 50% { filter: drop-shadow(0 0 13px #fff0ad); } }
-@media (prefers-reduced-motion: reduce) { .exploring .exit-door { animation: none; } }
 
 .hand .card::before { display: none; }
 .hand .card svg { width: 100%; margin-bottom: 4px; }

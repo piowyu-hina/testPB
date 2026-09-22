@@ -107,7 +107,6 @@ h1 {
 .door-interior {
   fill: #213b34;
 }
-.door-glow { fill: #d5d394; opacity: .58; }
 .door-stone-lines { fill: none; stroke: #68765e; stroke-width: 2.5; stroke-linecap: round; }
 .door-moss { fill: none; stroke: #5e844a; stroke-width: 7; stroke-linecap: round; }
 .door-vine { fill: none; stroke: #416a46; stroke-width: 3; stroke-linecap: round; }
@@ -119,9 +118,7 @@ h1 {
 }
 .door-step-line { fill: none; stroke: #69755c; stroke-width: 2; }
 
-.tile.exit-tile {
-  background: radial-gradient(circle, #e7d59766, transparent 72%);
-}
+.tile.exit-tile { background: transparent; }
 .elite-crown {
   position: absolute;
   top: -7%;
@@ -204,13 +201,11 @@ h1 {
   box-shadow: none;
   isolation: isolate;
 }
-.tile.danger {
-  background: radial-gradient(ellipse at center, #d16a566b 0%, #c45e4d42 62%, transparent 78%);
-}
-.tile.focus-threat,
-.tile.odd.danger.focus-threat {
-  background: radial-gradient(ellipse at center, #d05d4d91 0%, #b94c3e59 65%, transparent 80%);
-}
+.tile[data-danger='1'] { --risk-center: #cb65573b; --risk-edge: #c45e4d20; }
+.tile[data-danger='2'] { --risk-center: #c65a4f68; --risk-edge: #bb51423c; }
+.tile[data-danger='3'] { --risk-center: #b8433f99; --risk-edge: #aa3b3760; }
+.tile.danger { background: radial-gradient(ellipse at center, var(--risk-center), var(--risk-edge) 66%, transparent 82%); }
+.tile.focus-threat { box-shadow: inset 0 0 0 3px #b9665a99; }
 .tile.legal:after {
   content: '';
   position: absolute;
@@ -226,9 +221,7 @@ h1 {
 .tile.landing:after {
   border-color: #d4f3c7;
 }
-.tile.landing.danger {
-  background: radial-gradient(ellipse at center, #c9ae817c, #b88b7266 65%, transparent 80%);
-}
+.tile.landing.danger { background: radial-gradient(ellipse at center, var(--risk-center), var(--risk-edge) 66%, transparent 82%); }
 .tile.legal:not(.capture):before {
   content: '';
   position: absolute;
@@ -249,22 +242,6 @@ h1 {
 }
 .choosing .tile:not(.legal) {
   cursor: default;
-}
-.threats {
-  position: absolute;
-  bottom: 8%;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 5px;
-  z-index: 2;
-  pointer-events: none;
-}
-.threat {
-  width: 6px;
-  height: 9px;
-  background: #ae4c43;
-  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
 }
 .actors {
   position: absolute;

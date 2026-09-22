@@ -33,6 +33,12 @@ export class Journey {
   get recovery() {
     return this.room.won && !this.won ? Math.min(1, 5 - this.room.health) : 0;
   }
+  clearOccupiedExit(): Point | null {
+    if (!this.room.won || this.won || !equal(this.room.hero, this.exit)) return null;
+    const next: Point = [this.exit[0], this.exit[1] - 1];
+    this.room.hero = next;
+    return next;
+  }
   advance() {
     if (!this.room.won || this.finished || !equal(this.room.hero, this.exit)) return false;
     const health = this.room.health + this.recovery;

@@ -30,6 +30,21 @@ test('exit movement uses reusable walking cards and never spends turns or action
   assert.equal(run.advance(), false);
 });
 
+test('clearing on the gate nudges the hero down without spending a turn or entering it', () => {
+  const run = new Journey();
+  run.room.hero = [...run.exit];
+  run.room.enemies = [];
+  const actions = run.room.actions, turn = run.room.turn;
+  assert.deepEqual(run.clearOccupiedExit(), [2, 3]);
+  assert.deepEqual(run.room.hero, [2, 3]);
+  assert.equal(run.room.actions, actions);
+  assert.equal(run.room.turn, turn);
+  assert.equal(run.advance(), false);
+  assert.equal(run.clearOccupiedExit(), null);
+  toExit(run.room, run.exit);
+  assert.equal(run.advance(), true);
+});
+
 test('cleared-room movement preserves combat cards and offers all adjacent steps', () => {
   const room = new Room();
   room.enemies = [];

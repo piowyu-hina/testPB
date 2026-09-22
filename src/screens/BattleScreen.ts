@@ -79,7 +79,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.cardDetails.append(name, effect, cost);
     elements.cardDetails.hidden = false;
   }
-  const tiles: { tile: HTMLButtonElement; threats: HTMLSpanElement; point: Point }[] = [];
+  const tiles: { tile: HTMLButtonElement; point: Point }[] = [];
   const actors = new Map<number | 'hero', HTMLDivElement>();
   const exploring = () => room.won && !journey.finished;
   function actor(id: number | 'hero'): HTMLDivElement {
@@ -109,17 +109,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         tile.className = 'tile';
         tile.dataset.x = String(x);
         tile.dataset.y = String(y);
-        const threats = document.createElement('span');
-        threats.className = 'threats';
-        threats.setAttribute('aria-hidden', 'true');
-        tile.append(threats);
         if (x === 2 && y === 4) {
           tile.insertAdjacentHTML(
             'beforeend',
             `<svg id="room-exit" class="exit-door" viewBox="0 0 100 100" aria-hidden="true" hidden>
               <ellipse class="door-shadow" cx="50" cy="87" rx="43" ry="10"/>
               <path class="door-interior" d="M24 84V43a26 26 0 0 1 52 0v41Z"/>
-              <path class="door-glow" d="M38 82V44a12 12 0 0 1 24 0v38Z"/>
               <path class="door-frame" d="M8 83V43a42 42 0 0 1 84 0v40H75V43a25 25 0 0 0-50 0v40Z"/>
               <path class="door-stone-lines" d="M10 64h15m50 0h15M12 42h14m48 0h14M20 17l13 12m47-12L67 29M49 2v16M8 83h17m50 0h17"/>
               <path class="door-moss" d="M8 52q8-5 17 1M13 27q9-4 15 2M71 18q8-5 14 1M75 73q7-4 17 1"/>
@@ -154,6 +149,14 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         });
         onClick(tile, () => {
           if (busy) return;
+          const point: Point = [x, y];
+          if (selected >= 0 && !(exploring() ? room.canExplore(selected, point) : room.canMove(selected, point))) {
+            selected = -1;
+            inspectedEnemy = room.at(point)?.id ?? -1;
+            inspectedTile = touchLayout() ? point : null;
+            render();
+            return;
+          }
           if (touchLayout() && selected < 0) {
             inspectedTile = [x, y];
             inspectedEnemy = room.at(inspectedTile)?.id ?? -1;
@@ -167,11 +170,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           } else if (!enemy && selected < 0 && !exploring()) {
             inspectedEnemy = -1;
             render();
-          } else if (exploring()) walk([x, y]);
-          else move([x, y]);
+          } else if (exploring()) walk(point);
+          else move(point);
         });
         elements.tiles.append(tile);
-        tiles.push({ tile, threats, point: [x, y] });
+        tiles.push({ tile, point: [x, y] });
       }
   }
   function syncHand() {
@@ -306,19 +309,21 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const enemy = point ? room.at(point) : undefined;
     const hasKnife = point ? room.hasKnife(point) : false;
     const isExit = Boolean(point && exploring() && equal(point, journey.exit));
-    panel.hidden = !point || busy || (room.finished && !exploring()) || (!enemy && !hasKnife && !isExit);
+    const danger = point && !exploring() ? room.damageAt(point) : 0;
+    panel.hidden = !point || busy || (room.finished && !exploring()) || (!enemy && !hasKnife && !isExit && !danger);
     elements.hint.hidden = !panel.hidden;
     if (panel.hidden || !point) {
       if (touchLayout() && inspectedTile) elements.touchInfo.replaceChildren();
       return;
     }
-    const title = enemy ? enemySummary(enemy) : isExit ? '出口' : '地上小刀';
+    const title = enemy ? enemySummary(enemy) : isExit ? '出口' : hasKnife ? '地上小刀' : '危險地格';
     const lines: string[] = [];
     if (enemy) {
       lines.push(data.enemies[enemy.kind].behavior);
       if (enemy.facing && enemySkill(enemy).guardsFront) lines.push(`面向：${{ north: '上', east: '右', south: '下', west: '左' }[enemy.facing]}`);
     }
     if (hasKnife) lines.push('撿刀：補 1 行動，可抽 1 張牌');
+    if (danger) lines.push(`敵方攻擊範圍 · ${'♥'.repeat(Math.min(danger, 5))}`);
     const chosenId = room.availableCards[selected];
     if (preview?.blocked) lines.push('正面格擋：攻擊無效，仍消耗行動');
     else if (preview && enemy && preview.removedId < 0 && chosenId !== 'throw') lines.push('目標未倒下，角色留在原地');
@@ -364,12 +369,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     $('room-exit').toggleAttribute('hidden', !cleared);
     elements.game.classList.toggle('exploring', cleared);
-    for (const { tile, threats, point } of tiles) {
+    for (const { tile, point } of tiles) {
       const damage = room.damageAt(point, removedId),
         legal =
           !busy && (cleared ? room.canExplore(selected, point) : room.canMove(selected, point));
-      tile.classList.toggle('odd', (point[0] + point[1]) % 2 === 1);
       tile.classList.toggle('danger', damage > 0);
+      tile.dataset.danger = String(Math.min(damage, 3));
       tile.classList.toggle('legal', legal);
       tile.classList.toggle('inspectable', !busy && !room.finished && selected < 0 && Boolean(room.at(point)));
       tile.classList.toggle('capture', legal && Boolean(room.at(point)));
@@ -388,8 +393,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           'aria-label',
           equal(point, journey.exit) ? '走向出口' : `走到 ${point[0] + 1},${point[1] + 1}`
         );
-      if (threats.childElementCount !== damage)
-        threats.innerHTML = '<i class="threat"></i>'.repeat(damage);
       tile.classList.toggle('has-knife', room.hasKnife(point));
     }
     $('ground-knives').replaceChildren();
@@ -515,11 +518,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       victim.remove();
       actors.delete(action.removedId);
     }
-    if (room.won && !journey.finished && equal(room.hero, journey.exit)) {
-      await advanceRoom();
-      busy = false;
-      render();
-      return;
+    if (room.won && !journey.finished) {
+      const exitPosition = room.hero.slice() as Point;
+      const pushedTo = journey.clearOccupiedExit();
+      if (pushedTo) await travel(actor('hero'), exitPosition, pushedTo, 0);
     }
     if (room.finished) {
       busy = false;

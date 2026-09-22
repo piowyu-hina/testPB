@@ -57,6 +57,11 @@ fs.mkdirSync(output, { recursive: true });
     );
     assert.equal(await page.locator('.tile').count(), 25);
     await require('./battle-ux.cjs')(page);
+    assert.equal(await page.locator('.threat').count(), 0);
+    const dangerousTile = page.locator('.tile[data-danger="1"]').first();
+    await dangerousTile.hover();
+    assert.match(await page.locator('#tile-info').innerText(), /敵方攻擊範圍 · ♥/);
+    await page.locator('#turn').hover();
     assert.equal(await page.locator('.card').count(), 3);
     await page.screenshot({ path: path.join(output, 'desktop.png'), fullPage: true });
     await page.locator('[data-card="rush"]').click();
@@ -67,7 +72,7 @@ fs.mkdirSync(output, { recursive: true });
     const tooltipBox = await page.locator('#tile-info').boundingBox();
     assert.ok(tooltipBox.y + tooltipBox.height <= boardBox.y, 'tile information should stay above the board');
     assert.equal(await page.locator('[data-actor="0"]').isVisible(), false);
-    assert.equal(await tile(2, 1).locator('.threat').count(), 0);
+    assert.equal(await tile(2, 1).getAttribute('data-danger'), '0');
     await page.screenshot({ path: path.join(output, 'preview.png'), fullPage: true });
     await tile(2, 2).click();
     // During animation, pointer commands may not spend an additional action.
@@ -188,7 +193,8 @@ fs.mkdirSync(output, { recursive: true });
     await phone.locator('[data-card="rush"]').tap();
     assert.equal(await phone.locator('.tile.legal').count(), 3);
     await phone.locator('.tile[data-x="0"][data-y="1"]').tap();
-    assert.match(await phone.locator('#touch-info').innerText(), /突進/);
+    assert.equal(await phone.locator('.card.selected').count(), 0);
+    await phone.locator('[data-card="rush"]').tap();
     await phone.locator('.tile[data-x="2"][data-y="2"]').tap();
     await phone.waitForFunction(
       () => document.getElementById('game').getAttribute('aria-busy') === 'false'
