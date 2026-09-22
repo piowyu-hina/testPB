@@ -8,7 +8,7 @@
   --teal: #44786b;
   --red: #c96d58;
   --muted: #72757b;
-  --board: 660px;
+  --board: 640px;
 }
 html { scrollbar-width: none; }
 html::-webkit-scrollbar { display: none; }

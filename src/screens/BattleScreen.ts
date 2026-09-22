@@ -317,14 +317,19 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     const tile = tiles.find(({ point: tilePoint }) => equal(tilePoint, point))!.tile.getBoundingClientRect();
     const board = elements.board.getBoundingClientRect();
-    const width = panel.offsetWidth, height = panel.offsetHeight, margin = 10;
-    const beside = window.innerWidth - board.right >= width + margin * 2;
-    const left = beside ? board.right + 8 : board.left >= width + margin * 2
+    const stage = host.getBoundingClientRect();
+    const scale = stage.width / host.offsetWidth;
+    const { width, height } = panel.getBoundingClientRect();
+    const margin = 10;
+    const beside = stage.right - board.right >= width + margin * 2;
+    const left = beside ? board.right + 8 : board.left - stage.left >= width + margin * 2
       ? board.left - width - 8 : tile.left + tile.width / 2 - width / 2;
-    const top = beside || board.left >= width + margin * 2 ? tile.top
-      : tile.top >= height + 8 ? tile.top - height - 8 : tile.bottom + 8;
-    panel.style.left = `${Math.max(margin, Math.min(left, window.innerWidth - width - margin))}px`;
-    panel.style.top = `${Math.max(margin, Math.min(top, window.innerHeight - height - margin))}px`;
+    const top = beside || board.left - stage.left >= width + margin * 2 ? tile.top
+      : tile.top - stage.top >= height + 8 ? tile.top - height - 8 : tile.bottom + 8;
+    const screenLeft = Math.max(stage.left + margin, Math.min(left, stage.right - width - margin));
+    const screenTop = Math.max(stage.top + margin, Math.min(top, stage.bottom - height - margin));
+    panel.style.left = `${(screenLeft - stage.left) / scale}px`;
+    panel.style.top = `${(screenTop - stage.top) / scale}px`;
   }
   function render() {
     if (!room) return;
