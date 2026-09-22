@@ -68,6 +68,8 @@
 .settings-row { margin: 24px 0; padding-top: 20px; border-top: 1px solid #ab987644; }
 .settings-row p, .settings-note { font-size: 13px; line-height: 1.8; color: #66695b; }
 .settings-dialog .theme-toggle { color: #475b49; flex-shrink: 0; }
+.sound-toggle { min-width: 60px; padding: 8px 12px; border: 1px solid #aa9771; border-radius: 8px; background: #fff9ec; color: #343c36; }
+.sound-toggle:hover { background: #e9e0cc; }
 .settings-dialog .quiet-button { color: #475b49; }
 #open-characters { display: block; margin-top: 10px; padding: 7px 12px; font-size: 12px; }
 .character-picker { width: min(560px, calc(100vw - 32px)); max-height: 85svh; overflow: auto; }

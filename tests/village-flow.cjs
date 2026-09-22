@@ -29,6 +29,13 @@ exports.checkVillage = async (page) => {
   assert.notEqual(await page.locator('html').getAttribute('data-theme'), theme);
   await exports.toggleVillageTheme(page);
   assert.equal(await page.locator('html').getAttribute('data-theme'), theme);
+  await page.locator('#open-settings').click();
+  const sound = await page.locator('#sound-toggle').getAttribute('aria-pressed');
+  await page.locator('#sound-toggle').click();
+  assert.notEqual(await page.locator('#sound-toggle').getAttribute('aria-pressed'), sound);
+  await page.locator('#sound-toggle').click();
+  assert.equal(await page.locator('#sound-toggle').getAttribute('aria-pressed'), sound);
+  await page.locator('#close-settings').click();
   for (let i = 0; i < 3; i++) {
     await exports.openDungeon(page);
     assert.equal(await page.locator('#home').isVisible(), false);

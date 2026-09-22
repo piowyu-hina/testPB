@@ -13,6 +13,7 @@ import { daggerIcon, groundDaggerIcon } from '../ui/dagger';
 import { approach, contactPoint, shield, impact, recoil } from '../ui/battleFeedback';
 import { enemySkill, blocksAttack } from '../battle/EnemyRules';
 import { enemySummary } from '../ui/enemyInfo';
+import { playSound } from '../ui/sound';
 import '../enemy.css';
 
 export function mountBattle(host: HTMLElement, session: GameSession, onHome: () => void): Screen {
@@ -466,6 +467,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       : action.to;
     if (resisted && action.kind === 'shadow') await teleport(actor('hero'), contact);
     if (thrown) {
+      playSound('throw');
       const projectile = document.createElement('div');
       projectile.className = 'knife-projectile';
       projectile.innerHTML = daggerIcon;
@@ -479,10 +481,13 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (action.hitId !== undefined) {
       elements.hint.textContent = blocked ? '正面格擋 · 這次攻擊沒有造成傷害' : action.removedId >= 0 ? '擊敗怪物' : '命中 · 怪物生命 −1';
       if (blocked) await shield(elements.board, action.to);
-      else await Promise.all([
-        impact(elements.board, action.to, action.removedId >= 0),
-        recoil(actor(action.hitId), action.from, action.to)
-      ]);
+      else {
+        playSound(action.removedId >= 0 ? 'kill' : 'hit');
+        await Promise.all([
+          impact(elements.board, action.to, action.removedId >= 0),
+          recoil(actor(action.hitId), action.from, action.to)
+        ]);
+      }
     }
     if (action.hitId !== undefined && action.removedId < 0) {
       if (!thrown) {

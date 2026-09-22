@@ -8,8 +8,10 @@ import { element } from './ui/dom';
 import { GameSession } from './app/GameSession';
 import { ScreenManager } from './app/ScreenManager';
 import { animate, pause } from './ui/animations';
+import { initSound } from './ui/sound';
 
 document.addEventListener('contextmenu', (event) => event.preventDefault());
+initSound();
 const session = new GameSession();
 const host = element('app');
 const stage = element('stage');
