@@ -163,14 +163,14 @@ h1 {
   background: #cfc6b4;
 }
 .board-shell {
-  background: linear-gradient(145deg, #526d5c, #3d584c);
-  border: 1px solid #324c40;
+  background: linear-gradient(145deg, #76766f, #565751);
+  border: 1px solid #494a46;
   border-radius: 18px;
   padding: clamp(10px, 1.7vh, 17px);
   box-shadow:
-    inset 0 1px 0 #90a58a,
-    0 7px 0 #2c4339,
-    0 18px 32px #36442e22;
+    inset 0 1px 0 #aaa99e,
+    0 7px 0 #3d3f3a,
+    0 18px 32px #1d201d22;
 }
 .board {
   --tile-gap: 5px;
@@ -191,14 +191,14 @@ h1 {
   border: 0;
   border-radius: 7px;
   padding: 0;
-  background: #f1ead8;
+  background: #efeadf;
   box-shadow:
     inset 0 1px 0 #ffffff80,
-    0 2px 0 #1f342e55;
+    0 2px 0 #34363055;
   isolation: isolate;
 }
 .tile.odd {
-  background: #dddcca;
+  background: #dcdbd3;
 }
 .tile.danger {
   background: #e7c4b0;
