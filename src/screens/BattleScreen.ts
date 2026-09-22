@@ -400,6 +400,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const skill = enemySkill(enemy);
       sprite.dataset.skill = skill.id;
       sprite.dataset.facing = enemy.facing ?? 'south';
+      sprite.classList.toggle('guarding', Boolean(skill.guardsFront));
     }
     place(actor('hero'), room.hero);
     actor('hero').classList.toggle('origin-preview', Boolean(preview && chosenId !== 'throw'));
@@ -482,7 +483,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     if (action.hitId !== undefined) {
       elements.hint.textContent = blocked ? '正面格擋 · 這次攻擊沒有造成傷害' : action.removedId >= 0 ? '擊敗怪物' : '命中 · 怪物生命 −1';
-      if (blocked) await shield(elements.board, action.to);
+      if (blocked) await shield(actor(action.hitId!));
       else {
         playSound(action.removedId >= 0 ? 'kill' : 'hit');
         await Promise.all([
@@ -664,6 +665,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         `${enemy.elite ? '精英・' : ''}${data.enemies[enemy.kind].name}`
       );
       sprite.dataset.kind = enemy.kind;
+      sprite.insertAdjacentHTML('beforeend', '<svg class="guard-shield" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 5 53 14v17c0 14-21 26-21 26S11 45 11 31V14Z"/></svg>');
       if (enemy.elite) {
         sprite.classList.add('elite');
         sprite.insertAdjacentHTML(

@@ -44,21 +44,15 @@ export async function heartBurst(board: HTMLElement, point: Point): Promise<void
   } finally { burst.remove(); }
 }
 
-export async function shield(board: HTMLElement, point: Point): Promise<void> {
-  const effect = document.createElement('div');
-  effect.className = 'battle-shield';
-  effect.setAttribute('aria-hidden', 'true');
-  effect.innerHTML = '<svg viewBox="0 0 64 64"><path d="M32 5 53 14v17c0 14-21 26-21 26S11 45 11 31V14Z"/><path class="shield-mark" d="m22 31 7 7 14-17"/></svg>';
-  place(effect, point);
-  board.append(effect);
-  try {
-    await animate(effect, [
-      { opacity: 0, scale: 0.8 },
-      { opacity: 1, scale: 1, offset: 0.15 },
-      { opacity: 1, scale: 1, offset: 0.85 },
-      { opacity: 0, scale: 1 }
-    ], 520);
-  } finally { effect.remove(); }
+export async function shield(target: HTMLElement): Promise<void> {
+  const marker = target.querySelector<SVGElement>('.guard-shield');
+  if (!marker) return;
+  await animate(marker, [
+    { transform: 'translate(-50%, -50%) scale(1)', filter: 'brightness(1)' },
+    { transform: 'translate(-50%, -50%) scale(1.8)', filter: 'brightness(1.7)', offset: .22 },
+    { transform: 'translate(-50%, -50%) scale(1.8)', filter: 'brightness(1.7)', offset: .7 },
+    { transform: 'translate(-50%, -50%) scale(1)', filter: 'brightness(1)' }
+  ], 420, 'ease-out');
 }
 
 export async function recoil(node: HTMLElement, from: Point, to: Point, hurt = false): Promise<void> {
