@@ -47,13 +47,24 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     inspectedEnemy = -1,
     busy = false,
     handSignature = '',
-    knifeLessonShown = false,
-    knifeLessonPending = false,
     inspectedTile: Point | null = null,
     cardHoldTimer = 0,
     heldCard: HTMLButtonElement | null = null,
     dismissDetailsClick = false;
   const touchLayout = () => matchMedia('(hover: none) and (pointer: coarse)').matches;
+  function showCardHint(card: CardDefinition, reason = '') {
+    const name = document.createElement('strong');
+    name.textContent = card.name;
+    const description = document.createElement('span');
+    description.textContent = card.hint ?? '';
+    if (reason) {
+      const warning = document.createElement('em');
+      warning.className = 'hint-warning';
+      warning.textContent = ` · ${reason}`;
+      description.append(warning);
+    }
+    elements.hint.replaceChildren(name, description);
+  }
   function closeCardDetails() { elements.cardDetails.hidden = true; }
   function openCardDetails(id: keyof typeof data.cards) {
     const definition = data.cards[id];
@@ -182,11 +193,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         card.append(label);
         card.addEventListener('pointerenter', () => {
           if (touchLayout()) return;
-          if (!busy) {
-            const reason = id === 'shadow' ? shadowRequirement(index) : '';
-            elements.hint.textContent = reason ? `追影：${reason}` : definition.name + (definition.hint ? ` · ${definition.hint}` : '');
-            elements.hint.classList.toggle('warning', Boolean(reason));
-          }
+          if (!busy) showCardHint(definition, id === 'shadow' ? shadowRequirement(index) : '');
         });
         card.addEventListener('pointerleave', () => {
           if (touchLayout()) return;
@@ -221,11 +228,22 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           heldCard = null;
         }, true);
         onClick(card, () => {
-          if (busy || (!exploring() && !room.canUseCard(index))) return;
+          if (busy) return;
+          if (!exploring() && !room.canUseCard(index)) {
+            if (id === 'shadow') {
+              selected = -1;
+              inspectedTile = null;
+              hoveredTile = null;
+              hoveredEnemy = -1;
+              render();
+              showCardHint(definition, shadowRequirement(index));
+              if (touchLayout()) elements.touchInfo.replaceChildren(...Array.from(elements.hint.childNodes).map(node => node.cloneNode(true)));
+            }
+            return;
+          }
           closeCardDetails();
           inspectedTile = null;
           selected = selected === index ? -1 : index;
-          if (id === 'shadow') knifeLessonPending = false;
           inspectedEnemy = -1;
           hoveredTile = null;
           hoveredEnemy = -1;
@@ -244,7 +262,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       card.setAttribute('aria-label', reason ? `追影，${reason}` : data.cards[room.availableCards[index]].name);
       card.classList.toggle('selected', index === selected);
       card.setAttribute('aria-pressed', String(index === selected));
-      card.disabled = busy || (!exploring() && !room.canUseCard(index));
+      card.disabled = busy || (!exploring() && !room.canUseCard(index) && card.dataset.card !== 'shadow');
+      card.setAttribute('aria-disabled', String(busy || (!exploring() && !room.canUseCard(index))));
     });
   }
   function renderHealth(incoming = 0) {
@@ -328,22 +347,14 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     renderTileInfo(preview);
     if (!busy) {
       if (preview?.blocked) elements.hint.textContent = `正面格擋：無傷害，仍消耗卡片與 ${room.cardCost(selected)} 次行動。`;
-      else if (cleared) elements.hint.textContent = chosen
-        ? `${chosen.name}：點亮起的格子，走向上方出口 · 不消耗行動`
-        : '清場完成 · 選「前進」走向出口\n下一間恢復 1 點生命';
+      else if (cleared) {
+        if (chosen) showCardHint(chosen);
+        else elements.hint.textContent = '';
+      }
       else if (preview) elements.hint.textContent = `${chosenId === 'throw' ? '原地投擲 · ' : ''}${preview.removedId >= 0 ? '擊敗怪物 · ' : ''}落點受擊預告：${preview.damage} 傷害${preview.damage >= room.health ? ' · 致命' : ''}${chosenId !== 'throw' && room.hasKnife(preview.destination) ? ' · 回收小刀、行動 +1、抽 1 張' : ''}`;
-      else if (chosen) {
-        const hasMove = tiles.some(({ point }) => room.canMove(selected, point));
-        elements.hint.textContent = `${chosen.name} · ${chosen.hint} · ${hasMove ? '點亮起的格子移動' : '目前無可用目標，請換牌'} · 再點此牌取消`;
-      } else if (focusedEnemy) elements.hint.textContent = enemySummary(focusedEnemy);
-      else elements.hint.textContent = room.finished ? '' : knifeLessonPending
-        ? '飛刀已落地 · 用追影移到小刀格，撿刀可補 1 行動並抽牌'
-        : '先選牌，再點亮起的格子\n點怪物查看生命';
-      const unavailableShadow = !cleared && !preview && !chosen && !focusedEnemy && !knifeLessonPending
-        ? room.availableCards.findIndex((id, index) => id === 'shadow' && Boolean(shadowRequirement(index)))
-        : -1;
-      elements.hint.classList.toggle('warning', unavailableShadow >= 0);
-      if (unavailableShadow >= 0) elements.hint.textContent = `追影：${shadowRequirement(unavailableShadow)}`;
+      else if (chosen) showCardHint(chosen);
+      else if (focusedEnemy) elements.hint.textContent = enemySummary(focusedEnemy);
+      else elements.hint.textContent = '';
     }
     $('room-exit').toggleAttribute('hidden', !cleared);
     elements.game.classList.toggle('exploring', cleared);
@@ -413,10 +424,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.game.setAttribute('aria-busy', String(busy));
     syncHand();
     elements.touchInfo.dataset.mode = inspectedTile ? 'tile' : 'hint';
-    elements.touchInfo.classList.toggle('warning', !inspectedTile && elements.hint.classList.contains('warning'));
-    if (touchLayout() && !inspectedTile) elements.touchInfo.textContent = selected >= 0 && !exploring()
-      ? `${data.cards[room.availableCards[selected]].name} · 點亮起的格子行動`
-      : elements.hint.textContent ?? '';
+    if (touchLayout() && !inspectedTile)
+      elements.touchInfo.replaceChildren(...Array.from(elements.hint.childNodes).map(node => node.cloneNode(true)));
   }
   function lock() {
     busy = true;
@@ -492,10 +501,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       render();
       showResult();
       return;
-    }
-    if (thrown && room.knives.length && !knifeLessonShown) {
-      knifeLessonShown = true;
-      knifeLessonPending = true;
     }
     if (!room.hasPlayableCard() && !room.hand.includes('knife')) {
       await pause(180);

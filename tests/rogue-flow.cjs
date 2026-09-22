@@ -6,9 +6,13 @@ module.exports = async function checkRogue(page, output) {
   await page.locator('#start-game').click();
   assert.deepEqual(await page.locator('#hand .card').evaluateAll(nodes => nodes.map(n => n.dataset.card)), ['throw', 'shadow', 'lunge']);
   assert.equal(await page.locator('[data-card="shadow"] .card-requirement').count(), 0);
-  assert.match(await page.locator('#hint.warning').innerText(), /追影：需要場上小刀/);
+  assert.equal(await page.locator('#hint').innerText(), '');
+  await page.locator('[data-card="shadow"]').hover();
+  assert.match(await page.locator('#hint').innerText(), /^追影\n沿直線或斜線/);
+  assert.match(await page.locator('#hint .hint-warning').innerText(), /需要場上小刀/);
   assert.match(await page.locator('[data-card="shadow"]').getAttribute('aria-label'), /需要場上小刀/);
   if (output) await page.screenshot({path: `${output}/rogue-shadow-warning.png`});
+  await page.locator('#turn').hover();
   const layoutBefore = await page.evaluate(() => ({
     board: document.querySelector('.board-shell').getBoundingClientRect().top,
     hand: document.querySelector('#hand').getBoundingClientRect().top,
@@ -25,8 +29,8 @@ module.exports = async function checkRogue(page, output) {
   await page.locator('#turn').hover();
   await page.locator('.tile[data-x="2"][data-y="2"]').hover();
   assert.match(await page.locator('#tile-info').innerText(), /地上小刀/);
-  assert.equal(await page.locator('#hint.warning').count(), 0);
-  assert.match(await page.locator('#hint').textContent(), /用追影移到小刀格/);
+  assert.equal(await page.locator('#hint .hint-warning').count(), 0);
+  assert.equal(await page.locator('#hint').textContent(), '');
   assert.equal(await page.locator('[data-actor="0"]').count(), 0);
   if (output) await page.screenshot({path: `${output}/rogue-ground-knife.png`});
   await page.locator('[data-card="shadow"]').click();

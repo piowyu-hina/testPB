@@ -185,6 +185,16 @@ fs.mkdirSync(output, { recursive: true });
       () => document.getElementById('game').getAttribute('aria-busy') === 'false'
     );
     assert.equal(await phone.locator('#actors .actor').count(), 4);
+    await phone.reload();
+    await require('./village-flow.cjs').chooseCharacter(phone, 'rogue');
+    await openDungeon(phone, true);
+    await phone.locator('#start-game').tap();
+    assert.equal(await phone.locator('#touch-info').innerText(), '');
+    await phone.locator('[data-card="shadow"]').tap({ force: true });
+    assert.match(await phone.locator('#touch-info').innerText(), /^追影\n沿直線或斜線/);
+    assert.match(await phone.locator('#touch-info .hint-warning').innerText(), /需要場上小刀/);
+    assert.equal(await phone.locator('.card.selected').count(), 0);
+    await phone.screenshot({ path: path.join(output, 'rogue-shadow-warning-mobile.png') });
     await phone.close();
     const portrait = await browser.newPage({ viewport: { width: 720, height: 1280 }, hasTouch: true, isMobile: true });
     await portrait.goto(process.env.TESTPB_URL || 'http://127.0.0.1:4173');
