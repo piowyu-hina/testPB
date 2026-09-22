@@ -5,6 +5,7 @@ module.exports = async function checkRogue(page, output) {
   await page.locator('#open-dungeons').click();
   await page.locator('#start-game').click();
   assert.deepEqual(await page.locator('#hand .card').evaluateAll(nodes => nodes.map(n => n.dataset.card)), ['throw', 'shadow', 'lunge']);
+  const openingCardWidth = await page.locator('#hand .card').first().evaluate(node => node.getBoundingClientRect().width);
   assert.equal(await page.locator('[data-card="shadow"] .card-requirement').count(), 0);
   await page.locator('#turn').hover();
   assert.equal(await page.locator('#hint').innerText(), '');
@@ -48,6 +49,7 @@ module.exports = async function checkRogue(page, output) {
   await idle();
   assert.equal(await page.locator('[data-card="knife"]').count(), 1);
   assert.equal(await page.locator('#hand .card').count(), 4);
+  assert.equal(await page.locator('#hand .card').first().evaluate(node => node.getBoundingClientRect().width), openingCardWidth);
   assert.deepEqual(await page.locator('#hand .card').evaluateAll(nodes => nodes.map(node => Number(node.dataset.index))), [0, 1, 2, 3]);
   const layoutAfter = await page.evaluate(() => ({
     board: document.querySelector('.board-shell').getBoundingClientRect().top,
