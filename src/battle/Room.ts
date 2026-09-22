@@ -6,6 +6,7 @@ import type { RoomDefinition } from '../data/rooms.ts';
 import type { Point, Enemy, MovePreview, EnemyMotion, TurnOutcome, CardDefinition } from '../types/game.ts';
 import { attackOffsets, blocksAttack, enemySkill, faceToward } from './EnemyRules.ts';
 export const data = { cards, enemies };
+export const HAND_LIMIT = 5;
 export interface MoveAction {
   hitId?: number;
   pickedKnife?: boolean;
@@ -203,7 +204,7 @@ export class Room {
       action.pickedKnife = true;
       this.hand.push('knife');
       this.actions = Math.min(2, this.actions + 1);
-      if (this.deck.length || this.discard.length) action.drawn = this.draw();
+      if (this.hand.length < HAND_LIMIT && (this.deck.length || this.discard.length)) action.drawn = this.draw();
     }
     if (this.won) this.knives = [];
     return action;
@@ -249,7 +250,7 @@ export class Room {
       const heldKnives = this.hand.filter(id => id === 'knife');
       this.discard.push(...this.hand.filter(id => id !== 'knife'));
       this.hand = heldKnives;
-      for (let i = 0; i < 3; i++) this.draw();
+      for (let i = 0; i < 3 && this.hand.length < HAND_LIMIT; i++) this.draw();
       this.actions = 2;
       this.turn++;
     }

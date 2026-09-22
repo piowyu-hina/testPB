@@ -6,15 +6,14 @@
 .ground-knife { width: 13%; height: 13%; }
 .ground-knife.occupied { width: 9%; height: 9%; margin-left: 5%; margin-top: 4%; }
 .ground-knife svg, .knife-projectile svg { width: 100%; height: 100%; }
-.battle-info { position: relative; height: 110px; margin-bottom: 10px; }
-.battle-info > div { position: absolute; inset: 0; width: 100%; height: 100%; box-sizing: border-box; padding: 8px 16px 8px 90px; overflow-y: auto; scrollbar-width: none; border: 1px solid #c5b99c; border-left: 5px solid #588273; border-radius: 8px; background: #f1ead9; color: #34443c; line-height: 1.3; box-shadow: 0 3px 0 #141f1a55; }
-.battle-info > div::before { content: '提示'; position: absolute; left: 16px; top: 12px; width: 58px; color: #537467; font-size: 18px; font-weight: 700; letter-spacing: .12em; }
+.battle-info { position: relative; z-index: 9; height: 110px; margin-bottom: 10px; }
+.battle-info > div { position: absolute; top: 0; left: 0; width: 100%; max-height: 110px; box-sizing: border-box; padding: 8px 12px; overflow-y: auto; scrollbar-width: none; color: inherit; line-height: 1.35; }
 .battle-info > div::-webkit-scrollbar { display: none; }
-.battle-info .hint { display: flex; align-items: center; min-height: 0; margin: 0; text-align: left; }
-.battle-info .tile-info { font-size: 19px; }
-.battle-info .tile-info::before, .battle-info .touch-info[data-mode="tile"]::before { content: '格子'; }
+.battle-info .hint { display: block; min-height: 0; margin: 0; color: inherit; text-align: left; }
+.battle-info .tile-info, .battle-info .touch-info[data-mode="tile"] { font-size: 21px; }
 .tile-info strong, .tile-info span { display: block; }
-.tile-info strong, .touch-info strong { margin-bottom: 3px; color: #2f6753; }
+.tile-info strong, .touch-info strong { margin-bottom: 3px; color: #8dbba6; }
+[data-theme='light'] .tile-info strong, [data-theme='light'] .touch-info strong { color: #2f6753; }
 .tile-info span + span { margin-top: 2px; }
 .tile-info[hidden] { display: none; }
 .touch-info { display: none; font-size: 22px; }
@@ -34,11 +33,11 @@
 .game .action-pip { width: 18px; height: 24px; }
 .heading { margin-bottom: 12px; }
 .status { margin-bottom: 12px; }
-.controls { margin-top: 38px; padding: 0 0 112px; }
-.game .hand { gap: 14px; height: 258px; min-height: 258px; }
-.game .hand .card { max-width: 194px; width: calc((100% - (var(--hand-slots, 3) - 1) * 14px) / var(--hand-slots, 3)); }
+.controls { margin-top: 38px; padding: 0 0 125px; }
+.game .hand { gap: 8px; height: 205px; min-height: 205px; }
+.game .hand .card { box-sizing: border-box; flex: 0 0 150px; width: 150px; max-width: none; height: 205px; aspect-ratio: auto; padding: 9px 7px 8px; }
+.game .hand .card:hover, .game .hand .card.selected { z-index: 10 !important; }
 .card-name { font-size: 24px; }
-.hand .card .card-cost { font-size: 20px; }
 .game .hint { font-size: 22px; }
 .end-turn { left: 50%; top: auto; right: auto; bottom: 0; transform: translateX(-50%); width: min(300px, 100%); }
 #end-label { font-size: 26px; }
@@ -49,17 +48,11 @@
 .game .room-arrival strong { font-size: 30px; }
 .game .card.shadow-unavailable .card-requirement { font-size: 11px; }
 .knife-projectile { z-index: 7; }
-.card-cost { display: block; font-size: clamp(8px, 1.2vh, 10px); line-height: 1.3; color: #69614f; white-space: nowrap; }
-.bonus-hand { display: contents; }
-.bonus-hand[hidden] { display: none; }
-.hand .card { aspect-ratio: 151 / 200; padding: 7px 6px 6px; width: calc((100% - (var(--hand-slots, 3) - 1) * 12px) / var(--hand-slots, 3)); }
-.hand { gap: 12px; }
-.bonus-hand .card { border-color: #a68c50; }
-.bonus-hand .card-cost { color: #80632b; }
+.hand .card[data-card="knife"] { border-color: #a68c50; }
 .card-requirement { display: none; }
 .card.shadow-unavailable { opacity: 1; border-color: #8c907e; }
 .card.shadow-unavailable .card-art { opacity: .42; }
-.card.shadow-unavailable .card-name, .card.shadow-unavailable .card-cost { opacity: .65; }
+.card.shadow-unavailable .card-name { opacity: .65; }
 .card.shadow-unavailable .card-requirement { display: block; position: absolute; top: 7px; left: 3px; right: 3px; z-index: 1; padding: 2px 0; border-radius: 4px; background: #355b4c; color: #fff9eb; font-size: clamp(8px, 1.3vh, 11px); line-height: 1.2; white-space: nowrap; text-align: center; }
 .exploring .exit-door { filter: drop-shadow(0 0 7px #e8d388); animation: exit-beacon 1.8s ease-in-out infinite; }
 .exploring .door-interior { fill: #568c6c; }

@@ -1,4 +1,4 @@
-import { Room, data, equal } from '../battle/Room';
+import { Room, data, equal, HAND_LIMIT } from '../battle/Room';
 import type { Journey } from '../battle/Journey';
 import { characters, enemyArt } from '../data/art';
 import type { Point, CardDefinition } from '../types/game';
@@ -27,7 +27,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     touchInfo: $('touch-info'),
     cardDetails: $('card-details'),
     hand: $('hand'),
-    bonusHand: $('bonus-hand'),
     health: $('health'),
     actions: $('actions'),
     hint: $('hint'),
@@ -157,7 +156,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (signature !== handSignature) {
       handSignature = signature;
       elements.hand.replaceChildren();
-      elements.bonusHand.replaceChildren();
       room.availableCards.forEach((id, index) => {
         const definition: CardDefinition = data.cards[id],
           card = document.createElement('button');
@@ -166,6 +164,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         card.className = 'card';
         card.dataset.card = id;
         card.dataset.index = String(index);
+        if (index) card.style.marginLeft = 'calc(-1 * var(--card-overlap))';
+        card.style.zIndex = String(index + 1);
         card.setAttribute('aria-label', definition.name);
         const illustration = id === 'forward' && room.loadout !== 'rogue' ? undefined : cardArt[id];
         if (illustration) {
@@ -180,12 +180,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         label.className = 'card-name';
         label.textContent = definition.name;
         card.append(label);
-        if (!exploring()) {
-          const cost = document.createElement('small');
-          cost.className = 'card-cost';
-          cost.textContent = id === 'knife' ? '0 行動' : '1 行動';
-          card.append(cost);
-        }
         if (id === 'shadow') {
           const requirement = document.createElement('span');
           requirement.className = 'card-requirement';
@@ -240,12 +234,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           hoveredEnemy = -1;
           render();
         });
-        (id === 'knife' && !exploring() ? elements.bonusHand : elements.hand).append(card);
+        elements.hand.append(card);
       });
-      elements.hand.append(elements.bonusHand);
     }
-    elements.bonusHand.hidden = exploring() || !room.hand.includes('knife');
-    elements.hand.style.setProperty('--hand-slots', String(Math.max(3, room.availableCards.length)));
+    const handCount = room.availableCards.length;
+    elements.hand.style.setProperty('--card-overlap', `${Math.max(0, Math.ceil((handCount * 150 + Math.max(0, handCount - 1) * 8 - 600) / Math.max(1, handCount - 1)))}px`);
     [...root.querySelectorAll<HTMLButtonElement>('.card')].forEach((card) => {
       const index = Number(card.dataset.index);
       const shadowUnavailable = card.dataset.card === 'shadow' && !exploring() && !room.canUseCard(index);
@@ -504,7 +497,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       busy = false;
       render();
       if (action.pickedKnife) {
-        elements.hint.textContent = `撿回小刀 · 行動 +1 · ${action.drawn ? `抽到${data.cards[action.drawn].name}` : '牌堆已空'}`;
+        elements.hint.textContent = `撿回小刀 · 行動 +1 · ${action.drawn ? `抽到${data.cards[action.drawn].name}` : room.hand.length >= HAND_LIMIT ? '手牌已滿，未抽牌' : '牌堆已空'}`;
         await animate(elements.actions, [
           { transform: 'scale(1)' },
           { transform: 'scale(1.22)', offset: 0.4 },

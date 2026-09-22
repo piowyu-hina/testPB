@@ -41,6 +41,7 @@ module.exports = async function checkRogue(page, output) {
   await idle();
   assert.equal(await page.locator('[data-card="knife"]').count(), 1);
   assert.equal(await page.locator('#hand .card').count(), 4);
+  assert.deepEqual(await page.locator('#hand .card').evaluateAll(nodes => nodes.map(node => Number(node.dataset.index))), [0, 1, 2, 3]);
   const layoutAfter = await page.evaluate(() => ({
     board: document.querySelector('.board-shell').getBoundingClientRect().top,
     hand: document.querySelector('#hand').getBoundingClientRect().top,

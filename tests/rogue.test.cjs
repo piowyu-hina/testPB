@@ -141,6 +141,21 @@ test('picking a knife with no drawable cards still restores action and keeps the
   assert.equal(r.actions, 1);
   assert.deepEqual(r.hand, ['knife']);
 });
+test('five-card hand keeps every knife separate and skips an extra draw when full', () => {
+  const r = room();
+  r.hero = [2, 1]; r.enemies = [enemy(0, [4, 4])]; r.knives = [[2, 2]];
+  r.hand = ['lunge', 'throw', 'shadow', 'lunge', 'knife'];
+  const deckBefore = r.deck.length;
+  const pickup = r.move(0, [2, 2]);
+  assert.equal(pickup.pickedKnife, true);
+  assert.equal(pickup.drawn, undefined);
+  assert.equal(r.deck.length, deckBefore);
+  assert.equal(r.hand.length, 5);
+  assert.equal(r.hand.filter(id => id === 'knife').length, 2);
+  r.endTurn();
+  assert.equal(r.hand.length, 5);
+  assert.equal(r.hand.filter(id => id === 'knife').length, 2);
+});
 test('rogue previews match actual landing, removal and damage without mutations', () => {
   for (const id of ['throw','shadow','lunge','knife']) for (let y=0;y<5;y++) for(let x=0;x<5;x++) {
     const r=room(); r.hand=[id]; r.knives=[[2,2],[3,1]];
