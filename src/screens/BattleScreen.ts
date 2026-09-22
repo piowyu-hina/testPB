@@ -253,7 +253,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       });
     }
     const handCount = room.availableCards.length;
-    elements.hand.style.setProperty('--card-overlap', `${Math.max(0, Math.ceil((handCount * 150 + Math.max(0, handCount - 1) * 8 - 600) / Math.max(1, handCount - 1)))}px`);
+    const cardWidth = handCount <= 3 ? 180 : handCount === 4 ? 155 : 132;
+    const naturalWidth = handCount * cardWidth + Math.max(0, handCount - 1) * 8;
+    const handWidth = exploring() ? 680 : 586; // Leave a fixed 84px turn button and 10px gap on the right.
+    elements.hand.style.width = `${handWidth}px`;
+    elements.hand.style.setProperty('--hand-card-width', `${cardWidth}px`);
+    elements.hand.style.setProperty('--card-overlap', `${Math.max(0, Math.ceil((naturalWidth - handWidth) / Math.max(1, handCount - 1)))}px`);
     [...root.querySelectorAll<HTMLButtonElement>('.card')].forEach((card) => {
       const index = Number(card.dataset.index);
       const reason = card.dataset.card === 'shadow' ? shadowRequirement(index) : '';
@@ -286,34 +291,25 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   function renderTileInfo(preview: ReturnType<Room['preview']>) {
     const panel = elements.tileInfo;
     const point = touchLayout() ? inspectedTile : hoveredTile;
-    panel.hidden = !point || busy || (room.finished && !exploring());
+    const enemy = point ? room.at(point) : undefined;
+    const hasKnife = point ? room.hasKnife(point) : false;
+    const isExit = Boolean(point && exploring() && equal(point, journey.exit));
+    panel.hidden = !point || busy || (room.finished && !exploring()) || (!enemy && !hasKnife && !isExit);
     elements.hint.hidden = !panel.hidden;
-    if (panel.hidden || !point) return;
-    const enemy = room.at(point);
-    const onHero = equal(point, room.hero);
-    const title = enemy ? enemySummary(enemy) : onHero ? '目前位置' : exploring() && equal(point, journey.exit) ? '出口' : '空地';
+    if (panel.hidden || !point) {
+      if (touchLayout() && inspectedTile) elements.touchInfo.replaceChildren();
+      return;
+    }
+    const title = enemy ? enemySummary(enemy) : isExit ? '出口' : '地上小刀';
     const lines: string[] = [];
     if (enemy) {
-      const skill = enemySkill(enemy);
-      lines.push(`下一招：${skill.name} · ${skill.hint}`);
-      if (enemy.facing && skill.guardsFront) lines.push(`面向：${{ north: '上', east: '右', south: '下', west: '左' }[enemy.facing]}`);
+      lines.push(data.enemies[enemy.kind].behavior);
+      if (enemy.facing && enemySkill(enemy).guardsFront) lines.push(`面向：${{ north: '上', east: '右', south: '下', west: '左' }[enemy.facing]}`);
     }
-    if (room.hasKnife(point)) lines.push('地上小刀 · 踏入可回收、補行動並抽牌');
-    const threats = room.enemies.filter(e => Room.threatens(e, point));
-    if (threats.length) lines.push(`停留受 ${room.damageAt(point)} 傷害：${threats.map(e => `${data.enemies[e.kind].name}${e.elite ? '（精英）' : ''}`).join('、')}`);
-    else if (!exploring()) lines.push('停留受 0 傷害');
+    if (hasKnife) lines.push('撿刀：補 1 行動，可抽 1 張牌');
     const chosenId = room.availableCards[selected];
-    if (chosenId) {
-      if (preview) {
-        if (preview.blocked) lines.push(`${data.cards[chosenId].name}：正面格擋，消耗行動`);
-        else if (chosenId === 'throw') lines.push(`飛刀：原地攻擊${preview.removedId >= 0 ? '並擊敗' : ''}，刀留此格`);
-        else if (preview.removedId >= 0) lines.push(`${data.cards[chosenId].name}：移入並擊敗怪物`);
-        else if (enemy) lines.push(`${data.cards[chosenId].name}：命中後退回原格`);
-        else lines.push(`${data.cards[chosenId].name}：移到此格`);
-        if (chosenId !== 'throw' && room.hasKnife(preview.destination)) lines.push('回收小刀 · 行動 +1 · 抽 1 張');
-        if (!exploring()) lines.push(`行動後受 ${preview.damage} 傷害`);
-      } else lines.push(`${data.cards[chosenId].name}無法作用於此格`);
-    }
+    if (preview?.blocked) lines.push('正面格擋：攻擊無效，仍消耗行動');
+    else if (preview && enemy && preview.removedId < 0 && chosenId !== 'throw') lines.push('目標未倒下，角色留在原地');
     panel.replaceChildren();
     const heading = document.createElement('strong');
     heading.textContent = title;
@@ -346,12 +342,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const chosen = chosenId ? data.cards[chosenId] : undefined;
     renderTileInfo(preview);
     if (!busy) {
-      if (preview?.blocked) elements.hint.textContent = `正面格擋：無傷害，仍消耗卡片與 ${room.cardCost(selected)} 次行動。`;
-      else if (cleared) {
+      if (cleared) {
         if (chosen) showCardHint(chosen);
         else elements.hint.textContent = '';
       }
-      else if (preview) elements.hint.textContent = `${chosenId === 'throw' ? '原地投擲 · ' : ''}${preview.removedId >= 0 ? '擊敗怪物 · ' : ''}落點受擊預告：${preview.damage} 傷害${preview.damage >= room.health ? ' · 致命' : ''}${chosenId !== 'throw' && room.hasKnife(preview.destination) ? ' · 回收小刀、行動 +1、抽 1 張' : ''}`;
       else if (chosen) showCardHint(chosen);
       else if (focusedEnemy) elements.hint.textContent = enemySummary(focusedEnemy);
       else elements.hint.textContent = '';

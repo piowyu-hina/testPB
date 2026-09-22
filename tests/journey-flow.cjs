@@ -55,7 +55,7 @@ module.exports = async function playJourney(page, output, prefix = '', loadout =
         await card.click();
         await tile.hover();
         assert.ok((await tile.getAttribute('class')).includes('blocked'));
-        assert.ok((await page.locator('#hint').textContent()).includes('格擋'));
+        assert.ok((await page.locator('#tile-info').textContent()).includes('格擋'));
         await page.screenshot({ path: path.join(output, `${prefix}guard-block-preview.png`) });
         await card.click();
         checkedBlock = true;

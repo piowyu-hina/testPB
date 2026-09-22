@@ -43,7 +43,11 @@
       </section>
       <section class="controls" aria-label="手牌與回合">
         <div class="hand" id="hand"></div>
-        <button type="button" class="end-turn" id="end-turn" tabindex="-1" aria-label="結束回合">
+        <button type="button" class="end-turn" id="end-turn" tabindex="-1" aria-labelledby="end-label" title="結束回合">
+          <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+            <path d="M12 7h24M12 41h24M16 8v6c0 5 8 9 8 10s-8 5-8 10v6M32 8v6c0 5-8 9-8 10s8 5 8 10v6" />
+            <path d="M19 16h10l-5 5zM19 35h10l-5-6z" class="hourglass-sand" />
+          </svg>
           <span id="end-label">結束回合</span>
         </button>
       </section>

@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 
 module.exports = async function checkBattleUx(page) {
+  await page.locator('#turn').hover();
   assert.equal(await page.locator('#hint').innerText(), '');
   assert.match(await page.locator('#actions').textContent(), /2\/2/);
   await page.locator('[data-card="rush"]').click();
@@ -10,8 +11,8 @@ module.exports = async function checkBattleUx(page) {
   await page.locator('.tile[data-x="2"][data-y="2"]').hover();
   assert.match(await page.locator('#tile-info').innerText(), /刺芽團子.*生命 1\/1/);
   assert.equal(await page.locator('#hint').isVisible(), false);
-  assert.match(await page.locator('#tile-info').innerText(), /下一招：刺擊/);
-  assert.match(await page.locator('#tile-info').innerText(), /突進：移入並擊敗怪物/);
+  assert.match(await page.locator('#tile-info').innerText(), /攻擊上下左右相鄰格/);
+  assert.doesNotMatch(await page.locator('#tile-info').innerText(), /停留受|無法作用|移入並擊敗/);
   await page.locator('#turn').hover();
   assert.equal(await page.locator('#tile-info').isVisible(), false);
   assert.equal(await page.locator('#hint').isVisible(), true);
@@ -21,11 +22,12 @@ module.exports = async function checkBattleUx(page) {
   await page.locator('#close-battle-help').click();
   assert.equal(await page.locator('[data-card="rush"]').getAttribute('aria-pressed'), 'true');
   await page.locator('.tile[data-x="2"][data-y="2"]').hover();
-  assert.match(await page.locator('#hint').textContent(), /落點受擊預告/);
+  assert.doesNotMatch(await page.locator('#hint').textContent(), /落點受擊預告/);
   await page.locator('[data-card="rush"]').click();
   await page.locator('#turn').hover();
   assert.equal(await page.locator('.card.selected').count(), 0);
   assert.equal(await page.locator('#hint').innerText(), '');
-  assert.equal(await page.locator('#end-turn').innerText(), '結束回合');
+  assert.equal(await page.locator('#end-turn').getAttribute('title'), '結束回合');
+  assert.equal(await page.locator('#end-turn svg').count(), 1);
   assert.equal(await page.locator('#journey-progress').count(), 0);
 };

@@ -20,6 +20,7 @@ export interface EnemySkill {
 }
 export interface EnemyDefinition {
   name: string;
+  behavior: string;
   skills: readonly EnemySkill[];
 }
 export interface Enemy {

@@ -6,6 +6,7 @@ module.exports = async function checkRogue(page, output) {
   await page.locator('#start-game').click();
   assert.deepEqual(await page.locator('#hand .card').evaluateAll(nodes => nodes.map(n => n.dataset.card)), ['throw', 'shadow', 'lunge']);
   assert.equal(await page.locator('[data-card="shadow"] .card-requirement').count(), 0);
+  await page.locator('#turn').hover();
   assert.equal(await page.locator('#hint').innerText(), '');
   await page.locator('[data-card="shadow"]').hover();
   assert.match(await page.locator('#hint').innerText(), /^追影\n瞬移至場上任意小刀格/);
