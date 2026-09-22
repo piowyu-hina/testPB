@@ -10,7 +10,7 @@ import { place, animate, pause, travel, teleport } from '../ui/animations';
 import { diagram } from '../ui/cardDiagram';
 import { cardArt } from '../data/cardArt';
 import { daggerIcon, groundDaggerIcon } from '../ui/dagger';
-import { approach, contactPoint, shield, recoil } from '../ui/battleFeedback';
+import { approach, contactPoint, shield, impact, recoil } from '../ui/battleFeedback';
 import { enemySkill, blocksAttack } from '../battle/EnemyRules';
 import { enemySummary } from '../ui/enemyInfo';
 import '../enemy.css';
@@ -479,7 +479,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (action.hitId !== undefined) {
       elements.hint.textContent = blocked ? '正面格擋 · 這次攻擊沒有造成傷害' : action.removedId >= 0 ? '擊敗怪物' : '命中 · 怪物生命 −1';
       if (blocked) await shield(elements.board, action.to);
-      else if (action.removedId < 0) await recoil(actor(action.hitId), action.from, action.to);
+      else await Promise.all([
+        impact(elements.board, action.to, action.removedId >= 0),
+        recoil(actor(action.hitId), action.from, action.to)
+      ]);
     }
     if (action.hitId !== undefined && action.removedId < 0) {
       if (!thrown) {
@@ -489,7 +492,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     if (action.removedId >= 0) {
       const victim = actor(action.removedId);
-      await pause(80);
       victim.remove();
       actors.delete(action.removedId);
     }

@@ -25,7 +25,10 @@ module.exports = async function checkRogue(page, output) {
   await page.locator('.tile[data-x="2"][data-y="2"]').hover();
   assert.equal(await page.locator('#ghost').isVisible(), false);
   await page.locator('.tile[data-x="2"][data-y="2"]').click();
+  await page.locator('.battle-impact').waitFor({ state: 'visible', timeout: 1500 });
+  if (output) await page.screenshot({path: `${output}/rogue-hit-effect.png`});
   await idle();
+  assert.equal(await page.locator('.battle-impact').count(), 0);
   assert.equal(await page.locator('[data-actor="hero"]').getAttribute('style'), origin);
   assert.equal(await page.locator('.ground-knife').count(), 1);
   await page.locator('#turn').hover();

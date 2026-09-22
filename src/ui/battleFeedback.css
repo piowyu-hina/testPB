@@ -1,6 +1,16 @@
 .battle-shield { position: absolute; width: 19%; height: 19%; transform: translate(-50%, -50%); z-index: 6; pointer-events: none; }
 .battle-shield svg { width: 100%; height: 100%; fill: #345e80f5; stroke: #d9f1ff; stroke-width: 4; stroke-linecap: round; filter: drop-shadow(0 0 6px #71bfff); }
 .battle-shield .shield-mark { fill: none; stroke: #fff; }
+.battle-impact { position: absolute; width: 18%; height: 18%; transform: translate(-50%, -50%); z-index: 8; pointer-events: none; }
+.battle-impact::before, .battle-impact::after { content: ''; position: absolute; left: 50%; top: 50%; border-radius: 999px; transform: translate(-50%, -50%) rotate(-38deg); }
+.battle-impact::before { width: 76%; height: 11%; background: #fff6da; box-shadow: 0 0 0 3px #b85d45, 0 0 11px #e6a66b; }
+.battle-impact::after { width: 53%; height: 5%; background: #fffdf1; transform: translate(-50%, -50%) rotate(44deg); }
+.battle-impact i { position: absolute; left: 50%; top: 50%; width: 10%; height: 10%; border-radius: 2px; background: #f1c572; transform: rotate(var(--angle)) translateX(41px); }
+.battle-impact i:nth-child(1) { --angle: -105deg; }
+.battle-impact i:nth-child(2) { --angle: -30deg; }
+.battle-impact i:nth-child(3) { --angle: 58deg; }
+.battle-impact i:nth-child(4) { --angle: 145deg; }
+.battle-impact.finisher::before { background: #fff2ca; box-shadow: 0 0 0 4px #cd6e4d, 0 0 14px #eeae6e; }
 .ground-knives { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
 .ground-knife, .knife-projectile { position: absolute; width: 8%; height: 8%; transform: translate(-50%, -50%); pointer-events: none; }
 .ground-knife { width: 13%; height: 13%; }

@@ -8,6 +8,23 @@ export function contactPoint(from: Point, to: Point): Point {
   return [to[0] - dx / distance * 0.85, to[1] - dy / distance * 0.85];
 }
 
+export async function impact(board: HTMLElement, point: Point, finisher = false): Promise<void> {
+  const effect = document.createElement('div');
+  effect.className = `battle-impact${finisher ? ' finisher' : ''}`;
+  effect.setAttribute('aria-hidden', 'true');
+  effect.innerHTML = '<i></i><i></i><i></i><i></i>';
+  place(effect, point);
+  board.append(effect);
+  try {
+    await animate(effect, [
+      { opacity: 0, scale: 0.55 },
+      { opacity: 1, scale: 1, offset: 0.2 },
+      { opacity: 1, scale: 1.12, offset: 0.55 },
+      { opacity: 0, scale: 1.25 }
+    ], finisher ? 270 : 220, 'ease-out');
+  } finally { effect.remove(); }
+}
+
 export async function shield(board: HTMLElement, point: Point): Promise<void> {
   const effect = document.createElement('div');
   effect.className = 'battle-shield';
@@ -32,10 +49,10 @@ export async function recoil(node: HTMLElement, from: Point, to: Point, hurt = f
   const displaced = `translate(calc(-50% + ${dx / length * shift}px), calc(-50% - ${dy / length * shift}px))`;
   await animate(node, [
     { transform: 'translate(-50%, -50%)', filter: 'none' },
-    { transform: displaced, filter: hurt ? 'sepia(1) saturate(6) hue-rotate(315deg)' : 'brightness(2)', offset: 0.18 },
-    { transform: displaced, filter: hurt ? 'sepia(1) saturate(6) hue-rotate(315deg)' : 'brightness(1.4)', offset: 0.65 },
+    { transform: displaced, filter: hurt ? 'sepia(1) saturate(6) hue-rotate(315deg)' : 'brightness(1.25)', offset: 0.18 },
+    { transform: displaced, filter: hurt ? 'sepia(1) saturate(6) hue-rotate(315deg)' : 'brightness(1.1)', offset: 0.65 },
     { transform: 'translate(-50%, -50%)', filter: 'none' }
-  ], 380);
+  ], hurt ? 380 : 240);
 }
 
 export async function approach(node: HTMLElement, from: Point, to: Point, leap: boolean): Promise<Point> {
