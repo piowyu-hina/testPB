@@ -14,10 +14,10 @@ module.exports = async function playJourney(page, output, prefix = '', loadout =
       () => document.getElementById('game').getAttribute('aria-busy') === 'false'
     );
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  for (let stage = 0; stage < 3; stage++) {
+  for (let stage = 0; stage < run.total; stage++) {
     const model = run.room;
     assert.equal(await page.locator('#health .empty').count(), 5 - model.health);
-    if (stage === 1) {
+    if (stage === 0) {
       assert.equal(await page.locator('#actors .actor.guarding .guard-shield').count(), 1);
       assert.equal(await page.locator('#actors .actor.guarding .guard-shield').first().isVisible(), true);
       await page.locator('.tile[data-x="1"][data-y="3"]').click();
@@ -31,7 +31,7 @@ module.exports = async function playJourney(page, output, prefix = '', loadout =
       await page.screenshot({ path: path.join(output, `${prefix}guard-roots.png`) });
       await page.locator('.tile[data-x="3"][data-y="3"]').click();
     }
-    if (stage === 2) {
+    if (stage === 1) {
       assert.equal(await page.locator('.elite-crown').count(), 1);
       await page.screenshot({ path: path.join(output, `${prefix}elite-room.png`) });
     }
@@ -85,11 +85,11 @@ module.exports = async function playJourney(page, output, prefix = '', loadout =
       assert.equal(await page.locator('#health .empty').count(), 5 - model.health);
       assert.equal(
         await page.locator('#turn').textContent(),
-        model.won && stage < 2 ? '' : `第 ${model.turn} 回合`
+        model.won && stage < run.total - 1 ? '' : `第 ${model.turn} 回合`
       );
     }
     assert.ok(model.won, `Room ${stage + 1} did not clear`);
-    if (stage < 2) {
+    if (stage < run.total - 1) {
       assert.equal(await page.locator('#result').isVisible(), false);
       assert.equal(await page.locator('#room-exit').isVisible(), true);
       assert.equal(await page.locator('#hand').isVisible(), true);

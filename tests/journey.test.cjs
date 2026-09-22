@@ -160,10 +160,10 @@ test('room definitions are independent, legal, and start outside all attacks', (
 });
 
 test('100 seeded journeys can be cleared using previews, with bounded damage and consistent decks', () => {
-  const clears = [0, 0, 0];
+  const clears = [0, 0];
   for (let seed = 1; seed <= 100; seed++) {
     const run = new Journey(seed);
-    for (let stage = 0; stage < 3; stage++) {
+    for (let stage = 0; stage < run.total; stage++) {
       const room = run.room;
       for (let step = 0; step < 100 && !room.finished; step++) {
         let best = null;
@@ -200,5 +200,5 @@ test('100 seeded journeys can be cleared using previews, with bounded damage and
     }
   }
   console.log('Journey clears by room (100 seeds):', clears);
-  assert.ok(clears[2] >= 70, `Only ${clears[2]}/100 full journeys cleared`);
+  assert.ok(clears.at(-1) >= 70, `Only ${clears.at(-1)}/100 full journeys cleared`);
 });

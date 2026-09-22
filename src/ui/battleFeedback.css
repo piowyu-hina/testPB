@@ -1,9 +1,9 @@
 .guard-shield { display: none; position: absolute; z-index: 5; width: 38%; height: 38%; left: 50%; top: 50%; transform: translate(-50%, -50%); fill: #52718d; stroke: #e3f2fa; stroke-width: 5; stroke-linejoin: round; filter: drop-shadow(0 1px 3px #172a3a); pointer-events: none; }
 .actor.guarding .guard-shield { display: block; }
-.actor[data-facing='north'] .guard-shield { top: 12%; }
-.actor[data-facing='east'] .guard-shield { left: 88%; }
-.actor[data-facing='south'] .guard-shield { top: 88%; }
-.actor[data-facing='west'] .guard-shield { left: 12%; }
+.actor[data-facing='north'] .guard-shield { top: 22%; }
+.actor[data-facing='east'] .guard-shield { left: 78%; }
+.actor[data-facing='south'] .guard-shield { top: 78%; }
+.actor[data-facing='west'] .guard-shield { left: 22%; }
 .battle-impact { position: absolute; width: 18%; height: 18%; transform: translate(-50%, -50%); z-index: 8; pointer-events: none; }
 .battle-impact::before, .battle-impact::after { content: ''; position: absolute; left: 50%; top: 50%; border-radius: 999px; transform: translate(-50%, -50%) rotate(-38deg); }
 .battle-impact::before { width: 76%; height: 11%; background: #fff6da; box-shadow: 0 0 0 3px #b85d45, 0 0 11px #e6a66b; }
