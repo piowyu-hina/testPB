@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 
 module.exports = async function checkBattleUx(page) {
-  assert.match(await page.locator('#hint').textContent(), /先選一張牌/);
+  assert.match(await page.locator('#hint').textContent(), /先選牌/);
   assert.match(await page.locator('#actions').textContent(), /2\/2/);
   await page.locator('[data-card="rush"]').click();
   await page.locator('#turn').hover();
@@ -22,7 +22,7 @@ module.exports = async function checkBattleUx(page) {
   await page.locator('[data-card="rush"]').click();
   await page.locator('#turn').hover();
   assert.equal(await page.locator('.card.selected').count(), 0);
-  assert.match(await page.locator('#hint').textContent(), /先選一張牌/);
+  assert.match(await page.locator('#hint').textContent(), /先選牌/);
   assert.equal(await page.locator('#end-turn').innerText(), '結束回合');
   assert.equal(await page.locator('#journey-progress').count(), 0);
 };

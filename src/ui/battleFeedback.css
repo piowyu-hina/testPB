@@ -7,16 +7,16 @@
 .ground-knife.occupied { width: 9%; height: 9%; margin-left: 5%; margin-top: 4%; }
 .ground-knife svg, .knife-projectile svg { width: 100%; height: 100%; }
 .battle-info { position: relative; z-index: 9; height: 110px; margin-bottom: 10px; }
-.battle-info > div { position: absolute; top: 0; left: 0; width: 100%; max-height: 110px; box-sizing: border-box; padding: 8px 12px; overflow-y: auto; scrollbar-width: none; color: inherit; line-height: 1.35; }
+.battle-info > div { position: absolute; top: 0; left: 0; width: 100%; max-height: 110px; box-sizing: border-box; padding: 4px 10px; overflow-y: auto; scrollbar-width: none; color: inherit; font-family: 'Microsoft JhengHei UI', 'Microsoft JhengHei', system-ui, sans-serif; line-height: 1.4; }
 .battle-info > div::-webkit-scrollbar { display: none; }
-.battle-info .hint { display: block; min-height: 0; margin: 0; color: inherit; text-align: left; }
-.battle-info .tile-info, .battle-info .touch-info[data-mode="tile"] { font-size: 21px; }
+.battle-info .hint { display: block; min-height: 0; margin: 0; color: inherit; text-align: left; white-space: pre-line; }
+.battle-info .tile-info, .battle-info .touch-info[data-mode="tile"] { font-size: 24px; line-height: 1.3; }
 .tile-info strong, .tile-info span { display: block; }
 .tile-info strong, .touch-info strong { margin-bottom: 3px; color: #8dbba6; }
 [data-theme='light'] .tile-info strong, [data-theme='light'] .touch-info strong { color: #2f6753; }
 .tile-info span + span { margin-top: 2px; }
 .tile-info[hidden] { display: none; }
-.touch-info { display: none; font-size: 22px; }
+.touch-info { display: none; font-size: 24px; }
 .card-details { position: absolute; z-index: 19; top: 0; left: 0; width: 100%; max-height: 360px; overflow-y: auto; box-sizing: border-box; padding: 16px 18px; border: 1px solid #bbaa86; border-radius: 12px; background: #fff9eb; color: #383b40; box-shadow: 0 12px 28px #111b1a77; text-align: left; }
 .card-details strong { display: block; font-size: 17px; }
 .card-details p { margin: 8px 0; line-height: 1.55; font-size: 14px; }
@@ -38,7 +38,7 @@
 .game .hand .card { box-sizing: border-box; flex: 0 0 150px; width: 150px; max-width: none; height: 205px; aspect-ratio: auto; padding: 9px 7px 8px; }
 .game .hand .card:hover, .game .hand .card.selected { z-index: 10 !important; }
 .card-name { font-size: 24px; }
-.game .hint { font-size: 22px; }
+.game .hint { font-size: 25px; font-weight: 400; }
 .end-turn { left: 50%; top: auto; right: auto; bottom: 0; transform: translateX(-50%); width: min(300px, 100%); }
 #end-label { font-size: 26px; }
 .card-details { padding: 20px 24px; }

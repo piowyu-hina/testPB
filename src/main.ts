@@ -13,7 +13,13 @@ const session = new GameSession();
 const host = element('app');
 const stage = element('stage');
 function fitStage() {
-  host.style.transform = `scale(${stage.getBoundingClientRect().width / 720})`;
+  const scale = stage.getBoundingClientRect().width / 720;
+  if (CSS.supports('zoom', '1')) {
+    host.style.zoom = String(scale);
+    host.style.transform = '';
+  } else {
+    host.style.transform = `scale(${scale})`;
+  }
 }
 new ResizeObserver(fitStage).observe(stage);
 window.addEventListener('resize', fitStage);
