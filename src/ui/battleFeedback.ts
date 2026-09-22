@@ -29,16 +29,16 @@ export async function heartBurst(board: HTMLElement, point: Point): Promise<void
   const burst = document.createElement('span');
   burst.className = 'battle-heart-burst';
   burst.setAttribute('aria-hidden', 'true');
-  burst.innerHTML = '<span>♥</span><span>♥</span><span>♥</span>';
+  burst.textContent = '♥';
   place(burst, point);
   board.append(burst);
   try {
-    await Promise.all([...burst.children].map((heart, i) => animate(heart, [
-      { opacity: 0, transform: 'translate(-50%, -50%) scale(.5)' },
-      { opacity: 1, transform: `translate(calc(-50% + ${(i - 1) * 12}px), -70%) scale(1.12)`, offset: .15 },
-      { opacity: 1, transform: `translate(calc(-50% + ${(i - 1) * 27}px), -115%) scale(1)`, offset: .7 },
-      { opacity: 0, transform: `translate(calc(-50% + ${(i - 1) * 38}px), -145%) scale(.85)` }
-    ], 750, 'ease-out')));
+    await animate(burst, [
+      { opacity: 0, transform: 'translate(-50%, -25%) scale(.5)' },
+      { opacity: 1, transform: 'translate(-50%, -65%) scale(1.15)', offset: .18 },
+      { opacity: 1, transform: 'translate(-50%, -105%) scale(1)', offset: .72 },
+      { opacity: 0, transform: 'translate(-50%, -145%) scale(.85)' }
+    ], 750, 'ease-out');
   } finally { burst.remove(); }
 }
 
