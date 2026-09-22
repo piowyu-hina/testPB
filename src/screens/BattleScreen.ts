@@ -309,7 +309,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const enemy = point ? room.at(point) : undefined;
     const hasKnife = point ? room.hasKnife(point) : false;
     const isExit = Boolean(point && exploring() && equal(point, journey.exit));
-    const danger = point && !exploring() ? room.damageAt(point) : 0;
+    const danger = point && !exploring() ? room.damageAt(point, preview?.removedId ?? -1) : 0;
     panel.hidden = !point || busy || (room.finished && !exploring()) || (!enemy && !hasKnife && !isExit && !danger);
     elements.hint.hidden = !panel.hidden;
     if (panel.hidden || !point) {
@@ -323,7 +323,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       if (enemy.facing && enemySkill(enemy).guardsFront) lines.push(`面向：${{ north: '上', east: '右', south: '下', west: '左' }[enemy.facing]}`);
     }
     if (hasKnife) lines.push('撿刀：補 1 行動，可抽 1 張牌');
-    if (danger) lines.push(`敵方攻擊範圍 · ${'♥'.repeat(Math.min(danger, 5))}`);
+    if (danger) lines.push(`回合結束時，站在此格受${danger}點傷害`);
     const chosenId = room.availableCards[selected];
     if (preview?.blocked) lines.push('正面格擋：攻擊無效，仍消耗行動');
     else if (preview && enemy && preview.removedId < 0 && chosenId !== 'throw') lines.push('目標未倒下，角色留在原地');

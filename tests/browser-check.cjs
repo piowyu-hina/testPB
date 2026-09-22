@@ -60,7 +60,7 @@ fs.mkdirSync(output, { recursive: true });
     assert.equal(await page.locator('.threat').count(), 0);
     const dangerousTile = page.locator('.tile[data-danger="1"]').first();
     await dangerousTile.hover();
-    assert.match(await page.locator('#tile-info').innerText(), /敵方攻擊範圍 · ♥/);
+    assert.match(await page.locator('#tile-info').innerText(), /回合結束時，站在此格受1點傷害/);
     await page.locator('#turn').hover();
     assert.equal(await page.locator('.card').count(), 3);
     await page.screenshot({ path: path.join(output, 'desktop.png'), fullPage: true });
