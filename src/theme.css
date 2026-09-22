@@ -39,7 +39,7 @@
   background: radial-gradient(ellipse at 30% 35%, #25262a 0, #161719 75%);
 }
 [data-theme='dark'] .end-turn {
-  color: #e5e5e7;
+  color: #4c4b48;
 }
 [data-theme='dark'] .quiet-button:not(:disabled):hover {
   background: #303136;
