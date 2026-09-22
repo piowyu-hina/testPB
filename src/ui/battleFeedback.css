@@ -11,7 +11,9 @@
 .battle-impact i:nth-child(3) { --angle: 58deg; }
 .battle-impact i:nth-child(4) { --angle: 145deg; }
 .battle-impact.finisher::before { background: #fff2ca; box-shadow: 0 0 0 4px #cd6e4d, 0 0 14px #eeae6e; }
-.battle-damage-number { position: absolute; z-index: 9; left: 50%; top: 8%; color: #ffe4c8; font: 800 clamp(18px, 5vw, 29px)/1 system-ui, sans-serif; text-shadow: 0 2px 0 #703729, 0 0 7px #662c25; white-space: nowrap; pointer-events: none; }
+.battle-heart-burst { position: absolute; z-index: 9; inset: 0; pointer-events: none; }
+.battle-heart-burst span { position: absolute; left: 50%; top: 42%; color: #f16e79; font: 800 22px/1 system-ui, sans-serif; text-shadow: 0 1px 0 #903c4b, 0 0 5px #ffe3dd; }
+.battle-heart-burst span:nth-child(2) { color: #ffb0a0; font-size: 26px; }
 .ground-knives { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
 .ground-knife, .knife-projectile { position: absolute; width: 8%; height: 8%; transform: translate(-50%, -50%); pointer-events: none; }
 .ground-knife { width: 13%; height: 13%; }

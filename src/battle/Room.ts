@@ -247,9 +247,8 @@ export class Room {
         if (enemy.kind === 'stump') enemy.facing = faceToward(enemy, this.hero);
         if (!equal(from, best)) motions.push({ id: enemy.id, from, to: best.slice() as Point });
       }
-      const heldKnives = this.hand.filter(id => id === 'knife');
       this.discard.push(...this.hand.filter(id => id !== 'knife'));
-      this.hand = heldKnives;
+      this.hand = [];
       for (let i = 0; i < 3 && this.hand.length < HAND_LIMIT; i++) this.draw();
       this.actions = 2;
       this.turn++;

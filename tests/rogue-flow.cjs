@@ -51,10 +51,10 @@ module.exports = async function checkRogue(page, output) {
   assert.equal(await page.locator('#hand .card').count(), 3);
   await page.locator('#end-turn').click();
   await idle();
-  assert.equal(await page.locator('[data-card="knife"]').count(), 1);
-  assert.equal(await page.locator('#hand .card').count(), 4);
+  assert.equal(await page.locator('[data-card="knife"]').count(), 0);
+  assert.equal(await page.locator('#hand .card').count(), 3);
   assert.equal(await page.locator('#hand .card').first().evaluate(node => node.getBoundingClientRect().width), openingCardWidth);
-  assert.deepEqual(await page.locator('#hand .card').evaluateAll(nodes => nodes.map(node => Number(node.dataset.index))), [0, 1, 2, 3]);
+  assert.deepEqual(await page.locator('#hand .card').evaluateAll(nodes => nodes.map(node => Number(node.dataset.index))), [0, 1, 2]);
   const layoutAfter = await page.evaluate(() => ({
     board: document.querySelector('.board-shell').getBoundingClientRect().top,
     hand: document.querySelector('#hand').getBoundingClientRect().top,
@@ -62,7 +62,7 @@ module.exports = async function checkRogue(page, output) {
   }));
   for (const key of Object.keys(layoutBefore))
     assert.ok(Math.abs(layoutAfter[key] - layoutBefore[key]) < 1, `${key} shifted after adding a fourth card`);
-  if (output) await page.screenshot({path: `${output}/rogue-knife-next-turn.png`});
+  if (output) await page.screenshot({path: `${output}/rogue-knife-expired.png`});
   assert.equal(await page.locator('[data-card="lunge"]').count(), 1);
   const heroBeforeLunge = await page.locator('[data-actor="hero"]').getAttribute('style');
   await page.locator('[data-card="lunge"]').click();
@@ -71,9 +71,5 @@ module.exports = async function checkRogue(page, output) {
   await page.locator('.tile[data-x="2"][data-y="3"]').click();
   await idle();
   assert.notEqual(await page.locator('[data-actor="hero"]').getAttribute('style'), heroBeforeLunge);
-  await page.locator('[data-card="knife"]').click();
-  await page.locator('.tile.legal').first().click();
-  await idle();
-  assert.equal(await page.locator('[data-card="knife"]').count(), 0);
   await page.reload();
 };

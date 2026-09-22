@@ -10,7 +10,7 @@ import { place, animate, pause, travel, teleport } from '../ui/animations';
 import { diagram } from '../ui/cardDiagram';
 import { cardArt } from '../data/cardArt';
 import { daggerIcon, groundDaggerIcon } from '../ui/dagger';
-import { approach, contactPoint, shield, impact, recoil, damageNumber } from '../ui/battleFeedback';
+import { approach, contactPoint, shield, impact, recoil, heartBurst } from '../ui/battleFeedback';
 import { enemySkill, blocksAttack } from '../battle/EnemyRules';
 import { enemySummary } from '../ui/enemyInfo';
 import { playSound } from '../ui/sound';
@@ -488,7 +488,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         await Promise.all([
           impact(elements.board, action.to, action.removedId >= 0),
           recoil(actor(action.hitId), action.from, action.to),
-          ...(action.removedId < 0 ? [damageNumber(actor(action.hitId))] : [])
+          ...(action.removedId < 0 ? [heartBurst(actor(action.hitId))] : [])
         ]);
       }
     }

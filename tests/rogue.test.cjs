@@ -105,14 +105,11 @@ test('lunge moves one cardinal step, attacks the landing enemy, and cannot jump 
   assert.deepEqual(r.hero, [2, 1]);
   assert.deepEqual(r.enemies.map(e => e.id), [1]);
 });
-test('unused knives persist across turns and can be played later; next room clears them', () => {
+test('unused knife cards expire on end turn while ground knives remain; next room clears ground knives', () => {
   const r = room(); r.hand = ['knife', 'lunge']; r.knives = [[4, 4]];
   r.endTurn();
-  assert.equal(r.hand.filter(id => id === 'knife').length, 1);
-  assert.equal(r.hand.length, 4);
-  assert.equal(r.canMove(r.hand.indexOf('knife'), [2, 1]), true);
-  r.move(r.hand.indexOf('knife'), [2, 1]);
-  assert.deepEqual(r.hero, [2, 1]);
+  assert.equal(r.hand.filter(id => id === 'knife').length, 0);
+  assert.equal(r.hand.length, 3);
   assert.equal(r.hand.includes('knife'), false);
   assert.deepEqual(r.knives, [[4, 4]]);
   const j = new Journey(1, 'rogue'); j.room.knives = [[1, 1]]; j.room.hand.push('knife'); j.room.enemies = []; j.room.hero = [2, 4];
@@ -154,8 +151,8 @@ test('five-card hand keeps every knife separate and skips an extra draw when ful
   assert.equal(r.hand.length, 5);
   assert.equal(r.hand.filter(id => id === 'knife').length, 2);
   r.endTurn();
-  assert.equal(r.hand.length, 5);
-  assert.equal(r.hand.filter(id => id === 'knife').length, 2);
+  assert.equal(r.hand.length, 3);
+  assert.equal(r.hand.filter(id => id === 'knife').length, 0);
 });
 test('rogue previews match actual landing, removal and damage without mutations', () => {
   for (const id of ['throw','shadow','lunge','knife']) for (let y=0;y<5;y++) for(let x=0;x<5;x++) {

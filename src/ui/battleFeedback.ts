@@ -25,20 +25,20 @@ export async function impact(board: HTMLElement, point: Point, finisher = false)
   } finally { effect.remove(); }
 }
 
-export async function damageNumber(target: HTMLElement): Promise<void> {
-  const number = document.createElement('span');
-  number.className = 'battle-damage-number';
-  number.textContent = '−1';
-  number.setAttribute('aria-hidden', 'true');
-  target.append(number);
+export async function heartBurst(target: HTMLElement): Promise<void> {
+  const burst = document.createElement('span');
+  burst.className = 'battle-heart-burst';
+  burst.setAttribute('aria-hidden', 'true');
+  burst.innerHTML = '<span>♥</span><span>♥</span><span>♥</span>';
+  target.append(burst);
   try {
-    await animate(number, [
-      { opacity: 0, transform: 'translate(-50%, 2px) scale(.7)' },
-      { opacity: 1, transform: 'translate(-50%, -12px) scale(1.15)', offset: .22 },
-      { opacity: 1, transform: 'translate(-50%, -20px) scale(1)', offset: .68 },
-      { opacity: 0, transform: 'translate(-50%, -30px) scale(.9)' }
-    ], 560, 'ease-out');
-  } finally { number.remove(); }
+    await Promise.all([...burst.children].map((heart, i) => animate(heart, [
+      { opacity: 0, transform: 'translate(-50%, -50%) scale(.35)' },
+      { opacity: 1, transform: `translate(calc(-50% + ${(i - 1) * 9}px), -75%) scale(1)`, offset: .23 },
+      { opacity: 1, transform: `translate(calc(-50% + ${(i - 1) * 19}px), -125%) scale(.85)`, offset: .65 },
+      { opacity: 0, transform: `translate(calc(-50% + ${(i - 1) * 27}px), -165%) scale(.55)` }
+    ], 520, 'ease-out')));
+  } finally { burst.remove(); }
 }
 
 export async function shield(board: HTMLElement, point: Point): Promise<void> {
