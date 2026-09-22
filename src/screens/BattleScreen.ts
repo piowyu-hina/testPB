@@ -488,7 +488,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         await Promise.all([
           impact(elements.board, action.to, action.removedId >= 0),
           recoil(actor(action.hitId), action.from, action.to),
-          ...(action.removedId < 0 ? [heartBurst(actor(action.hitId))] : [])
+          ...(action.removedId < 0 ? [heartBurst(elements.board, action.to)] : [])
         ]);
       }
     }
