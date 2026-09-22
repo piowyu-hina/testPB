@@ -67,7 +67,12 @@ module.exports = async function playJourney(page, output, prefix = '', loadout =
         await page.locator(`.card[data-index="${best.card}"]`).click();
         await page.locator(`.tile[data-x="${best.point[0]}"][data-y="${best.point[1]}"]`).click();
         model.move(best.card, best.point);
-        while (!model.finished && !model.hasPlayableCard()) model.endTurn();
+        if (!model.finished && !model.hasPlayableCard()) {
+          await idle();
+          assert.equal(await page.locator('#turn').textContent(), `第 ${model.turn} 回合`);
+          await page.locator('#end-turn').click();
+          model.endTurn();
+        }
       }
       await idle();
       for (const enemy of model.enemies) {

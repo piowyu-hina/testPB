@@ -10,7 +10,7 @@ import { place, animate, pause, travel, teleport } from '../ui/animations';
 import { diagram } from '../ui/cardDiagram';
 import { cardArt } from '../data/cardArt';
 import { daggerIcon, groundDaggerIcon } from '../ui/dagger';
-import { approach, contactPoint, shield, impact, recoil } from '../ui/battleFeedback';
+import { approach, contactPoint, shield, impact, recoil, damageNumber } from '../ui/battleFeedback';
 import { enemySkill, blocksAttack } from '../battle/EnemyRules';
 import { enemySummary } from '../ui/enemyInfo';
 import { playSound } from '../ui/sound';
@@ -487,7 +487,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         playSound(action.removedId >= 0 ? 'kill' : 'hit');
         await Promise.all([
           impact(elements.board, action.to, action.removedId >= 0),
-          recoil(actor(action.hitId), action.from, action.to)
+          recoil(actor(action.hitId), action.from, action.to),
+          ...(action.removedId < 0 ? [damageNumber(actor(action.hitId))] : [])
         ]);
       }
     }
@@ -514,20 +515,15 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       showResult();
       return;
     }
-    if (!room.hasPlayableCard() && !room.hand.includes('knife')) {
-      await pause(180);
-      await enemyTurn(true);
-    } else {
-      busy = false;
-      render();
-      if (action.pickedKnife) {
-        elements.hint.textContent = `撿回小刀 · 行動 +1 · ${action.drawn ? `抽到${data.cards[action.drawn].name}` : room.hand.length >= HAND_LIMIT ? '手牌已滿，未抽牌' : '牌堆已空'}`;
-        await animate(elements.actions, [
-          { transform: 'scale(1)' },
-          { transform: 'scale(1.22)', offset: 0.4 },
-          { transform: 'scale(1)' }
-        ], 320);
-      }
+    busy = false;
+    render();
+    if (action.pickedKnife) {
+      elements.hint.textContent = `撿回小刀 · 行動 +1 · ${action.drawn ? `抽到${data.cards[action.drawn].name}` : room.hand.length >= HAND_LIMIT ? '手牌已滿，未抽牌' : '牌堆已空'}`;
+      await animate(elements.actions, [
+        { transform: 'scale(1)' },
+        { transform: 'scale(1.22)', offset: 0.4 },
+        { transform: 'scale(1)' }
+      ], 320);
     }
   }
   async function walk(destination: Point) {
@@ -586,8 +582,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         } finally { arrival.hidden = true; }
       }
   }
-  async function enemyTurn(alreadyLocked = false) {
-    if ((!alreadyLocked && busy) || room.finished) return;
+  async function enemyTurn() {
+    if (busy || room.finished) return;
     lock();
     elements.endLabel.textContent = '敵方回合';
     const outcome = room.endTurn();
@@ -633,10 +629,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.endLabel.textContent = '結束回合';
     render();
     if (room.finished) showResult();
-    else if (!room.hasPlayableCard()) {
-      await pause(180);
-      await enemyTurn();
-    }
   }
   function showResult() {
     if (exploring()) return;
@@ -753,7 +745,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       elements.ghost.querySelector<HTMLImageElement>('img')!.src = characters[session.characterId].image;
       render();
       if (room.won) showResult();
-      else if (!room.finished && !room.hasPlayableCard()) void enemyTurn();
     }
   };
 }

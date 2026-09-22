@@ -106,6 +106,9 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     await page.locator('[data-card="short"]').click();
     await page.locator('.tile[data-x="2"][data-y="1"]').click();
     await idle();
+    assert.equal(await page.locator('#turn').textContent(), '第 1 回合');
+    await page.locator('#end-turn').click();
+    await idle();
     assert.equal(await page.locator('#turn').textContent(), '第 2 回合');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     for (let step = 0; step < 15 && !(await page.locator('#result').isVisible()); step++) {
@@ -127,7 +130,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     assert.deepEqual(errors, []);
     assert.deepEqual(blocked, []);
     console.log(
-      'Native Tauri/WebView2 checks passed: embedded PNGs, preview, animated capture, automatic turn, defeat and replay. No renderer/CSP errors.'
+      'Native Tauri/WebView2 checks passed: embedded PNGs, preview, animated capture, manual turn, defeat and replay. No renderer/CSP errors.'
     );
   } finally {
     if (browser) await browser.close();

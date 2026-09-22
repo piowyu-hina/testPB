@@ -88,6 +88,9 @@ fs.mkdirSync(output, { recursive: true });
     await page.locator('[data-card="short"]').click();
     await tile(2, 1).click();
     await idle();
+    assert.equal(await page.locator('#turn').textContent(), '第 1 回合');
+    await page.locator('#end-turn').click();
+    await idle();
     assert.equal(await page.locator('#turn').textContent(), '第 2 回合');
     assert.equal(await page.locator('.card').count(), 3);
     assert.equal(await page.locator('.action-pip:not(.empty)').count(), 2);
@@ -233,7 +236,7 @@ fs.mkdirSync(output, { recursive: true });
     assert.deepEqual(errors, []);
     assert.deepEqual(external, []);
     console.log(
-      'Browser checks passed: Vite production loading, PNG assets, preview, input lock, automatic turn, victory, defeat, replay, keyboard exclusion, desktop/mobile layout. No network requests or JS errors.'
+      'Browser checks passed: Vite production loading, PNG assets, preview, input lock, manual turn, victory, defeat, replay, keyboard exclusion, desktop/mobile layout. No network requests or JS errors.'
     );
   } finally {
     await browser.close();

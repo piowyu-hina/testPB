@@ -25,6 +25,22 @@ export async function impact(board: HTMLElement, point: Point, finisher = false)
   } finally { effect.remove(); }
 }
 
+export async function damageNumber(target: HTMLElement): Promise<void> {
+  const number = document.createElement('span');
+  number.className = 'battle-damage-number';
+  number.textContent = '−1';
+  number.setAttribute('aria-hidden', 'true');
+  target.append(number);
+  try {
+    await animate(number, [
+      { opacity: 0, transform: 'translate(-50%, 2px) scale(.7)' },
+      { opacity: 1, transform: 'translate(-50%, -12px) scale(1.15)', offset: .22 },
+      { opacity: 1, transform: 'translate(-50%, -20px) scale(1)', offset: .68 },
+      { opacity: 0, transform: 'translate(-50%, -30px) scale(.9)' }
+    ], 560, 'ease-out');
+  } finally { number.remove(); }
+}
+
 export async function shield(board: HTMLElement, point: Point): Promise<void> {
   const effect = document.createElement('div');
   effect.className = 'battle-shield';
