@@ -502,9 +502,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       await animate(
         victim,
         [
-          { opacity: 1, transform: 'translate(-50%, -50%) scale(1)' },
-          { opacity: 1, transform: 'translate(-50%, -53%) scale(.96)', offset: .32 },
-          { opacity: 0, transform: 'translate(-50%, -42%) scale(.74)' }
+          { opacity: 1 },
+          { opacity: 1, offset: .25 },
+          { opacity: 0 }
         ],
         300,
         'cubic-bezier(.3,.05,.65,1)'
