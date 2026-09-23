@@ -225,7 +225,8 @@ h1 {
   0%, 100% { transform: rotate(45deg) scale(1); }
   50% { transform: rotate(45deg) scale(.86); filter: brightness(.82); }
 }
-.settings-dialog.battle-help { width: min(680px, calc(100vw - 24px)); height: min(1240px, calc(100svh - 24px)); max-width: none; max-height: none; overflow: hidden; padding: 42px; border-radius: 18px; }
+.settings-dialog.battle-help { width: 720px; height: 1280px; max-width: none; max-height: none; overflow: hidden; padding: 52px 54px; border: 0; border-radius: 0; box-shadow: none; }
+.settings-dialog.battle-help::backdrop { background: #101514; backdrop-filter: none; }
 .battle-help .settings-heading h2 { font-size: 36px; }
 .battle-help .settings-heading .quiet-button { font-size: 21px; }
 .battle-help .settings-row { margin: 36px 0; padding-top: 30px; }
