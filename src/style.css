@@ -220,6 +220,10 @@ h1 {
 .tile[data-danger='2'] { --risk-center: #c65a4f95; --risk-edge: #bb514264; }
 .tile[data-danger='3'] { --risk-center: #b8433fba; --risk-edge: #aa3b3786; }
 .tile.danger { background: radial-gradient(ellipse at center, var(--risk-center), var(--risk-edge) 66%, transparent 82%); }
+.clearing-settle .tile.danger {
+  opacity: 0;
+  transition: opacity .24s ease-out;
+}
 .tile.focus-threat { box-shadow: inset 0 0 0 3px #b9665a99; }
 .tile.legal:after {
   content: '';
@@ -298,6 +302,20 @@ h1 {
 }
 .actor.victim-preview {
   visibility: hidden;
+}
+.clearing-reveal .exit-breeze:not([hidden]) {
+  animation: clearing-cue-in .48s ease-out both;
+}
+.clearing-reveal .card[data-card='forward'] {
+  animation: clearing-card-in .34s .26s ease-out both;
+}
+@keyframes clearing-cue-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes clearing-card-in {
+  from { opacity: 0; transform: translateY(16px) scale(.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .controls {
   position: relative;

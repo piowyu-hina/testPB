@@ -506,6 +506,16 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const exitPosition = room.hero.slice() as Point;
       const pushedTo = journey.clearOccupiedExit();
       if (pushedTo) await travel(actor('hero'), exitPosition, pushedTo, 0);
+      elements.game.classList.add('clearing-settle');
+      await pause(240);
+      elements.game.classList.remove('clearing-settle');
+      elements.game.classList.add('clearing-reveal');
+      render();
+      await pause(620);
+      elements.game.classList.remove('clearing-reveal');
+      busy = false;
+      render();
+      return;
     }
     if (room.finished) {
       busy = false;
