@@ -15,6 +15,14 @@ export interface MoveAction {
   kind: CardId;
   removedId: number;
 }
+export interface UltimateAction {
+  from: Point;
+  to: Point;
+  hitId: number;
+  removedId: number;
+  pickedKnife?: boolean;
+  drawn?: CardId;
+}
 
 const cardinal: Point[] = [
   [0, 1],
@@ -206,6 +214,32 @@ export class Room {
       this.hand.push('knife');
       this.actions = Math.min(2, this.actions + 1);
       if (this.hand.length < HAND_LIMIT && (this.deck.length || this.discard.length)) action.drawn = this.draw();
+    }
+    if (this.won) this.knives = [];
+    return action;
+  }
+  assassinate(enemyId: number): UltimateAction | null {
+    if (this.finished) return null;
+    const victim = this.enemies.find(enemy => enemy.id === enemyId);
+    if (!victim) return null;
+    const action: UltimateAction = {
+      from: this.hero.slice() as Point,
+      to: victim.position.slice() as Point,
+      hitId: victim.id,
+      removedId: -1
+    };
+    victim.health = (victim.health ?? 1) - 2;
+    if (victim.health <= 0) {
+      action.removedId = victim.id;
+      this.enemies = this.enemies.filter(enemy => enemy.id !== victim.id);
+      this.hero = action.to.slice() as Point;
+      if (this.hasKnife(action.to)) {
+        this.knives = this.knives.filter(point => !equal(point, action.to));
+        action.pickedKnife = true;
+        this.hand.push('knife');
+        this.actions = Math.min(2, this.actions + 1);
+        if (this.hand.length < HAND_LIMIT && (this.deck.length || this.discard.length)) action.drawn = this.draw();
+      }
     }
     if (this.won) this.knives = [];
     return action;

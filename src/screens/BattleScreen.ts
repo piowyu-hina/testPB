@@ -30,6 +30,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     hand: $('hand'),
     health: $('health'),
     actions: $('actions'),
+    ultimateTooltip: $('ultimate-tooltip'),
     hint: $('hint'),
     turn: $('turn'),
     end: $<HTMLButtonElement>('end-turn'),
@@ -55,6 +56,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     inspectedTile: Point | null = null,
     cardHoldTimer = 0,
     heldCard: HTMLButtonElement | null = null,
+    ultimateTargeting = false,
+    ultimateHoldTimer = 0,
+    ultimateHeld = false,
+    ultimateTooltipTimer = 0,
     dismissDetailsClick = false;
   const touchLayout = () => matchMedia('(hover: none) and (pointer: coarse)').matches;
   function lockWhileCardsEnter(count: number) {
@@ -83,6 +88,17 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.hint.replaceChildren(name, description);
   }
   function closeCardDetails() { elements.cardDetails.hidden = true; }
+  function hideUltimateTooltip() {
+    clearTimeout(ultimateTooltipTimer);
+    elements.ultimateTooltip.hidden = true;
+  }
+  function showUltimateTooltip(autoHide = false) {
+    const charge = journey.loadout === 'rogue' ? journey.assassination : 0;
+    elements.ultimateTooltip.innerHTML = `<strong>絕影 · 殺意 ${charge}/3</strong><span>普通擊殺 +1，菁英擊殺 +2。集滿後點擊，選擇任意怪物造成 2 點傷害並無視格擋。</span>`;
+    elements.ultimateTooltip.hidden = false;
+    clearTimeout(ultimateTooltipTimer);
+    if (autoHide) ultimateTooltipTimer = window.setTimeout(hideUltimateTooltip, 1900);
+  }
   function openCardDetails(id: keyof typeof data.cards) {
     const definition = data.cards[id];
     elements.cardDetails.replaceChildren();
@@ -150,6 +166,15 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         onClick(tile, () => {
           if (busy) return;
           const point: Point = [x, y];
+          if (ultimateTargeting) {
+            const target = room.at(point);
+            if (target) void useUltimate(target.id);
+            else {
+              ultimateTargeting = false;
+              render();
+            }
+            return;
+          }
           if (selected >= 0 && !(exploring() ? room.canExplore(selected, point) : room.canMove(selected, point))) {
             if (!exploring()) selected = -1;
             inspectedEnemy = room.at(point)?.id ?? -1;
@@ -263,6 +288,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         }, true);
         onClick(card, () => {
           if (busy) return;
+          ultimateTargeting = false;
           if (!exploring() && !room.canUseCard(index)) {
             if (id === 'shadow') {
               selected = -1;
@@ -322,10 +348,18 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   function renderEnergy(value = room.actions) {
     const energy = Math.max(0, Math.min(9, value));
+    const charge = journey.loadout === 'rogue' ? journey.assassination : 0;
     const previousActions = Number(elements.actions.dataset.value);
     elements.actions.dataset.value = String(energy);
-    elements.actions.innerHTML = `<span class="energy-count">${energy}</span>`;
-    elements.actions.setAttribute('aria-label', `剩餘 ${energy} 點能量`);
+    const needsRing = journey.loadout === 'rogue';
+    if (!elements.actions.querySelector('.energy-count') || Boolean(elements.actions.querySelector('.ultimate-ring')) !== needsRing)
+      elements.actions.innerHTML = `${needsRing ? '<svg class="ultimate-ring" viewBox="0 0 66 66" aria-hidden="true"><rect class="ultimate-track" x="6" y="6" width="54" height="54" rx="10" pathLength="3"/><rect class="ultimate-fill" x="6" y="6" width="54" height="54" rx="10" pathLength="3"/></svg>' : ''}<span class="energy-count"></span>`;
+    elements.actions.querySelector<HTMLElement>('.energy-count')!.textContent = String(energy);
+    const ultimateFill = elements.actions.querySelector<SVGRectElement>('.ultimate-fill');
+    if (ultimateFill) ultimateFill.style.strokeDasharray = `${charge} 3`;
+    elements.actions.setAttribute('aria-label', `剩餘 ${energy} 點能量，殺意 ${charge} / 3`);
+    elements.actions.classList.toggle('ultimate-ready', journey.loadout === 'rogue' && charge >= 3);
+    elements.actions.classList.toggle('ultimate-targeting', ultimateTargeting);
     if (Number.isFinite(previousActions) && previousActions !== energy) {
       elements.actions.classList.remove('energy-gain', 'energy-spend');
       void elements.actions.offsetWidth;
@@ -413,6 +447,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       tile.classList.toggle('legal', legal);
       tile.classList.toggle('inspectable', !busy && !room.finished && selected < 0 && Boolean(room.at(point)));
       tile.classList.toggle('capture', legal && Boolean(room.at(point)));
+      tile.classList.toggle('ultimate-target', ultimateTargeting && Boolean(room.at(point)));
       tile.classList.toggle('blocked', legal && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
       tile.classList.toggle('landing', Boolean(preview && equal(point, chosenId === 'throw' ? hoveredTile! : preview.destination)));
       tile.classList.toggle('focus-threat', Boolean(focus && Room.threatens(focus, point)));
@@ -471,6 +506,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   function lock(preserveSelection = false) {
     busy = true;
+    ultimateTargeting = false;
     if (!preserveSelection) selected = -1;
     hoveredTile = null;
     hoveredEnemy = -1;
@@ -525,9 +561,22 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     handSignature = '';
     renderedHand = [];
   }
+  async function revealClearedRoom() {
+    const exitPosition = room.hero.slice() as Point;
+    const pushedTo = journey.clearOccupiedExit();
+    if (pushedTo) await travel(actor('hero'), exitPosition, pushedTo, 0);
+    await discardVisibleHand();
+    elements.game.classList.add('clearing-reveal');
+    render();
+    await pause(360);
+    busy = false;
+    render();
+    void pause(320).then(() => elements.game.classList.remove('clearing-reveal'));
+  }
   async function move(destination: Point) {
     if (busy || !room.canMove(selected, destination)) return;
     const paidEnergy = room.actions - room.cardCost(selected);
+    const targetWasElite = Boolean(room.at(destination)?.elite);
     const blocked = room.preview(selected, destination)?.blocked ?? false;
     const action = room.move(selected, destination);
     if (!action) return;
@@ -591,18 +640,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       );
       victim.remove();
       actors.delete(action.removedId);
+      journey.gainAssassination(targetWasElite);
+      renderEnergy();
     }
     if (room.won && !journey.finished) {
-      const exitPosition = room.hero.slice() as Point;
-      const pushedTo = journey.clearOccupiedExit();
-      if (pushedTo) await travel(actor('hero'), exitPosition, pushedTo, 0);
-      await discardVisibleHand();
-      elements.game.classList.add('clearing-reveal');
-      render();
-      await pause(360);
-      busy = false;
-      render();
-      void pause(320).then(() => elements.game.classList.remove('clearing-reveal'));
+      await revealClearedRoom();
       return;
     }
     if (room.finished) {
@@ -617,6 +659,55 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       lockWhileCardsEnter(1 + Number(Boolean(action.drawn)));
       elements.hint.textContent = `撿回小刀 · 行動 +1 · ${action.drawn ? `抽到${data.cards[action.drawn].name}` : room.hand.length >= HAND_LIMIT ? '手牌已滿，未抽牌' : '牌堆已空'}`;
     }
+  }
+  async function useUltimate(enemyId: number) {
+    if (busy || exploring() || !ultimateTargeting || journey.assassination < 3) return;
+    const target = room.enemies.find(enemy => enemy.id === enemyId);
+    if (!target) return;
+    const action = room.assassinate(enemyId);
+    if (!action || !journey.spendAssassination()) return;
+    ultimateTargeting = false;
+    hideUltimateTooltip();
+    lock();
+    renderEnergy();
+    const hero = actor('hero');
+    playSound('blink');
+    await animate(hero, [
+      { opacity: 1, scale: 1 },
+      { opacity: 0, scale: .78 }
+    ], 130, 'ease-in');
+    hero.style.opacity = '0';
+    playSound(action.removedId >= 0 ? 'kill' : 'hit');
+    await Promise.all([
+      impact(elements.board, action.to, action.removedId >= 0),
+      recoil(actor(action.hitId), action.from, action.to),
+      ...(action.removedId < 0 ? [heartBurst(elements.board, action.to)] : [])
+    ]);
+    if (action.removedId >= 0) {
+      const victim = actor(action.removedId);
+      await animate(victim, [{ opacity: 1 }, { opacity: 0 }], 260, 'ease-out');
+      victim.remove();
+      actors.delete(action.removedId);
+    }
+    place(hero, room.hero);
+    await animate(hero, [
+      { opacity: 0, scale: .78 },
+      { opacity: 1, scale: 1 }
+    ], 150, 'ease-out');
+    hero.style.opacity = '';
+    if (room.won && !journey.finished) {
+      await revealClearedRoom();
+      return;
+    }
+    if (room.finished) {
+      busy = false;
+      render();
+      showResult();
+      return;
+    }
+    busy = false;
+    render();
+    if (action.pickedKnife) lockWhileCardsEnter(1 + Number(Boolean(action.drawn)));
   }
   async function walk(destination: Point) {
     if (busy || !exploring()) return;
@@ -757,6 +848,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     selected = -1;
     hoveredTile = null;
     hoveredEnemy = -1;
+    ultimateTargeting = false;
     busy = false;
     handSignature = '';
     renderedHand = [];
@@ -796,16 +888,50 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   onClick($('open-battle-help'), () => help.showModal());
   onClick($('close-battle-help'), () => help.close());
   onClick(elements.end, () => enemyTurn());
+  elements.actions.addEventListener('pointerenter', () => {
+    if (!touchLayout() && journey.loadout === 'rogue' && !exploring()) showUltimateTooltip();
+  });
+  elements.actions.addEventListener('pointerleave', () => {
+    if (!touchLayout()) hideUltimateTooltip();
+  });
+  elements.actions.addEventListener('pointerdown', (event) => {
+    if (!touchLayout() || event.pointerType !== 'touch' || journey.loadout !== 'rogue') return;
+    ultimateHeld = false;
+    clearTimeout(ultimateHoldTimer);
+    ultimateHoldTimer = window.setTimeout(() => {
+      ultimateHeld = true;
+      showUltimateTooltip();
+    }, 420);
+  });
+  for (const eventName of ['pointerup', 'pointercancel'] as const)
+    elements.actions.addEventListener(eventName, () => clearTimeout(ultimateHoldTimer));
+  onClick(elements.actions, () => {
+    if (ultimateHeld) {
+      ultimateHeld = false;
+      return;
+    }
+    if (busy || exploring() || journey.loadout !== 'rogue') return;
+    if (journey.assassination < 3) {
+      showUltimateTooltip(true);
+      return;
+    }
+    hideUltimateTooltip();
+    selected = -1;
+    ultimateTargeting = !ultimateTargeting;
+    render();
+  });
   onClick($('replay'), () => {
     if (!room.finished || elements.result.hidden) return;
     reset();
   });
   function leave() {
     help.close();
+    hideUltimateTooltip();
     inspectedEnemy = -1;
     inspectedTile = null;
     closeCardDetails();
     selected = -1;
+    ultimateTargeting = false;
     hoveredTile = null;
     hoveredEnemy = -1;
     elements.hint.textContent = '';
@@ -815,6 +941,15 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   onClick($('back-home'), onHome);
   onClick($('result-home'), onHome);
+  document.addEventListener('pointerdown', (event) => {
+    if (
+      elements.ultimateTooltip.hidden ||
+      root.hidden ||
+      !(event.target instanceof Element) ||
+      event.target.closest('#actions, #ultimate-tooltip')
+    ) return;
+    hideUltimateTooltip();
+  }, true);
   document.addEventListener('pointerdown', (event) => {
     if (elements.cardDetails.hidden || root.hidden || !(event.target instanceof Element) || event.target.closest('#card-details')) return;
     closeCardDetails();

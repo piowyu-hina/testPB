@@ -157,3 +157,31 @@ test('rogue previews match actual landing, removal and damage without mutations'
     if(preview.removedId>=0) assert.ok(!r.enemies.some(e=>e.id===preview.removedId));
   }
 });
+
+test('assassination charge caps at three, counts elites twice, and persists between rooms', () => {
+  const j = new Journey(1, 'rogue');
+  assert.equal(j.gainAssassination(), 1);
+  assert.equal(j.gainAssassination(true), 3);
+  assert.equal(j.gainAssassination(), 3);
+  j.room.enemies = [];
+  j.room.hero = [...j.exit];
+  assert.equal(j.advance(), true);
+  assert.equal(j.assassination, 3);
+  assert.equal(j.spendAssassination(), true);
+  assert.equal(j.assassination, 0);
+  assert.equal(j.spendAssassination(), false);
+});
+
+test('ultimate ignores guard, deals two, returns on survival and lands on a kill', () => {
+  const r = room();
+  r.hero = [2, 0];
+  r.enemies = [enemy(0, [2, 2], 'stump', { facing: 'south', health: 3 })];
+  const first = r.assassinate(0);
+  assert.equal(first.removedId, -1);
+  assert.equal(r.enemies[0].health, 1);
+  assert.deepEqual(r.hero, [2, 0]);
+  const second = r.assassinate(0);
+  assert.equal(second.removedId, 0);
+  assert.deepEqual(r.hero, [2, 2]);
+  assert.equal(r.won, true);
+});

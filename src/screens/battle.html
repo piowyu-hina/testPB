@@ -50,7 +50,8 @@
       </section>
       <section class="controls" aria-label="手牌與回合">
         <div class="hand" id="hand"></div>
-        <div id="actions" class="actions" aria-label="剩餘能量"></div>
+        <button type="button" id="actions" class="actions" aria-label="剩餘能量與殺意" tabindex="-1"></button>
+        <div id="ultimate-tooltip" class="ultimate-tooltip" role="tooltip" hidden></div>
         <button type="button" class="end-turn" id="end-turn" tabindex="-1" aria-labelledby="end-label" title="結束回合">
           <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
             <path d="M12 7h24M12 41h24M16 8v6c0 5 8 9 8 10s-8 5-8 10v6M32 8v6c0 5-8 9-8 10s8 5 8 10v6" />
@@ -66,6 +67,7 @@
           <li><strong>手機操作。</strong>沒選牌時點格子查看資訊；選牌後點合法格行動。長按卡片可閱讀完整說明，點說明外收起。</li>
           <li><strong>依卡牌效果攻擊。</strong>飛刀原地投擲；追影可瞬移到任意小刀格；突進可移動周圍八方向；小刀原地攻擊十字相鄰一格。怪物站在刀上攻擊傷害增加 1。未選牌時點怪物可查看名字與生命。</li>
           <li><strong>每回合有 2 次行動。</strong>露雪撿刀可獲得免費「小刀」、恢復 1 次行動並抽 1 張牌；小刀卡在回合結束時消失。</li>
+          <li><strong>擊殺會累積殺意。</strong>普通怪物增加 1，菁英增加 2。外圈黃線集滿 3 點後，點擊能量菱形並選擇怪物，可用「絕影」造成 2 點傷害並無視格擋。</li>
           <li><strong>紅格是敵人的攻擊範圍。</strong>每顆紅色菱形代表 1 點傷害；移動預覽會扣除被擊敗敵人的威脅。</li>
           <li><strong>清場後走向上方出口。</strong>「前進」可走周圍一格，能重複使用且不消耗行動；進入下一間恢復 1 點生命。</li>
         </ol>

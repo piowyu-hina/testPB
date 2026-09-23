@@ -171,6 +171,7 @@ h1 {
   place-items: center;
   width: 48px;
   height: 48px;
+  padding: 0;
   border: 2px solid #b9ddf2;
   border-radius: 9px;
   background: linear-gradient(145deg, #72b9df, #3c82b2);
@@ -178,6 +179,57 @@ h1 {
   box-shadow: inset 0 0 0 3px #d7f1ff55, 0 3px 0 #285e84, 0 6px 12px #1e425c35;
   transform: rotate(45deg);
 }
+.ultimate-ring {
+  position: absolute;
+  inset: -9px;
+  width: 66px;
+  height: 66px;
+  overflow: visible;
+  pointer-events: none;
+}
+.ultimate-track,
+.ultimate-fill {
+  fill: none;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+.ultimate-track { stroke: #806d3959; }
+.ultimate-fill {
+  stroke: #f1c75b;
+  stroke-linecap: round;
+  stroke-dasharray: 0 3;
+  filter: drop-shadow(0 0 2px #ffd86d88);
+  transition: stroke-dasharray .42s ease-out;
+}
+.actions.ultimate-ready {
+  cursor: pointer;
+  animation: ultimate-ready 2.2s ease-in-out infinite;
+}
+.actions.ultimate-targeting {
+  box-shadow: inset 0 0 0 3px #d7f1ff55, 0 3px 0 #285e84, 0 0 18px #f4c95caa;
+}
+@keyframes ultimate-ready {
+  0%, 100% { box-shadow: inset 0 0 0 3px #d7f1ff55, 0 3px 0 #285e84, 0 0 7px #f1c75b55; }
+  50% { box-shadow: inset 0 0 0 3px #d7f1ff55, 0 3px 0 #285e84, 0 0 15px #ffd86daa; }
+}
+.ultimate-tooltip {
+  position: absolute;
+  right: 0;
+  bottom: 190px;
+  z-index: 22;
+  width: 270px;
+  padding: 11px 13px;
+  border: 1px solid #bda664;
+  border-radius: 10px;
+  background: #20282af2;
+  color: #f8f0d9;
+  box-shadow: 0 8px 22px #0b1113aa;
+  font-size: 16px;
+  line-height: 1.45;
+  text-align: left;
+  pointer-events: none;
+}
+.ultimate-tooltip strong { display: block; color: #f1c75b; margin-bottom: 2px; }
 .energy-count {
   font-size: 25px;
   font-weight: 800;
@@ -294,6 +346,17 @@ h1 {
   z-index: 3;
   pointer-events: none;
 }
+.tile.ultimate-target:after {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  z-index: 2;
+  border: 4px solid #e6bc4f;
+  border-radius: 13px;
+  box-shadow: inset 0 0 0 1px #fff1a8, 0 0 12px #edc35499;
+  pointer-events: none;
+}
+.tile.ultimate-target { cursor: crosshair; }
 .actor {
   position: absolute;
   width: 18%;

@@ -8,6 +8,7 @@ export class Journey {
   readonly exit: Point = [2, 4];
   readonly dungeonId: DungeonId;
   stage = 0;
+  assassination = 0;
   room: Room;
   private seed: number;
   private activeRooms: RoomDefinition[];
@@ -20,7 +21,21 @@ export class Journey {
     this.activeRooms = dungeon.rooms.slice(dungeon.startIndex ?? 0);
     this.room = new Room(seed, this.activeRooms[0], 5, loadout);
   }
-  setLoadout(next: Loadout) { this.loadout = next; this.room.setLoadout(next); }
+  setLoadout(next: Loadout) {
+    if (next !== this.loadout) this.assassination = 0;
+    this.loadout = next;
+    this.room.setLoadout(next);
+  }
+  gainAssassination(elite = false) {
+    if (this.loadout !== 'rogue') return this.assassination;
+    this.assassination = Math.min(3, this.assassination + (elite ? 2 : 1));
+    return this.assassination;
+  }
+  spendAssassination() {
+    if (this.loadout !== 'rogue' || this.assassination < 3) return false;
+    this.assassination = 0;
+    return true;
+  }
   get definition() {
     return this.activeRooms[this.stage];
   }
