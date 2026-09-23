@@ -480,7 +480,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       else await travel(actor('hero'), action.from, action.to, action.kind === 'leap' ? 30 : 9);
     }
     if (action.hitId !== undefined) {
-      elements.hint.textContent = blocked ? '正面格擋 · 這次攻擊沒有造成傷害' : action.removedId >= 0 ? '擊敗怪物' : '命中 · 怪物生命 −1';
+      elements.hint.textContent = blocked ? '正面格擋 · 這次攻擊沒有造成傷害' : action.removedId >= 0 ? '' : '命中 · 怪物生命 −1';
       if (blocked) await shield(actor(action.hitId!));
       else {
         playSound(action.removedId >= 0 ? 'kill' : 'hit');
