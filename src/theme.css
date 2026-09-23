@@ -53,3 +53,57 @@
   color: var(--ink);
   --muted: #736b58;
 }
+[data-theme='dark'] .settings-dialog.battle-help {
+  color: #e8e4d9;
+  background: linear-gradient(160deg, #202724 0%, #171c1b 72%);
+}
+[data-theme='dark'] .battle-help .settings-heading .quiet-button,
+[data-theme='dark'] .battle-help .battle-rules summary,
+[data-theme='dark'] .battle-help .journey-settings-title,
+[data-theme='dark'] .settings-dialog.battle-help .theme-toggle {
+  color: #c8d2c8;
+}
+[data-theme='dark'] .battle-help .journey-settings {
+  border-color: #7b846b66;
+  background: #27312c;
+}
+[data-theme='dark'] .battle-help .journey-settings-title span,
+[data-theme='dark'] .battle-help .settings-row p,
+[data-theme='dark'] .battle-help > p {
+  color: #aaa99f;
+}
+[data-theme='dark'] .battle-help .settings-row,
+[data-theme='dark'] .battle-help .battle-rules {
+  border-color: #85806c42;
+}
+[data-theme='dark'] .battle-help .journey-progress::before {
+  background: #6e756c;
+}
+[data-theme='dark'] .battle-help .journey-node {
+  border-color: #8d9388;
+  background: #202724;
+}
+[data-theme='dark'] .battle-help .journey-node.complete {
+  border-color: #759681;
+  background: #759681;
+}
+[data-theme='dark'] .battle-help .journey-node.current {
+  border-color: #d1aa50;
+  background: #e8bd5d;
+  box-shadow: 0 0 0 5px #e7bd5b26, 0 0 15px #d5a64266;
+}
+[data-theme='dark'] .battle-help .sound-toggle {
+  color: #e8e4d9;
+  border-color: #8a806a;
+  background: #2b332f;
+}
+[data-theme='dark'] .battle-help .sound-toggle:hover {
+  background: #39443e;
+}
+[data-theme='dark'] .battle-help .settings-home-button {
+  color: #e29a90;
+  border-color: #a7665e;
+}
+[data-theme='dark'] .battle-help .settings-home-button:hover {
+  background: #a7665e20;
+}
