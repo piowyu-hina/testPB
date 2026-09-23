@@ -80,7 +80,8 @@ test('last paid action collects knife, restores one action, and draws one normal
   assert.equal(r.hasPlayableCard(), true);
   assert.equal(r.canMove(1, [2, 3]), true);
   r.move(1, [2, 3]);
-  assert.deepEqual(r.hero, [2, 3]);
+  assert.deepEqual(r.hero, [2, 2]);
+  assert.equal(r.at([2, 3]), undefined);
   assert.equal(r.actions, 1);
   assert.equal(r.hand.includes('knife'), false);
   assert.equal(r.discard.includes('knife'), false);
@@ -94,15 +95,15 @@ test('nonlethal shadow strike leaves knife; lethal strike lands and recovers it'
   assert.equal(r.hand.length, 2); assert.equal(r.hand[0], 'knife'); assert.equal(r.actions, 1);
   assert.ok(['throw', 'shadow', 'lunge'].includes(r.hand[1]));
 });
-test('lunge moves one cardinal step, attacks the landing enemy, and cannot jump farther', () => {
-  const r = room(); r.hand = ['lunge']; r.enemies = [enemy(0, [2, 1]), enemy(1, [4, 4])];
+test('lunge moves one step in all eight directions and attacks the landing enemy', () => {
+  const r = room(); r.hand = ['lunge']; r.enemies = [enemy(0, [3, 1]), enemy(1, [4, 4])];
   assert.equal(r.canMove(0, [2, 2]), false);
-  assert.equal(r.canMove(0, [3, 1]), false);
-  const preview = r.preview(0, [2, 1]);
-  assert.deepEqual(preview.destination, [2, 1]);
+  assert.equal(r.canMove(0, [3, 1]), true);
+  const preview = r.preview(0, [3, 1]);
+  assert.deepEqual(preview.destination, [3, 1]);
   assert.equal(preview.removedId, 0);
-  r.move(0, [2, 1]);
-  assert.deepEqual(r.hero, [2, 1]);
+  r.move(0, [3, 1]);
+  assert.deepEqual(r.hero, [3, 1]);
   assert.deepEqual(r.enemies.map(e => e.id), [1]);
 });
 test('unused knife cards expire on end turn while ground knives remain; next room clears ground knives', () => {
@@ -117,27 +118,18 @@ test('unused knife cards expire on end turn while ground knives remain; next roo
   assert.equal(j.room.hand.includes('knife'), false);
   assert.deepEqual(j.room.hand, ['throw', 'shadow', 'lunge']);
 });
-test('knife moves one cardinal step and can collect another ground knife', () => {
+test('knife attacks one cardinal tile without moving or collecting a ground knife', () => {
   const r = room(); r.hand = ['throw']; r.enemies = [enemy(0, [3, 2])];
   assert.equal(r.hasPlayableCard(), false);
   r.hand = ['knife']; r.actions = 0; r.knives = [[3, 0]]; r.enemies = [enemy(0, [3, 0]), enemy(1, [4, 4])];
-  assert.equal(r.canMove(0, [2, 1]), true);
+  assert.equal(r.canMove(0, [2, 1]), false);
   const action = r.move(0, [3, 0]);
-  assert.deepEqual(r.hero, [3, 0]);
-  assert.equal(action.pickedKnife, true);
-  assert.equal(r.actions, 1);
-  assert.deepEqual(r.knives, []);
-  assert.equal(r.hand[0], 'knife');
-  assert.equal(r.hand.length, 2);
-});
-test('picking a knife with no drawable cards still restores action and keeps the knife', () => {
-  const r = room(); r.hand = ['knife']; r.deck = []; r.discard = []; r.actions = 0;
-  r.knives = [[3, 0]]; r.enemies = [enemy(0, [4, 4])];
-  const action = r.move(0, [3, 0]);
-  assert.equal(action.pickedKnife, true);
-  assert.equal(action.drawn, undefined);
-  assert.equal(r.actions, 1);
-  assert.deepEqual(r.hand, ['knife']);
+  assert.deepEqual(r.hero, [2, 0]);
+  assert.equal(action.pickedKnife, undefined);
+  assert.equal(r.actions, 0);
+  assert.deepEqual(r.knives, [[3, 0]]);
+  assert.deepEqual(r.hand, []);
+  assert.deepEqual(r.enemies.map(e => e.id), [1]);
 });
 test('five-card hand keeps every knife separate and skips an extra draw when full', () => {
   const r = room();

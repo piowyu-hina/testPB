@@ -134,6 +134,7 @@ export class Room {
     if (!this.matchesCard(index, destination)) return false;
     if (card.effect === 'throw') return Boolean(this.at(destination));
     if (card.effect === 'shadow' && !this.hasKnife(destination)) return false;
+    if (card.effect === 'knife') return Boolean(this.at(destination));
     return true;
   }
   private matchesCard(index: number, destination: Point) {
@@ -169,7 +170,8 @@ export class Room {
     const victim = this.at(destination);
     const blocked = victim ? blocksAttack(victim, this.hero) : false;
     const survives = victim && (blocked || (victim.health ?? 1) > 1);
-    const landing = survives || this.hand[index] === 'throw' ? this.hero : destination;
+    const stationary = this.hand[index] === 'throw' || this.hand[index] === 'knife';
+    const landing = survives || stationary ? this.hero : destination;
     return {
       blocked,
       destination: landing.slice() as Point,

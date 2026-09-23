@@ -452,8 +452,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       sprite.classList.toggle('guarding', Boolean(skill.guardsFront));
     }
     place(actor('hero'), room.hero);
-    actor('hero').classList.toggle('origin-preview', Boolean(preview && chosenId !== 'throw'));
-    elements.ghost.hidden = !preview || chosenId === 'throw';
+    const stationaryPreview = chosenId === 'throw' || chosenId === 'knife';
+    actor('hero').classList.toggle('origin-preview', Boolean(preview && !stationaryPreview));
+    elements.ghost.hidden = !preview || stationaryPreview;
     if (preview) place(elements.ghost, preview.destination);
     renderHealth(room.finished || busy ? 0 : preview ? preview.damage : room.damageAt(room.hero));
     renderEnergy();
@@ -536,9 +537,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       $('ground-knives').querySelector(`[data-point="${action.to.join(',')}"]`)?.remove();
     // Keep the visible board stable until the movement and impact complete.
     const thrown = action.kind === 'throw';
-    if (!thrown)
+    const stationary = thrown || action.kind === 'knife';
+    if (!stationary)
       playSound(action.kind === 'shadow' ? 'blink' : ['rush', 'leap', 'lunge'].includes(action.kind) ? 'dash' : 'step');
-    const resisted = !thrown && action.hitId !== undefined && action.removedId < 0;
+    const resisted = !stationary && action.hitId !== undefined && action.removedId < 0;
     const contact = resisted
       ? action.kind === 'shadow'
         ? contactPoint(action.from, action.to)
@@ -553,7 +555,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       elements.board.append(projectile);
       try { await travel(projectile, action.from, action.to, 0); }
       finally { projectile.remove(); }
-    } else if (!resisted) {
+    } else if (!resisted && !stationary) {
       if (action.kind === 'shadow') await teleport(actor('hero'), action.to);
       else await travel(actor('hero'), action.from, action.to, action.kind === 'leap' ? 30 : 9);
     }
@@ -570,7 +572,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       }
     }
     if (action.hitId !== undefined && action.removedId < 0) {
-      if (!thrown) {
+      if (!stationary) {
         if (action.kind === 'shadow') await teleport(actor('hero'), action.from);
         else await travel(actor('hero'), contact, action.from, 0);
       }

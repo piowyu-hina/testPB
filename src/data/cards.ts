@@ -9,8 +9,8 @@ const anywhere: Point[] = Array.from({ length: 81 }, (_, i) => [i % 9 - 4, Math.
 export const cards = {
   throw: { name: '飛刀', hint: '原地攻擊十字方向第一隻怪物，刀留在命中格', offsets: rays(cross), canJump: false, copies: 6, cost: 1, effect: 'throw' },
   shadow: { name: '追影', hint: '瞬移至場上任意小刀格；若有怪物先攻擊，成功落地才撿刀', offsets: anywhere, canJump: true, copies: 4, cost: 1, effect: 'shadow' },
-  lunge: { name: '突進', hint: '上下左右移動 1 格，攻擊落點怪物', offsets: cross, canJump: false, copies: 6, cost: 1 },
-  knife: { name: '小刀', hint: '十字移動 1 格並攻擊落點；可留到下一回合', offsets: cross, canJump: false, copies: 0, cost: 0, effect: 'knife' },
+  lunge: { name: '突進', hint: '向周圍八方向移動 1 格，攻擊落點怪物', offsets: around, canJump: false, copies: 6, cost: 1 },
+  knife: { name: '小刀', hint: '原地攻擊上下左右相鄰 1 格的怪物；使用後消失', offsets: cross, canJump: false, copies: 0, cost: 0, effect: 'knife' },
   forward: { name: '前進', hint: '清場後走向周圍一格，可重複使用且不消耗行動', offsets: around, canJump: false, copies: 0 },
   short: {
     name: '短步',
