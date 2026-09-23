@@ -186,9 +186,9 @@ h1 {
 }
 .ultimate-meter {
   position: absolute;
-  inset: -8px;
+  inset: -5px;
   z-index: -1;
-  border-radius: 12px;
+  border-radius: 11px;
   padding: 5px;
   background: conic-gradient(from -45deg, #f1c75b 0 var(--ultimate-progress), #806d3959 var(--ultimate-progress) 1turn);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
