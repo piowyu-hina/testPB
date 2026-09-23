@@ -71,7 +71,7 @@ module.exports = async function playJourney(page, output, prefix = '', loadout =
         model.move(best.card, best.point);
         if (!model.finished && !model.hasPlayableCard()) {
           await idle();
-          assert.equal(await page.locator('#turn').textContent(), `第 ${model.turn} 回合`);
+          assert.equal(await page.locator('#game').getAttribute('data-turn'), String(model.turn));
           await page.locator('#end-turn').click();
           model.endTurn();
         }
@@ -84,8 +84,8 @@ module.exports = async function playJourney(page, output, prefix = '', loadout =
       assert.equal(await page.locator('.enemy-health').count(), 0);
       assert.equal(await page.locator('#health .empty').count(), 5 - model.health);
       assert.equal(
-        await page.locator('#turn').textContent(),
-        model.won && stage < run.total - 1 ? '' : `第 ${model.turn} 回合`
+        await page.locator('#game').getAttribute('data-turn'),
+        String(model.turn)
       );
     }
     assert.ok(model.won, `Room ${stage + 1} did not clear`);

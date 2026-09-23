@@ -8,14 +8,14 @@ module.exports = async function checkRogue(page, output) {
   assert.deepEqual(await page.locator('#hand .card').evaluateAll(nodes => nodes.map(n => n.dataset.card)), ['throw', 'shadow', 'lunge']);
   const openingCardWidth = await page.locator('#hand .card').first().evaluate(node => node.getBoundingClientRect().width);
   assert.equal(await page.locator('[data-card="shadow"] .card-requirement').count(), 0);
-  await page.locator('#turn').hover();
+  await page.locator('.status').hover();
   assert.equal(await page.locator('#hint').innerText(), '');
   await page.locator('[data-card="shadow"]').hover();
   assert.match(await page.locator('#hint').innerText(), /^追影\n瞬移至場上任意小刀格/);
   assert.match(await page.locator('#hint .hint-warning').innerText(), /需要場上小刀/);
   assert.match(await page.locator('[data-card="shadow"]').getAttribute('aria-label'), /需要場上小刀/);
   if (output) await page.screenshot({path: `${output}/rogue-shadow-warning.png`});
-  await page.locator('#turn').hover();
+  await page.locator('.status').hover();
   const layoutBefore = await page.evaluate(() => ({
     board: document.querySelector('.board-shell').getBoundingClientRect().top,
     hand: document.querySelector('#hand').getBoundingClientRect().top,
@@ -32,7 +32,7 @@ module.exports = async function checkRogue(page, output) {
   assert.equal(await page.locator('.battle-impact').count(), 0);
   assert.equal(await page.locator('[data-actor="hero"]').getAttribute('style'), origin);
   assert.equal(await page.locator('.ground-knife').count(), 1);
-  await page.locator('#turn').hover();
+  await page.locator('.status').hover();
   await page.locator('.tile[data-x="2"][data-y="2"]').hover();
   assert.match(await page.locator('#tile-info').innerText(), /地上小刀/);
   assert.equal(await page.locator('#hint .hint-warning').count(), 0);
@@ -42,7 +42,7 @@ module.exports = async function checkRogue(page, output) {
   await page.locator('[data-card="shadow"]').click();
   await page.locator('.tile[data-x="2"][data-y="2"]').click();
   await idle();
-  assert.equal(await page.locator('#turn').textContent(), '第 1 回合');
+  assert.equal(await page.locator('#game').getAttribute('data-turn'), '1');
   assert.match(await page.locator('#actions').textContent(), /1\/2/);
   assert.equal(await page.locator('.ground-knife').count(), 0);
   assert.equal(await page.locator('[data-card="knife"]').count(), 1);

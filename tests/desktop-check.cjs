@@ -106,10 +106,10 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     await page.locator('[data-card="short"]').click();
     await page.locator('.tile[data-x="2"][data-y="1"]').click();
     await idle();
-    assert.equal(await page.locator('#turn').textContent(), '第 1 回合');
+    assert.equal(await page.locator('#game').getAttribute('data-turn'), '1');
     await page.locator('#end-turn').click();
     await idle();
-    assert.equal(await page.locator('#turn').textContent(), '第 2 回合');
+    assert.equal(await page.locator('#game').getAttribute('data-turn'), '2');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     for (let step = 0; step < 15 && !(await page.locator('#result').isVisible()); step++) {
       await page.locator('#end-turn').click();

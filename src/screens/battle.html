@@ -1,27 +1,9 @@
     <main class="game" id="game" aria-label="testPB 戰鬥房間">
-      <header class="heading">
-        <button
-          type="button"
-          id="back-home"
-          class="quiet-button"
-          tabindex="-1"
-          aria-label="返回村莊"
-        >
-          ‹ 村莊
-        </button>
-        <div class="heading-tools">
-          <button id="open-battle-help" class="quiet-button" type="button" tabindex="-1">玩法</button>
-          <span id="turn">第 1 回合</span
-          ><button
-            class="theme-toggle"
-            type="button"
-            tabindex="-1"
-            aria-label="切換為淺色背景"
-          ></button>
-        </div>
-      </header>
       <div class="status">
         <div id="health" class="health" aria-label="生命"></div>
+        <button id="open-battle-help" class="battle-settings-button" type="button" tabindex="-1" aria-label="開啟設定">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="m19.1 13.3 1.4 1.1-1.8 3.1-1.7-.7a7.9 7.9 0 0 1-2.2 1.3l-.3 1.8h-3.6l-.3-1.8a7.9 7.9 0 0 1-2.2-1.3l-1.7.7-1.8-3.1 1.4-1.1a8 8 0 0 1 0-2.6L4.9 9.6l1.8-3.1 1.7.7a7.9 7.9 0 0 1 2.2-1.3l.3-1.8h3.6l.3 1.8A7.9 7.9 0 0 1 17 7.2l1.7-.7 1.8 3.1-1.4 1.1a8 8 0 0 1 0 2.6Z"/></svg>
+        </button>
       </div>
       <div class="battle-info">
         <div class="hint" id="hint" aria-live="polite"></div>
@@ -60,8 +42,14 @@
         </button>
       </section>
       <dialog id="battle-help" class="settings-dialog battle-help" aria-labelledby="battle-help-title">
-        <div class="settings-heading"><h2 id="battle-help-title">怎麼玩</h2><button id="close-battle-help" class="quiet-button" type="button" tabindex="-1">回到棋盤</button></div>
-        <ol>
+        <div class="settings-heading"><h2 id="battle-help-title">設定</h2><button id="close-battle-help" class="quiet-button" type="button" tabindex="-1">繼續遊戲</button></div>
+        <section class="journey-settings" aria-label="地下城進度">
+          <div class="journey-settings-title"><strong>森林遺跡</strong><span id="journey-progress-label"></span></div>
+          <div id="journey-progress" class="journey-progress"></div>
+        </section>
+        <div class="settings-row"><div><strong>戰鬥音效</strong><p>移動、攻擊與擊殺</p></div><button id="battle-sound-toggle" class="sound-toggle" type="button" tabindex="-1" aria-pressed="true">開</button></div>
+        <div class="settings-row"><div><strong>介面主題</strong><p>切換淺色／深色介面</p></div><button class="theme-toggle" type="button" tabindex="-1" aria-label="切換為淺色背景"></button></div>
+        <details class="battle-rules"><summary>玩法說明</summary><ol>
           <li><strong>選牌，再點亮起的格子。</strong>卡牌中央是你，綠點是相對落點；再點同一張牌可取消。</li>
           <li><strong>手機操作。</strong>沒選牌時點格子查看資訊；選牌後點合法格行動。長按卡片可閱讀完整說明，點說明外收起。</li>
           <li><strong>依卡牌效果攻擊。</strong>飛刀原地投擲；追影可瞬移到任意小刀格；突進可移動周圍八方向；小刀原地攻擊十字相鄰一格。怪物站在刀上攻擊傷害增加 1。未選牌時點怪物可查看名字與生命。</li>
@@ -69,8 +57,9 @@
           <li><strong>擊殺會累積殺意。</strong>普通怪物增加 1，菁英增加 2。外圈黃線集滿 3 點後，點擊能量菱形並選擇怪物，可用「絕影」造成 2 點傷害並無視格擋。</li>
           <li><strong>紅格是敵人的攻擊範圍。</strong>每顆紅色菱形代表 1 點傷害；移動預覽會扣除被擊敗敵人的威脅。</li>
           <li><strong>清場後走向上方出口。</strong>「前進」可走周圍一格，能重複使用且不消耗行動；進入下一間恢復 1 點生命。</li>
-        </ol>
+        </ol></details>
         <p>返回村莊會保留本次旅程；關閉遊戲後進度不保留。</p>
+        <button type="button" id="back-home" class="settings-home-button" tabindex="-1">返回村莊</button>
       </dialog>
     </main>
     <div

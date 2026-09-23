@@ -1,11 +1,11 @@
 const assert = require('node:assert/strict');
 
 module.exports = async function checkBattleUx(page) {
-  await page.locator('#turn').hover();
+  await page.locator('.status').hover();
   assert.equal(await page.locator('#hint').innerText(), '');
   assert.match(await page.locator('#actions').textContent(), /2\/2/);
   await page.locator('[data-card="rush"]').click();
-  await page.locator('#turn').hover();
+  await page.locator('.status').hover();
   assert.match(await page.locator('#hint').innerText(), /^突進\n/);
   assert.match(await page.locator('#hint').textContent(), /不可穿越敵人/);
   await page.locator('.tile[data-x="2"][data-y="2"]').hover();
@@ -13,7 +13,7 @@ module.exports = async function checkBattleUx(page) {
   assert.equal(await page.locator('#hint').isVisible(), false);
   assert.match(await page.locator('#tile-info').innerText(), /攻擊上下左右相鄰格/);
   assert.doesNotMatch(await page.locator('#tile-info').innerText(), /停留受|無法作用|移入並擊敗/);
-  await page.locator('#turn').hover();
+  await page.locator('.status').hover();
   assert.equal(await page.locator('#tile-info').isVisible(), false);
   assert.equal(await page.locator('#hint').isVisible(), true);
   await page.locator('#open-battle-help').click();
@@ -24,10 +24,12 @@ module.exports = async function checkBattleUx(page) {
   await page.locator('.tile[data-x="2"][data-y="2"]').hover();
   assert.doesNotMatch(await page.locator('#hint').textContent(), /落點受擊預告/);
   await page.locator('[data-card="rush"]').click();
-  await page.locator('#turn').hover();
+  await page.locator('.status').hover();
   assert.equal(await page.locator('.card.selected').count(), 0);
   assert.equal(await page.locator('#hint').innerText(), '');
   assert.equal(await page.locator('#end-turn').getAttribute('title'), '結束回合');
   assert.equal(await page.locator('#end-turn svg').count(), 1);
-  assert.equal(await page.locator('#journey-progress').count(), 0);
+  assert.equal(await page.locator('#turn').count(), 0);
+  assert.equal(await page.locator('#journey-progress').count(), 1);
+  assert.equal(await page.locator('.journey-node').count(), 3);
 };

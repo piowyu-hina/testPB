@@ -13,7 +13,7 @@ import { daggerIcon, groundDaggerIcon } from '../ui/dagger';
 import { approach, contactPoint, shield, impact, recoil, heartBurst } from '../ui/battleFeedback';
 import { enemySkill, blocksAttack } from '../battle/EnemyRules';
 import { enemySummary } from '../ui/enemyInfo';
-import { playSound } from '../ui/sound';
+import { playSound, setSoundEnabled, soundEnabled } from '../ui/sound';
 import '../enemy.css';
 
 export function mountBattle(host: HTMLElement, session: GameSession, onHome: () => void): Screen {
@@ -31,7 +31,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     health: $('health'),
     actions: $('actions'),
     hint: $('hint'),
-    turn: $('turn'),
     end: $<HTMLButtonElement>('end-turn'),
     endLabel: $('end-label'),
     ghost: $('ghost'),
@@ -60,6 +59,26 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     ultimateHeld = false,
     dismissDetailsClick = false;
   const touchLayout = () => matchMedia('(hover: none) and (pointer: coarse)').matches;
+  const soundToggle = $<HTMLButtonElement>('battle-sound-toggle');
+  function renderSoundToggle() {
+    const enabled = soundEnabled();
+    soundToggle.textContent = enabled ? '開' : '關';
+    soundToggle.setAttribute('aria-pressed', String(enabled));
+    soundToggle.setAttribute('aria-label', enabled ? '關閉音效' : '開啟音效');
+  }
+  function renderJourneyProgress() {
+    $('journey-progress-label').textContent = `${journey.stage + 1} / ${journey.total}`;
+    const progress = $('journey-progress');
+    progress.replaceChildren(...Array.from({ length: journey.total }, (_, index) => {
+      const node = document.createElement('span');
+      node.className = 'journey-node';
+      if (index < journey.stage) node.classList.add('complete');
+      if (index === journey.stage) node.classList.add('current');
+      if (index === journey.total - 1) node.classList.add('final');
+      node.setAttribute('aria-label', index === journey.stage ? `目前位於第 ${index + 1} 區域` : `第 ${index + 1} 區域`);
+      return node;
+    }));
+  }
   function lockWhileCardsEnter(count: number) {
     const sequence = ++dealSequence;
     dealingHand = true;
@@ -489,7 +508,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (preview) place(elements.ghost, preview.destination);
     renderHealth(room.finished || busy ? 0 : preview ? preview.damage : room.damageAt(room.hero));
     renderEnergy();
-    elements.turn.textContent = cleared ? '' : `第 ${room.turn} 回合`;
+    renderJourneyProgress();
+    elements.game.dataset.turn = String(room.turn);
     elements.end.disabled = busy || (room.finished && !cleared);
     $<HTMLButtonElement>('back-home').disabled = busy;
     $<HTMLButtonElement>('open-battle-help').disabled = busy;
@@ -889,8 +909,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   makeTiles();
   const help = $<HTMLDialogElement>('battle-help');
-  onClick($('open-battle-help'), () => help.showModal());
+  onClick($('open-battle-help'), () => { renderSoundToggle(); renderJourneyProgress(); help.showModal(); });
   onClick($('close-battle-help'), () => help.close());
+  onClick(soundToggle, () => { setSoundEnabled(!soundEnabled()); renderSoundToggle(); });
   onClick(elements.end, () => exploring() ? redrawExplorationCard() : enemyTurn());
   elements.actions.addEventListener('pointerenter', () => {
     if (!touchLayout() && journey.loadout === 'rogue') showUltimateHint();
@@ -982,6 +1003,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     render();
   });
   journey = session.journey;
+  renderSoundToggle();
   loadRoom();
   return {
     root,
