@@ -404,6 +404,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     $('room-exit').toggleAttribute('hidden', !cleared);
     elements.game.classList.toggle('exploring', cleared);
+    elements.end.hidden = cleared;
+    elements.actions.hidden = cleared;
     for (const { tile, point } of tiles) {
       const damage = room.damageAt(point, removedId),
         legal =
@@ -527,6 +529,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const blocked = room.preview(selected, destination)?.blocked ?? false;
     const action = room.move(selected, destination);
     if (!action) return;
+    if (room.won) {
+      elements.end.hidden = true;
+      elements.actions.hidden = true;
+    }
     lock();
     renderEnergy(paidEnergy);
     if (action.pickedKnife)
