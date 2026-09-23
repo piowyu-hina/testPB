@@ -503,6 +503,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     await Promise.all(cards.map(async (card, index) => {
       await pause(index * 45);
+      // Keep the underlying style at the final state so Web Animations cannot
+      // reveal the card for one frame when its effect is removed on finish.
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(-56px)';
       await animate(
         card,
         [
@@ -512,7 +516,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         240,
         'cubic-bezier(.4,0,.7,1)'
       );
-      card.style.opacity = '0';
     }));
     elements.hand.replaceChildren();
     handSignature = '';
