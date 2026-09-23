@@ -320,6 +320,18 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       `生命 ${room.health} / 5${incoming ? `，預計受到 ${incoming} 傷害` : ''}`
     );
   }
+  function renderEnergy(value = room.actions) {
+    const energy = Math.max(0, Math.min(9, value));
+    const previousActions = Number(elements.actions.dataset.value);
+    elements.actions.dataset.value = String(energy);
+    elements.actions.innerHTML = `<span class="energy-count">${energy}</span>`;
+    elements.actions.setAttribute('aria-label', `剩餘 ${energy} 點能量`);
+    if (Number.isFinite(previousActions) && previousActions !== energy) {
+      elements.actions.classList.remove('energy-gain', 'energy-spend');
+      void elements.actions.offsetWidth;
+      elements.actions.classList.add(energy > previousActions ? 'energy-gain' : 'energy-spend');
+    }
+  }
   function shadowRequirement(index: number): string {
     if (exploring() || room.canUseCard(index)) return '';
     if (room.knives.length === 0) return '需要場上小刀';
@@ -444,15 +456,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.ghost.hidden = !preview || chosenId === 'throw';
     if (preview) place(elements.ghost, preview.destination);
     renderHealth(room.finished || busy ? 0 : preview ? preview.damage : room.damageAt(room.hero));
-    const previousActions = Number(elements.actions.dataset.value);
-    elements.actions.dataset.value = String(room.actions);
-    elements.actions.innerHTML = `<span class="energy-count">${room.actions}</span>`;
-    elements.actions.setAttribute('aria-label', `剩餘 ${room.actions} 點能量`);
-    if (Number.isFinite(previousActions) && previousActions !== room.actions) {
-      elements.actions.classList.remove('energy-gain', 'energy-spend');
-      void elements.actions.offsetWidth;
-      elements.actions.classList.add(room.actions > previousActions ? 'energy-gain' : 'energy-spend');
-    }
+    renderEnergy();
     elements.turn.textContent = cleared ? '' : `第 ${room.turn} 回合`;
     elements.end.disabled = busy || room.finished;
     $<HTMLButtonElement>('back-home').disabled = busy;
@@ -516,10 +520,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   async function move(destination: Point) {
     if (busy || !room.canMove(selected, destination)) return;
+    const paidEnergy = room.actions - room.cardCost(selected);
     const blocked = room.preview(selected, destination)?.blocked ?? false;
     const action = room.move(selected, destination);
     if (!action) return;
     lock();
+    renderEnergy(paidEnergy);
     if (action.pickedKnife)
       $('ground-knives').querySelector(`[data-point="${action.to.join(',')}"]`)?.remove();
     // Keep the visible board stable until the movement and impact complete.
