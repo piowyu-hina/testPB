@@ -30,7 +30,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     hand: $('hand'),
     health: $('health'),
     actions: $('actions'),
-    ultimateTooltip: $('ultimate-tooltip'),
     hint: $('hint'),
     turn: $('turn'),
     end: $<HTMLButtonElement>('end-turn'),
@@ -59,7 +58,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     ultimateTargeting = false,
     ultimateHoldTimer = 0,
     ultimateHeld = false,
-    ultimateTooltipTimer = 0,
     dismissDetailsClick = false;
   const touchLayout = () => matchMedia('(hover: none) and (pointer: coarse)').matches;
   function lockWhileCardsEnter(count: number) {
@@ -88,16 +86,13 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.hint.replaceChildren(name, description);
   }
   function closeCardDetails() { elements.cardDetails.hidden = true; }
-  function hideUltimateTooltip() {
-    clearTimeout(ultimateTooltipTimer);
-    elements.ultimateTooltip.hidden = true;
-  }
-  function showUltimateTooltip(autoHide = false) {
+  function showUltimateHint() {
     const charge = journey.loadout === 'rogue' ? journey.assassination : 0;
-    elements.ultimateTooltip.innerHTML = `<strong>絕影 · 殺意 ${charge}/3</strong><span>普通擊殺 +1，菁英擊殺 +2。集滿後點擊，選擇任意怪物造成 2 點傷害並無視格擋。</span>`;
-    elements.ultimateTooltip.hidden = false;
-    clearTimeout(ultimateTooltipTimer);
-    if (autoHide) ultimateTooltipTimer = window.setTimeout(hideUltimateTooltip, 1900);
+    const name = document.createElement('strong');
+    name.textContent = `絕影 · 殺意 ${charge}/3`;
+    const description = document.createElement('span');
+    description.textContent = '普通擊殺 +1，菁英擊殺 +2。集滿後點擊，選擇任意怪物造成 2 點傷害並無視格擋。';
+    elements.hint.replaceChildren(name, description);
   }
   function openCardDetails(id: keyof typeof data.cards) {
     const definition = data.cards[id];
@@ -171,6 +166,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
             if (target) void useUltimate(target.id);
             else {
               ultimateTargeting = false;
+              elements.hint.textContent = '';
               render();
             }
             return;
@@ -352,11 +348,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const previousActions = Number(elements.actions.dataset.value);
     elements.actions.dataset.value = String(energy);
     const needsRing = journey.loadout === 'rogue';
-    if (!elements.actions.querySelector('.energy-count') || Boolean(elements.actions.querySelector('.ultimate-ring')) !== needsRing)
-      elements.actions.innerHTML = `${needsRing ? '<svg class="ultimate-ring" viewBox="0 0 66 66" aria-hidden="true"><rect class="ultimate-track" x="6" y="6" width="54" height="54" rx="10" pathLength="3"/><rect class="ultimate-fill" x="6" y="6" width="54" height="54" rx="10" pathLength="3"/></svg>' : ''}<span class="energy-count"></span>`;
+    if (!elements.actions.querySelector('.energy-count') || Boolean(elements.actions.querySelector('.ultimate-meter')) !== needsRing)
+      elements.actions.innerHTML = `${needsRing ? '<span class="ultimate-meter" aria-hidden="true"></span>' : ''}<span class="energy-count"></span>`;
     elements.actions.querySelector<HTMLElement>('.energy-count')!.textContent = String(energy);
-    const ultimateFill = elements.actions.querySelector<SVGRectElement>('.ultimate-fill');
-    if (ultimateFill) ultimateFill.style.strokeDasharray = `${charge} 3`;
+    const ultimateMeter = elements.actions.querySelector<HTMLElement>('.ultimate-meter');
+    if (ultimateMeter) ultimateMeter.style.setProperty('--ultimate-progress', `${charge / 3}turn`);
     elements.actions.setAttribute('aria-label', `剩餘 ${energy} 點能量，殺意 ${charge} / 3`);
     elements.actions.classList.toggle('ultimate-ready', journey.loadout === 'rogue' && charge >= 3);
     elements.actions.classList.toggle('ultimate-targeting', ultimateTargeting);
@@ -667,7 +663,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const action = room.assassinate(enemyId);
     if (!action || !journey.spendAssassination()) return;
     ultimateTargeting = false;
-    hideUltimateTooltip();
     lock();
     renderEnergy();
     const hero = actor('hero');
@@ -889,10 +884,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   onClick($('close-battle-help'), () => help.close());
   onClick(elements.end, () => enemyTurn());
   elements.actions.addEventListener('pointerenter', () => {
-    if (!touchLayout() && journey.loadout === 'rogue' && !exploring()) showUltimateTooltip();
+    if (!touchLayout() && journey.loadout === 'rogue' && !exploring()) showUltimateHint();
   });
   elements.actions.addEventListener('pointerleave', () => {
-    if (!touchLayout()) hideUltimateTooltip();
+    if (!touchLayout()) render();
   });
   elements.actions.addEventListener('pointerdown', (event) => {
     if (!touchLayout() || event.pointerType !== 'touch' || journey.loadout !== 'rogue') return;
@@ -900,7 +895,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     clearTimeout(ultimateHoldTimer);
     ultimateHoldTimer = window.setTimeout(() => {
       ultimateHeld = true;
-      showUltimateTooltip();
+      showUltimateHint();
     }, 420);
   });
   for (const eventName of ['pointerup', 'pointercancel'] as const)
@@ -912,12 +907,18 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     if (busy || exploring() || journey.loadout !== 'rogue') return;
     if (journey.assassination < 3) {
-      showUltimateTooltip(true);
+      showUltimateHint();
       return;
     }
-    hideUltimateTooltip();
     selected = -1;
     ultimateTargeting = !ultimateTargeting;
+    if (ultimateTargeting) {
+      const name = document.createElement('strong');
+      name.textContent = '絕影';
+      const description = document.createElement('span');
+      description.textContent = '選擇一隻怪物。';
+      elements.hint.replaceChildren(name, description);
+    } else elements.hint.textContent = '';
     render();
   });
   onClick($('replay'), () => {
@@ -926,7 +927,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   });
   function leave() {
     help.close();
-    hideUltimateTooltip();
     inspectedEnemy = -1;
     inspectedTile = null;
     closeCardDetails();
@@ -941,15 +941,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   onClick($('back-home'), onHome);
   onClick($('result-home'), onHome);
-  document.addEventListener('pointerdown', (event) => {
-    if (
-      elements.ultimateTooltip.hidden ||
-      root.hidden ||
-      !(event.target instanceof Element) ||
-      event.target.closest('#actions, #ultimate-tooltip')
-    ) return;
-    hideUltimateTooltip();
-  }, true);
   document.addEventListener('pointerdown', (event) => {
     if (elements.cardDetails.hidden || root.hidden || !(event.target instanceof Element) || event.target.closest('#card-details')) return;
     closeCardDetails();
