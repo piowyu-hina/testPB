@@ -225,26 +225,27 @@ h1 {
   0%, 100% { transform: rotate(45deg) scale(1); }
   50% { transform: rotate(45deg) scale(.86); filter: brightness(.82); }
 }
-.battle-help { width: min(610px, calc(100vw - 32px)); max-height: none; overflow: hidden; }
-.battle-help .settings-heading h2 { font-size: 30px; }
-.battle-help .settings-heading .quiet-button { font-size: 18px; }
-.battle-help .settings-row strong, .journey-settings-title strong { font-size: 20px; }
-.battle-help .settings-row p { font-size: 17px; }
-.battle-help .sound-toggle { min-width: 68px; font-size: 18px; }
-.battle-help ol { columns: 1; padding-left: 28px; line-height: 1.55; font-size: 18px; }
-.battle-help li { margin-bottom: 15px; padding-left: 3px; }
-.battle-help > p { font-size: 15px; line-height: 1.6; }
-.journey-settings { margin-top: 24px; padding: 18px 20px; border: 1px solid #ab987655; border-radius: 12px; background: #fff9ec88; }
+.settings-dialog.battle-help { width: min(680px, calc(100vw - 24px)); height: min(1240px, calc(100svh - 24px)); max-width: none; max-height: none; overflow: hidden; padding: 42px; border-radius: 18px; }
+.battle-help .settings-heading h2 { font-size: 36px; }
+.battle-help .settings-heading .quiet-button { font-size: 21px; }
+.battle-help .settings-row { margin: 36px 0; padding-top: 30px; }
+.battle-help .settings-row strong, .journey-settings-title strong { font-size: 24px; }
+.battle-help .settings-row p { font-size: 19px; }
+.battle-help .sound-toggle { min-width: 78px; padding: 10px 16px; font-size: 20px; }
+.battle-help ol { columns: 1; padding-left: 32px; line-height: 1.58; font-size: 20px; }
+.battle-help li { margin-bottom: 18px; padding-left: 5px; }
+.battle-help > p { font-size: 17px; line-height: 1.6; }
+.journey-settings { margin-top: 34px; padding: 25px 26px; border: 1px solid #ab987655; border-radius: 12px; background: #fff9ec88; }
 .journey-settings-title { display: flex; justify-content: space-between; align-items: center; color: #475b49; }
-.journey-settings-title span { color: #77705e; font-size: 13px; }
-.journey-progress { position: relative; display: flex; align-items: center; justify-content: space-between; margin-top: 18px; }
+.journey-settings-title span { color: #77705e; font-size: 18px; }
+.journey-progress { position: relative; display: flex; align-items: center; justify-content: space-between; margin-top: 24px; }
 .journey-progress::before { content: ''; position: absolute; left: 9px; right: 9px; top: 8px; height: 2px; background: #b9ae98; }
 .journey-node { position: relative; z-index: 1; width: 18px; height: 18px; flex: 0 0 18px; border: 2px solid #9a907b; border-radius: 50%; background: #f5efdf; }
 .journey-node.complete { border-color: #587a65; background: #587a65; }
 .journey-node.current { border-color: #c49b45; background: #f4cc72; box-shadow: 0 0 0 5px #e7bd5b30, 0 0 12px #d5a64277; }
 .journey-node.final { border-radius: 3px; transform: rotate(45deg); }
-.battle-rules { margin-top: 22px; padding-top: 18px; border-top: 1px solid #ab987644; }
-.battle-rules summary { cursor: pointer; color: #475b49; font-size: 19px; font-weight: 700; list-style: none; }
+.battle-rules { margin-top: 30px; padding-top: 26px; border-top: 1px solid #ab987644; }
+.battle-rules summary { cursor: pointer; color: #475b49; font-size: 22px; font-weight: 700; list-style: none; }
 .battle-rules summary::-webkit-details-marker { display: none; }
 .rules-title-label, .rules-back-label { display: none; }
 .battle-help:has(.battle-rules[open]) .settings-title-label,
@@ -256,7 +257,7 @@ h1 {
 .battle-help:has(.battle-rules[open]) .rules-title-label,
 .battle-help:has(.battle-rules[open]) .rules-back-label { display: inline; }
 .battle-help:has(.battle-rules[open]) .battle-rules { margin-top: 24px; padding-top: 0; border-top: 0; }
-.settings-home-button { width: 100%; margin-top: 10px; padding: 11px; border: 1px solid #a76f67; border-radius: 9px; background: transparent; color: #8d4e47; }
+.settings-home-button { width: 100%; margin-top: 18px; padding: 15px; border: 1px solid #a76f67; border-radius: 9px; background: transparent; color: #8d4e47; font-size: 19px; }
 .settings-home-button:hover { background: #a76f6712; }
 .action-pip {
   width: 13px;
