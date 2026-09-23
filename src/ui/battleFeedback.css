@@ -53,7 +53,6 @@
 .game .hand { flex: none; justify-content: center; width: auto; gap: 8px; height: 205px; min-height: 205px; }
 .game .hand .card { box-sizing: border-box; flex: 0 0 var(--hand-card-width, 150px); width: var(--hand-card-width, 150px); max-width: none; height: 205px; aspect-ratio: auto; padding: 9px 7px 8px; }
 .end-turn { position: absolute; right: 0; bottom: 0; }
-.exploring .end-turn { display: none; }
 .game .hand .card:hover, .game .hand .card.selected { z-index: 10 !important; }
 .card-name { font-size: 24px; }
 .game .hint { font-size: 25px; font-weight: 400; }

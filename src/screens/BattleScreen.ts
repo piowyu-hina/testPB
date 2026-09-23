@@ -490,7 +490,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     renderHealth(room.finished || busy ? 0 : preview ? preview.damage : room.damageAt(room.hero));
     renderEnergy();
     elements.turn.textContent = cleared ? '' : `第 ${room.turn} 回合`;
-    elements.end.disabled = busy || room.finished;
+    elements.end.disabled = busy || (room.finished && !cleared);
     $<HTMLButtonElement>('back-home').disabled = busy;
     $<HTMLButtonElement>('open-battle-help').disabled = busy;
     elements.game.classList.toggle('choosing', selected >= 0 && !busy);
@@ -528,10 +528,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     elements.game.setAttribute('aria-busy', 'true');
   }
-  async function discardVisibleHand() {
+  async function discardVisibleHand(allowExploration = false) {
     // Once the cleared-room walking card is on screen, stale turn-end input
     // must never send it through the combat-hand discard flow.
-    if (exploring() && renderedHand.length === 1 && renderedHand[0] === 'forward') return;
+    if (!allowExploration && exploring() && renderedHand.length === 1 && renderedHand[0] === 'forward') return;
     const cards = [...elements.hand.querySelectorAll<HTMLElement>('.card')];
     for (const card of cards) {
       card.classList.remove('card-entering');
@@ -824,6 +824,15 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (!room.finished) lockWhileCardsEnter(room.availableCards.length);
     if (room.finished) showResult();
   }
+  async function redrawExplorationCard() {
+    if (busy || dealingHand || !exploring()) return;
+    lock();
+    await discardVisibleHand(true);
+    dealWholeHand = true;
+    busy = false;
+    render();
+    lockWhileCardsEnter(1);
+  }
   function showResult() {
     if (exploring()) return;
     elements.resultTitle.textContent = room.lost ? '再試一次' : '旅途完成！';
@@ -882,7 +891,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   const help = $<HTMLDialogElement>('battle-help');
   onClick($('open-battle-help'), () => help.showModal());
   onClick($('close-battle-help'), () => help.close());
-  onClick(elements.end, () => enemyTurn());
+  onClick(elements.end, () => exploring() ? redrawExplorationCard() : enemyTurn());
   elements.actions.addEventListener('pointerenter', () => {
     if (!touchLayout() && journey.loadout === 'rogue' && !exploring()) showUltimateHint();
   });
