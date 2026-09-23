@@ -48,6 +48,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     inspectedEnemy = -1,
     busy = false,
     handSignature = '',
+    renderedHand: string[] = [],
+    dealWholeHand = true,
     inspectedTile: Point | null = null,
     cardHoldTimer = 0,
     heldCard: HTMLButtonElement | null = null,
@@ -162,11 +164,21 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       }
   }
   function syncHand() {
-    const signature = room.availableCards.join(',');
+    const nextHand = [...room.availableCards];
+    const signature = nextHand.join(',');
     if (signature !== handSignature) {
+      const remaining = new Map<string, number>();
+      for (const id of renderedHand) remaining.set(id, (remaining.get(id) ?? 0) + 1);
+      const entering = nextHand.map((id) => {
+        if (dealWholeHand) return true;
+        const count = remaining.get(id) ?? 0;
+        if (!count) return true;
+        remaining.set(id, count - 1);
+        return false;
+      });
       handSignature = signature;
       elements.hand.replaceChildren();
-      room.availableCards.forEach((id, index) => {
+      nextHand.forEach((id, index) => {
         const definition: CardDefinition = data.cards[id],
           card = document.createElement('button');
         card.type = 'button';
@@ -174,6 +186,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         card.className = 'card';
         card.dataset.card = id;
         card.dataset.index = String(index);
+        if (entering[index]) {
+          card.classList.add('card-entering');
+          card.style.setProperty('--entry-order', String(entering.slice(0, index).filter(Boolean).length));
+        }
         if (index) card.style.marginLeft = 'calc(-1 * var(--card-overlap))';
         card.style.zIndex = String(index + 1);
         card.setAttribute('aria-label', definition.name);
@@ -250,6 +266,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         });
         elements.hand.append(card);
       });
+      renderedHand = nextHand;
+      dealWholeHand = false;
     }
     const handCount = room.availableCards.length;
     const cardWidth = 160;
@@ -448,6 +466,29 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     elements.game.setAttribute('aria-busy', 'true');
   }
+  async function discardVisibleHand() {
+    const cards = [...elements.hand.querySelectorAll<HTMLElement>('.card')];
+    for (const card of cards) {
+      card.classList.remove('card-entering');
+      card.getAnimations().forEach((animation) => animation.cancel());
+    }
+    await Promise.all(cards.map(async (card, index) => {
+      await pause(index * 45);
+      await animate(
+        card,
+        [
+          { opacity: 1, transform: 'translateX(0)' },
+          { opacity: 0, transform: 'translateX(-56px)' }
+        ],
+        240,
+        'cubic-bezier(.4,0,.7,1)'
+      );
+      card.style.opacity = '0';
+    }));
+    elements.hand.replaceChildren();
+    handSignature = '';
+    renderedHand = [];
+  }
   async function move(destination: Point) {
     if (busy || !room.canMove(selected, destination)) return;
     const blocked = room.preview(selected, destination)?.blocked ?? false;
@@ -516,6 +557,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const exitPosition = room.hero.slice() as Point;
       const pushedTo = journey.clearOccupiedExit();
       if (pushedTo) await travel(actor('hero'), exitPosition, pushedTo, 0);
+      await discardVisibleHand();
       await pause(1000);
       elements.game.classList.add('clearing-reveal');
       render();
@@ -615,6 +657,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (busy || room.finished) return;
     lock();
     elements.endLabel.textContent = '敵方回合';
+    await discardVisibleHand();
     const outcome = room.endTurn();
     if (!outcome) {
       busy = false;
@@ -653,6 +696,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       await Promise.all(
         outcome.motions.map((motion) => travel(actor(motion.id), motion.from, motion.to, 12))
       );
+      dealWholeHand = true;
     }
     busy = false;
     elements.endLabel.textContent = '結束回合';
@@ -680,6 +724,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     hoveredEnemy = -1;
     busy = false;
     handSignature = '';
+    renderedHand = [];
+    dealWholeHand = true;
     elements.result.hidden = true;
     elements.game.inert = false;
     elements.hint.textContent = '';
