@@ -46,7 +46,7 @@ src/
   ui/                      共用 DOM、步法圖案、動畫
   main.ts                   啟動入口
 assets/                     角色、怪物、場景、候選圖與歷史素材（見 assets/README.md）
-assets/characters/luxue/idle/ 露雪主畫面待機動畫序列圖，見 docs/PortraitRig.md
+assets/characters/luxue/idle/ 露雪停用中的待機動畫實驗，主畫面目前使用 Portrait.png
 src-tauri/                  原生視窗、Rust 入口與權限設定
 tests/                      規則、瀏覽器、原生視窗檢查
 ```

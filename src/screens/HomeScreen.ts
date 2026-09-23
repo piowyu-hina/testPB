@@ -7,10 +7,6 @@ import '../hub.css';
 import villageImage from '../../assets/scenes/village/Village.png';
 import { setSoundEnabled, soundEnabled } from '../ui/sound';
 
-// Milliseconds each idle-sway frame is shown. Frames play forward then
-// backward (ping-pong) so any sequence loops seamlessly with no jump cut.
-const IDLE_FRAME_MS = 220;
-
 export function mountHome(host: HTMLElement, session: GameSession, onStart: () => void): Screen {
   const root = mountScreenRoot(host, template);
   const $ = <T extends HTMLElement = HTMLElement>(id: string) => element<T>(id, root);
@@ -24,29 +20,10 @@ export function mountHome(host: HTMLElement, session: GameSession, onStart: () =
   }
   onClick(soundToggle, () => { setSoundEnabled(!soundEnabled()); renderSound(); });
   renderSound();
-  let idleTimer = 0;
-  function stopIdleAnimation() {
-    if (!idleTimer) return;
-    clearInterval(idleTimer);
-    idleTimer = 0;
-  }
-  function startIdleAnimation(frames: string[]) {
-    stopIdleAnimation();
-    let index = 0;
-    let direction = 1;
-    portrait.src = frames[0];
-    idleTimer = window.setInterval(() => {
-      index += direction;
-      if (index >= frames.length - 1) { index = frames.length - 1; direction = -1; }
-      else if (index <= 0) { index = 0; direction = 1; }
-      portrait.src = frames[index];
-    }, IDLE_FRAME_MS);
-  }
   function renderCharacter() {
     const selected = characters[session.characterId];
     portrait.alt = `${selected.name}立繪`;
-    if (selected.idleFrames?.length) startIdleAnimation(selected.idleFrames);
-    else { stopIdleAnimation(); portrait.src = selected.portrait; }
+    portrait.src = selected.portrait;
   }
   renderCharacter();
   $<HTMLImageElement>('village-art').src = villageImage;
@@ -64,6 +41,6 @@ export function mountHome(host: HTMLElement, session: GameSession, onStart: () =
         : '準備好了，就向森林出發吧。';
       $('dungeon-entry-note').textContent = session.canResume ? '旅途中 · 可繼續' : '探索森林遺跡';
     },
-    leave() { settings.close(); stopIdleAnimation(); }
+    leave() { settings.close(); }
   };
 }

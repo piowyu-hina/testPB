@@ -13,8 +13,8 @@
 2. 在瀏覽器主控台或注入一段小腳本，定時對 `#cv`（WebGL 畫布）做 `ctx.drawImage(cv, 0, 0, W, H)` 到一個普通 2D canvas，再 `toDataURL('image/png')` 存檔；建議降到 400×400 左右即可，原圖有大量透明留白，壓縮後每張約 150KB。
 3. **重要**：WebGL context 建立時要加 `preserveDrawingBuffer:true`，不然背景分頁節流時讀出來的畫布內容可能是空的；另外瀏覽器分頁不在前景（例如被自動化工具或視窗切換蓋住）時 `requestAnimationFrame` 會被節流到幾乎不跑，每次擷取前最好先讓分頁重新取得一次渲染（例如觸發一次重繪/截圖）再讀取畫布，否則會擷到空白幀。
 4. 抓 10~16 張分散在待機動作不同相位的影格即可，不需要湊成完美循環——遊戲裡的播放邏輯是「正著播一輪、倒著播一輪」（ping-pong），任何一組影格接起來都不會有跳幀感。
-5. 把新的 PNG 序列放進 `assets/characters/<角色>/idle/`，在 `src/data/art.ts` 該角色物件補上 `idleFrames: [...]`（順序照影格編號），`HomeScreen.ts` 不用改。
+5. 把新的 PNG 序列放進 `assets/characters/<角色>/idle/` 保存；若未來決定重新啟用動畫，再另外設計載入與播放方式。
 
 ## 播放邏輯
 
-`HomeScreen.ts` 用一個 `setInterval`（`IDLE_FRAME_MS`，目前 220ms／張）在 `idleFrames` 陣列上來回播放；沒有 `idleFrames` 的角色（目前是戀喵）就直接顯示靜態 `portrait`。切換角色或離開村莊畫面時會清掉計時器，回來再重新啟動，避免背景空轉。
+這套序列目前停用並保留作為實驗紀錄。主畫面直接顯示角色的靜態 `Portrait.png`，不建立計時器，也不載入這些影格。
