@@ -226,9 +226,14 @@ h1 {
   50% { transform: rotate(45deg) scale(.86); filter: brightness(.82); }
 }
 .battle-help { width: min(610px, calc(100vw - 32px)); max-height: none; overflow: hidden; }
-.battle-help ol { columns: 2; column-gap: 34px; padding-left: 22px; line-height: 1.55; font-size: 13px; }
-.battle-help li { break-inside: avoid; margin-bottom: 9px; padding-right: 4px; }
-.battle-help p { font-size: 12px; line-height: 1.6; }
+.battle-help .settings-heading h2 { font-size: 30px; }
+.battle-help .settings-heading .quiet-button { font-size: 18px; }
+.battle-help .settings-row strong, .journey-settings-title strong { font-size: 20px; }
+.battle-help .settings-row p { font-size: 17px; }
+.battle-help .sound-toggle { min-width: 68px; font-size: 18px; }
+.battle-help ol { columns: 1; padding-left: 28px; line-height: 1.55; font-size: 18px; }
+.battle-help li { margin-bottom: 15px; padding-left: 3px; }
+.battle-help > p { font-size: 15px; line-height: 1.6; }
 .journey-settings { margin-top: 24px; padding: 18px 20px; border: 1px solid #ab987655; border-radius: 12px; background: #fff9ec88; }
 .journey-settings-title { display: flex; justify-content: space-between; align-items: center; color: #475b49; }
 .journey-settings-title span { color: #77705e; font-size: 13px; }
@@ -239,7 +244,18 @@ h1 {
 .journey-node.current { border-color: #c49b45; background: #f4cc72; box-shadow: 0 0 0 5px #e7bd5b30, 0 0 12px #d5a64277; }
 .journey-node.final { border-radius: 3px; transform: rotate(45deg); }
 .battle-rules { margin-top: 22px; padding-top: 18px; border-top: 1px solid #ab987644; }
-.battle-rules summary { cursor: pointer; color: #475b49; font-weight: 700; }
+.battle-rules summary { cursor: pointer; color: #475b49; font-size: 19px; font-weight: 700; list-style: none; }
+.battle-rules summary::-webkit-details-marker { display: none; }
+.rules-title-label, .rules-back-label { display: none; }
+.battle-help:has(.battle-rules[open]) .settings-title-label,
+.battle-help:has(.battle-rules[open]) .rules-open-label,
+.battle-help:has(.battle-rules[open]) .journey-settings,
+.battle-help:has(.battle-rules[open]) .settings-row,
+.battle-help:has(.battle-rules[open]) > p,
+.battle-help:has(.battle-rules[open]) .settings-home-button { display: none; }
+.battle-help:has(.battle-rules[open]) .rules-title-label,
+.battle-help:has(.battle-rules[open]) .rules-back-label { display: inline; }
+.battle-help:has(.battle-rules[open]) .battle-rules { margin-top: 24px; padding-top: 0; border-top: 0; }
 .settings-home-button { width: 100%; margin-top: 10px; padding: 11px; border: 1px solid #a76f67; border-radius: 9px; background: transparent; color: #8d4e47; }
 .settings-home-button:hover { background: #a76f6712; }
 .action-pip {
