@@ -404,8 +404,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     $('room-exit').toggleAttribute('hidden', !cleared);
     elements.game.classList.toggle('exploring', cleared);
-    elements.end.hidden = cleared;
-    elements.actions.hidden = cleared;
     for (const { tile, point } of tiles) {
       const damage = room.damageAt(point, removedId),
         legal =
@@ -498,6 +496,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.game.setAttribute('aria-busy', 'true');
   }
   async function discardVisibleHand() {
+    // Once the cleared-room walking card is on screen, stale turn-end input
+    // must never send it through the combat-hand discard flow.
+    if (exploring() && renderedHand.length === 1 && renderedHand[0] === 'forward') return;
     const cards = [...elements.hand.querySelectorAll<HTMLElement>('.card')];
     for (const card of cards) {
       card.classList.remove('card-entering');
@@ -529,10 +530,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const blocked = room.preview(selected, destination)?.blocked ?? false;
     const action = room.move(selected, destination);
     if (!action) return;
-    if (room.won) {
-      elements.end.hidden = true;
-      elements.actions.hidden = true;
-    }
     lock();
     renderEnergy(paidEnergy);
     if (action.pickedKnife)
