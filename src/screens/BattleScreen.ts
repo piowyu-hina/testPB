@@ -50,11 +50,25 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     handSignature = '',
     renderedHand: string[] = [],
     dealWholeHand = true,
+    dealingHand = false,
+    dealSequence = 0,
     inspectedTile: Point | null = null,
     cardHoldTimer = 0,
     heldCard: HTMLButtonElement | null = null,
     dismissDetailsClick = false;
   const touchLayout = () => matchMedia('(hover: none) and (pointer: coarse)').matches;
+  function lockWhileCardsEnter(count: number) {
+    const sequence = ++dealSequence;
+    dealingHand = true;
+    elements.game.classList.add('dealing-hand');
+    elements.end.disabled = true;
+    void pause(360 + Math.max(0, count - 1) * 70).then(() => {
+      if (sequence !== dealSequence) return;
+      dealingHand = false;
+      elements.game.classList.remove('dealing-hand');
+      render();
+    });
+  }
   function showCardHint(card: CardDefinition, reason = '') {
     const name = document.createElement('strong');
     name.textContent = card.name;
@@ -575,6 +589,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     busy = false;
     render();
     if (action.pickedKnife) {
+      lockWhileCardsEnter(1 + Number(Boolean(action.drawn)));
       elements.hint.textContent = `撿回小刀 · 行動 +1 · ${action.drawn ? `抽到${data.cards[action.drawn].name}` : room.hand.length >= HAND_LIMIT ? '手牌已滿，未抽牌' : '牌堆已空'}`;
       await animate(elements.actions, [
         { transform: 'scale(1)' },
@@ -653,7 +668,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       }
   }
   async function enemyTurn() {
-    if (busy || room.finished) return;
+    if (busy || dealingHand || room.finished) return;
     lock();
     elements.endLabel.textContent = '敵方回合';
     await discardVisibleHand();
@@ -700,6 +715,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     busy = false;
     elements.endLabel.textContent = '結束回合';
     render();
+    if (!room.finished) lockWhileCardsEnter(room.availableCards.length);
     if (room.finished) showResult();
   }
   function showResult() {
@@ -725,6 +741,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     handSignature = '';
     renderedHand = [];
     dealWholeHand = true;
+    dealingHand = false;
+    dealSequence++;
+    elements.game.classList.remove('dealing-hand');
     elements.result.hidden = true;
     elements.game.inert = false;
     elements.hint.textContent = '';
@@ -750,6 +769,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     makeActor('hero', characters[session.characterId].image, characters[session.characterId].name, true);
     elements.ghost.querySelector<HTMLImageElement>('img')!.src = characters[session.characterId].image;
     render();
+    lockWhileCardsEnter(room.availableCards.length);
   }
   makeTiles();
   const help = $<HTMLDialogElement>('battle-help');

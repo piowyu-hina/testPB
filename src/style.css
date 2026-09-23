@@ -348,6 +348,9 @@ h1 {
     opacity 0.12s;
   touch-action: manipulation;
 }
+.dealing-hand .controls {
+  pointer-events: none;
+}
 .card.card-entering {
   animation: card-enter .34s calc(var(--entry-order, 0) * 70ms) cubic-bezier(.2,.72,.35,1) both;
 }
