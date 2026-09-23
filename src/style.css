@@ -165,7 +165,7 @@ h1 {
 .actions {
   position: absolute;
   right: 19px;
-  bottom: 101px;
+  bottom: 117px;
   z-index: 12;
   display: grid;
   place-items: center;
