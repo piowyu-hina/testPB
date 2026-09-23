@@ -87,7 +87,8 @@
 .village, .destination-screen { width: 696px; height: 1256px; min-height: 0; margin: 12px auto; }
 .village-header { padding: 22px 20px; }
 .village-art { object-position: 61% center; }
-.village-portrait { left: 50%; bottom: 12%; width: 100%; height: auto; aspect-ratio: 1; transform: translateX(-50%); }
+.village-portrait { left: 50%; top: 15%; bottom: auto; width: 116%; height: auto; aspect-ratio: 1; transform: translateX(-50%); }
+.village-portrait > img { object-position: center; }
 .village-footer { padding: 18px 20px; }
 .destination-screen { gap: 12px; }
 .destination-copy { left: 8%; right: 8%; top: 8%; width: auto; }
