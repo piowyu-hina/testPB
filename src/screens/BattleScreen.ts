@@ -151,7 +151,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           if (busy) return;
           const point: Point = [x, y];
           if (selected >= 0 && !(exploring() ? room.canExplore(selected, point) : room.canMove(selected, point))) {
-            selected = -1;
+            if (!exploring()) selected = -1;
             inspectedEnemy = room.at(point)?.id ?? -1;
             inspectedTile = touchLayout() ? point : null;
             render();
@@ -453,9 +453,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (touchLayout() && !inspectedTile)
       elements.touchInfo.replaceChildren(...Array.from(elements.hint.childNodes).map(node => node.cloneNode(true)));
   }
-  function lock() {
+  function lock(preserveSelection = false) {
     busy = true;
-    selected = -1;
+    if (!preserveSelection) selected = -1;
     hoveredTile = null;
     hoveredEnemy = -1;
     inspectedEnemy = -1;
@@ -476,7 +476,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     for (const card of root.querySelectorAll<HTMLButtonElement>('.card')) {
       card.disabled = true;
-      card.classList.remove('selected');
+      if (!preserveSelection) card.classList.remove('selected');
     }
     elements.game.setAttribute('aria-busy', 'true');
   }
@@ -574,10 +574,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       await discardVisibleHand();
       elements.game.classList.add('clearing-reveal');
       render();
-      await pause(680);
-      elements.game.classList.remove('clearing-reveal');
+      await pause(360);
       busy = false;
       render();
+      void pause(320).then(() => elements.game.classList.remove('clearing-reveal'));
       return;
     }
     if (room.finished) {
@@ -602,7 +602,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (busy || !exploring()) return;
     const action = room.explore(selected, destination);
     if (!action) return;
-    lock();
+    lock(true);
     playSound('step');
     await travel(actor('hero'), action.from, action.to, 9);
     if (equal(destination, journey.exit)) {
