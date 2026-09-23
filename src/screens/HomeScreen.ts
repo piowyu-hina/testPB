@@ -44,7 +44,6 @@ export function mountHome(host: HTMLElement, session: GameSession, onStart: () =
   }
   function renderCharacter() {
     const selected = characters[session.characterId];
-    $('hero-name').textContent = selected.name;
     portrait.alt = `${selected.name}立繪`;
     if (selected.idleFrames?.length) startIdleAnimation(selected.idleFrames);
     else { stopIdleAnimation(); portrait.src = selected.portrait; }
