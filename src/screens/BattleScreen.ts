@@ -893,7 +893,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   onClick($('close-battle-help'), () => help.close());
   onClick(elements.end, () => exploring() ? redrawExplorationCard() : enemyTurn());
   elements.actions.addEventListener('pointerenter', () => {
-    if (!touchLayout() && journey.loadout === 'rogue' && !exploring()) showUltimateHint();
+    if (!touchLayout() && journey.loadout === 'rogue') showUltimateHint();
   });
   elements.actions.addEventListener('pointerleave', () => {
     if (!touchLayout()) render();
@@ -914,7 +914,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       ultimateHeld = false;
       return;
     }
-    if (busy || exploring() || journey.loadout !== 'rogue') return;
+    if (busy || journey.loadout !== 'rogue') return;
+    if (exploring()) {
+      showUltimateHint();
+      return;
+    }
     if (journey.assassination < 3) {
       showUltimateHint();
       return;
