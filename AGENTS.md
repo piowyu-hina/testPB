@@ -13,6 +13,7 @@
 - Keep UI minimal. Reuse the approved PNG art; when new art is requested, use built-in imagegen with broad silhouettes and few details.
 - Judge character art by its proportions, readability, and intended game style, not color matching the current background (the user will replace it). Earlier white-haired catgirl art is documented in docs/history/art/CatgirlPortraitTrial.md and docs/history/art/CatgirlHead.md; active artwork is listed in docs/history/art/RogueArtTrial.md.
 - Card data and rules must stay separate from rendering. Preview must match the committed result.
+- Battle-only styling lives in src/battleBoard.css, battleHud.css, battleCards.css, and battleDialogs.css (all imported from BattleScreen.ts, split by concern: board/tiles/actors, health/energy/ultimate meter, hand/cards, help/journey/result dialogs). src/style.css is loaded globally from main.ts and should only hold rules shared across screens (page shell, :root vars, bare-tag resets like h1/h2/button) — don't add battle-specific rules back there.
 - Active board art is in assets/characters/luxue/ and assets/characters/lianmiao/. Earlier trials are in art-previews/ and docs/history/art/.
 - For code/gameplay changes, verify with npm test, typecheck, browser pointer checks and a real Tauri window. For image-only replacements, skip test suites: inspect the image and verify it in the running development window.
 - Save local Git checkpoints. Do not publish remotely or create ZIP packages unless requested.

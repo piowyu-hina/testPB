@@ -1,0 +1,68 @@
+.settings-dialog.battle-help { width: 720px; height: 1280px; max-width: none; max-height: none; overflow: hidden; padding: 52px 54px; border: 0; border-radius: 0; box-shadow: none; }
+.settings-dialog.battle-help::backdrop { background: #101514; backdrop-filter: none; }
+.battle-help .settings-heading h2 { font-size: 36px; }
+.battle-help .settings-heading .quiet-button { font-size: 21px; }
+.battle-help .settings-row { margin: 36px 0; padding-top: 30px; }
+.battle-help .settings-row strong, .journey-settings-title strong { font-size: 24px; }
+.battle-help .settings-row p { font-size: 19px; }
+.battle-help .sound-toggle { min-width: 78px; padding: 10px 16px; font-size: 20px; }
+.battle-help ol { columns: 1; padding-left: 32px; line-height: 1.58; font-size: 20px; }
+.battle-help li { margin-bottom: 18px; padding-left: 5px; }
+.battle-help > p { font-size: 17px; line-height: 1.6; }
+.journey-settings { margin-top: 34px; padding: 25px 26px; border: 1px solid #ab987655; border-radius: 12px; background: #fff9ec88; }
+.journey-settings-title { display: flex; justify-content: space-between; align-items: center; color: #475b49; }
+.journey-settings-title span { color: #77705e; font-size: 18px; }
+.journey-progress { position: relative; display: flex; align-items: center; justify-content: space-between; margin-top: 24px; }
+.journey-progress::before { content: ''; position: absolute; left: 9px; right: 9px; top: 8px; height: 2px; background: #b9ae98; }
+.journey-node { position: relative; z-index: 1; width: 18px; height: 18px; flex: 0 0 18px; border: 2px solid #9a907b; border-radius: 50%; background: #f5efdf; }
+.journey-node.complete { border-color: #587a65; background: #587a65; }
+.journey-node.current { border-color: #c49b45; background: #f4cc72; box-shadow: 0 0 0 5px #e7bd5b30, 0 0 12px #d5a64277; }
+.journey-node.final { border-radius: 3px; transform: rotate(45deg); }
+.battle-rules { margin-top: 30px; padding-top: 26px; border-top: 1px solid #ab987644; }
+.battle-rules summary { cursor: pointer; color: #475b49; font-size: 22px; font-weight: 700; list-style: none; }
+.battle-rules summary::-webkit-details-marker { display: none; }
+.rules-title-label, .rules-back-label { display: none; }
+.battle-help:has(.battle-rules[open]) .settings-title-label,
+.battle-help:has(.battle-rules[open]) .rules-open-label,
+.battle-help:has(.battle-rules[open]) .journey-settings,
+.battle-help:has(.battle-rules[open]) .settings-row,
+.battle-help:has(.battle-rules[open]) > p,
+.battle-help:has(.battle-rules[open]) .settings-home-button { display: none; }
+.battle-help:has(.battle-rules[open]) .rules-title-label,
+.battle-help:has(.battle-rules[open]) .rules-back-label { display: inline; }
+.battle-help:has(.battle-rules[open]) .battle-rules { margin-top: 24px; padding-top: 0; border-top: 0; }
+.settings-home-button { width: 100%; margin-top: 18px; padding: 15px; border: 1px solid #a76f67; border-radius: 9px; background: transparent; color: #8d4e47; font-size: 19px; }
+.settings-home-button:hover { background: #a76f6712; }
+.modal {
+  position: fixed;
+  inset: 0;
+  background: #243a32aa;
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  z-index: 20;
+  padding: 20px;
+}
+.result-panel {
+  width: min(340px, 100%);
+  padding: 34px 24px;
+  background: var(--paper);
+  border: 1px solid #a8926c;
+  border-radius: 18px;
+  text-align: center;
+  box-shadow:
+    inset 0 0 0 6px #f5ecda,
+    inset 0 0 0 7px #caba9980,
+    0 16px 60px #09151944;
+}
+.result-panel button {
+  border: 0;
+  background: var(--teal);
+  color: var(--paper);
+  border-radius: 15px;
+  font-size: 22px;
+  padding: 14px 38px;
+}
+.result-panel button:hover {
+  background: #315c50;
+}

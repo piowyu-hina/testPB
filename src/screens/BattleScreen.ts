@@ -15,6 +15,10 @@ import { enemySkill, blocksAttack } from '../battle/EnemyRules';
 import { enemySummary } from '../ui/enemyInfo';
 import { playSound, setSoundEnabled, soundEnabled } from '../ui/sound';
 import '../enemy.css';
+import '../battleBoard.css';
+import '../battleHud.css';
+import '../battleCards.css';
+import '../battleDialogs.css';
 
 export function mountBattle(host: HTMLElement, session: GameSession, onHome: () => void): Screen {
   const root = mountScreenRoot(host, template);
