@@ -516,6 +516,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const exitPosition = room.hero.slice() as Point;
       const pushedTo = journey.clearOccupiedExit();
       if (pushedTo) await travel(actor('hero'), exitPosition, pushedTo, 0);
+      await pause(1000);
       elements.game.classList.add('clearing-reveal');
       render();
       await pause(680);
