@@ -499,6 +499,16 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     if (action.removedId >= 0) {
       const victim = actor(action.removedId);
+      await animate(
+        victim,
+        [
+          { opacity: 1, transform: 'translate(-50%, -50%) scale(1)' },
+          { opacity: 1, transform: 'translate(-50%, -53%) scale(.96)', offset: .32 },
+          { opacity: 0, transform: 'translate(-50%, -42%) scale(.74)' }
+        ],
+        300,
+        'cubic-bezier(.3,.05,.65,1)'
+      );
       victim.remove();
       actors.delete(action.removedId);
     }
