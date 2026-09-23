@@ -47,8 +47,6 @@
 }
 .game { width: var(--board); margin: 0 auto; padding: 12px 0 8px; }
 .heading .quiet-button, #turn { font-size: 26px; }
-.actions small { font-size: 24px; }
-.game .action-pip { width: 18px; height: 24px; }
 .heading { margin-bottom: 12px; }
 .status { margin-bottom: 12px; }
 .controls { margin-top: 36px; padding: 0; gap: 10px; align-items: flex-end; justify-content: flex-start; }

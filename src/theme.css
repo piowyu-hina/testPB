@@ -46,12 +46,6 @@
   color: #f1f1f2;
   border-color: #53545a;
 }
-[data-theme='dark'] .action-pip {
-  background: #b4c2d0;
-}
-[data-theme='dark'] .action-pip.empty {
-  background: #45464c;
-}
 [data-theme='dark'] .heart.empty {
   fill: #45464c;
 }

@@ -207,6 +207,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         if (index) card.style.marginLeft = 'calc(-1 * var(--card-overlap))';
         card.style.zIndex = String(index + 1);
         card.setAttribute('aria-label', definition.name);
+        const cost = document.createElement('span');
+        cost.className = 'card-cost';
+        const costValue = id === 'forward' ? 0 : definition.cost ?? 1;
+        cost.innerHTML = `<span>${costValue}</span>`;
+        card.append(cost);
         const illustration = id === 'forward' && room.loadout !== 'rogue' ? undefined : cardArt[id];
         if (illustration) {
           const image = document.createElement('img');
@@ -294,7 +299,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const index = Number(card.dataset.index);
       const reason = card.dataset.card === 'shadow' ? shadowRequirement(index) : '';
       const shadowUnavailable = Boolean(reason);
+      const cost = card.dataset.card === 'forward' ? 0 : room.cardCost(index);
       card.classList.toggle('shadow-unavailable', shadowUnavailable);
+      card.classList.toggle('energy-unavailable', !exploring() && room.actions < cost);
       card.setAttribute('aria-label', reason ? `追影，${reason}` : data.cards[room.availableCards[index]].name);
       card.classList.toggle('selected', index === selected);
       card.setAttribute('aria-pressed', String(index === selected));
@@ -437,11 +444,15 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.ghost.hidden = !preview || chosenId === 'throw';
     if (preview) place(elements.ghost, preview.destination);
     renderHealth(room.finished || busy ? 0 : preview ? preview.damage : room.damageAt(room.hero));
-    elements.actions.innerHTML = `<small>行動 ${room.actions}/2</small>` + Array.from(
-      { length: 2 },
-      (_, i) => `<span class="action-pip${i >= room.actions || busy ? ' empty' : ''}"></span>`
-    ).join('');
-    elements.actions.setAttribute('aria-label', `剩餘 ${room.actions} 次行動`);
+    const previousActions = Number(elements.actions.dataset.value);
+    elements.actions.dataset.value = String(room.actions);
+    elements.actions.innerHTML = `<span class="energy-count">${room.actions}</span>`;
+    elements.actions.setAttribute('aria-label', `剩餘 ${room.actions} 點能量`);
+    if (Number.isFinite(previousActions) && previousActions !== room.actions) {
+      elements.actions.classList.remove('energy-gain', 'energy-spend');
+      void elements.actions.offsetWidth;
+      elements.actions.classList.add(room.actions > previousActions ? 'energy-gain' : 'energy-spend');
+    }
     elements.turn.textContent = cleared ? '' : `第 ${room.turn} 回合`;
     elements.end.disabled = busy || room.finished;
     $<HTMLButtonElement>('back-home').disabled = busy;
@@ -591,11 +602,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (action.pickedKnife) {
       lockWhileCardsEnter(1 + Number(Boolean(action.drawn)));
       elements.hint.textContent = `撿回小刀 · 行動 +1 · ${action.drawn ? `抽到${data.cards[action.drawn].name}` : room.hand.length >= HAND_LIMIT ? '手牌已滿，未抽牌' : '牌堆已空'}`;
-      await animate(elements.actions, [
-        { transform: 'scale(1)' },
-        { transform: 'scale(1.22)', offset: 0.4 },
-        { transform: 'scale(1)' }
-      ], 320);
     }
   }
   async function walk(destination: Point) {
