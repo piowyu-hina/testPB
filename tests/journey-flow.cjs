@@ -17,7 +17,7 @@ module.exports = async function playJourney(page, output, prefix = '', loadout =
   for (let stage = 0; stage < run.total; stage++) {
     const model = run.room;
     assert.equal(await page.locator('#health .empty').count(), 5 - model.health);
-    if (stage === 0) {
+    if (stage === 1) {
       assert.equal(await page.locator('#actors .actor.guarding .guard-shield').count(), 1);
       assert.equal(await page.locator('#actors .actor.guarding .guard-shield').first().isVisible(), true);
       await page.locator('.tile[data-x="1"][data-y="3"]').click();
@@ -31,7 +31,7 @@ module.exports = async function playJourney(page, output, prefix = '', loadout =
       await page.screenshot({ path: path.join(output, `${prefix}guard-roots.png`) });
       await page.locator('.tile[data-x="3"][data-y="3"]').click();
     }
-    if (stage === 1) {
+    if (stage === 2) {
       assert.equal(await page.locator('.elite-crown').count(), 1);
       await page.screenshot({ path: path.join(output, `${prefix}elite-room.png`) });
     }

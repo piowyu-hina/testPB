@@ -107,21 +107,23 @@ h1 {
   opacity: .16;
   animation: exit-mist-rise 3.4s ease-in-out infinite;
 }
-.exit-mist.mist-two { animation-delay: -1.7s; }
+.exit-mist.mist-two { animation-delay: .45s; }
 .exit-leaf {
   fill: #708d55;
   stroke: #405f3f;
   stroke-width: 2;
   transform-box: fill-box;
   transform-origin: center;
-  animation: exit-leaf-drift 2.8s ease-in infinite;
+  opacity: 0;
+  animation: exit-leaf-drift 2.4s ease-in infinite;
 }
-.exit-leaf.leaf-two { animation-delay: -.7s; }
-.exit-leaf.leaf-three { animation-delay: -1.45s; }
-.exit-leaf.leaf-four { animation-delay: -2.1s; }
+.exit-leaf.leaf-two { animation-delay: .22s; }
+.exit-leaf.leaf-three { animation-delay: .48s; }
+.exit-leaf.leaf-four { animation-delay: .76s; }
 @keyframes exit-leaf-drift {
   0% { opacity: 0; transform: translate(0, 22px) rotate(-12deg); }
-  20% { opacity: .85; }
+  9% { opacity: .85; }
+  76% { opacity: .72; }
   100% { opacity: 0; transform: translate(13px, -72px) rotate(75deg); }
 }
 @keyframes exit-mist-rise {
@@ -220,10 +222,6 @@ h1 {
 .tile[data-danger='2'] { --risk-center: #c65a4f95; --risk-edge: #bb514264; }
 .tile[data-danger='3'] { --risk-center: #b8433fba; --risk-edge: #aa3b3786; }
 .tile.danger { background: radial-gradient(ellipse at center, var(--risk-center), var(--risk-edge) 66%, transparent 82%); }
-.clearing-settle .tile.danger {
-  opacity: 0;
-  transition: opacity .24s ease-out;
-}
 .tile.focus-threat { box-shadow: inset 0 0 0 3px #b9665a99; }
 .tile.legal:after {
   content: '';
@@ -304,10 +302,10 @@ h1 {
   visibility: hidden;
 }
 .clearing-reveal .exit-breeze:not([hidden]) {
-  animation: clearing-cue-in .48s ease-out both;
+  animation: clearing-cue-in .62s ease-out both;
 }
 .clearing-reveal .card[data-card='forward'] {
-  animation: clearing-card-in .34s .26s ease-out both;
+  animation: clearing-card-in .34s .3s ease-out both;
 }
 @keyframes clearing-cue-in {
   from { opacity: 0; transform: translateY(18px); }

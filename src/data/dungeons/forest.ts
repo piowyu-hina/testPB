@@ -8,7 +8,8 @@ export const forestRuins: DungeonDefinition = {
   name: '森林遺跡',
   subtitle: '第一章 · 林蔭深處',
   description: '沿著被苔蘚覆蓋的石徑，穿過林間伏擊。古老遺跡的守衛，正等在旅途盡頭。',
-  // Skip the introductory room while testing the guard encounter; keep its data here for later restoration.
+  // Keep the original introductory room in data for later restoration. The active route starts
+  // with a one-enemy encounter so combat and room-clear feedback are quick to test.
   startIndex: 1,
   rooms: [
     {
@@ -19,6 +20,13 @@ export const forestRuins: DungeonDefinition = {
         { id: 1, kind: 'sprout', position: [0, 3] },
         { id: 2, kind: 'sprout', position: [4, 3] },
         { id: 3, kind: 'sprout', position: [3, 4] }
+      ]
+    },
+    {
+      name: '林緣遭遇',
+      hero: [2, 0],
+      enemies: [
+        { id: 0, kind: 'sprout', position: [2, 2] }
       ]
     },
     {
