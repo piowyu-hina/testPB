@@ -35,7 +35,7 @@
 .tile-info span + span { margin-top: 2px; }
 .tile-info[hidden] { display: none; }
 .touch-info { display: none; font-size: 24px; }
-.card-details { position: absolute; z-index: 19; top: 0; left: 0; width: 100%; max-height: 360px; overflow-y: auto; box-sizing: border-box; padding: 16px 18px; border: 1px solid #bbaa86; border-radius: 12px; background: #fff9eb; color: #383b40; box-shadow: 0 12px 28px #111b1a77; text-align: left; }
+.card-details { position: absolute; z-index: 19; top: 0; left: 0; width: 100%; max-height: 360px; overflow: hidden; box-sizing: border-box; padding: 16px 18px; border: 1px solid #bbaa86; border-radius: 12px; background: #fff9eb; color: #383b40; box-shadow: 0 12px 28px #111b1a77; text-align: left; }
 .card-details strong { display: block; font-size: 17px; }
 .card-details p { margin: 8px 0; line-height: 1.55; font-size: 14px; }
 .card-details small { color: #55695c; }
@@ -49,7 +49,7 @@
 .heading .quiet-button, #turn { font-size: 26px; }
 .heading { margin-bottom: 12px; }
 .status { margin-bottom: 12px; }
-.controls { margin-top: 36px; padding: 0; gap: 10px; align-items: flex-end; justify-content: flex-start; }
+.controls { margin-top: 64px; padding: 0; gap: 10px; align-items: flex-end; justify-content: flex-start; }
 .game .hand { flex: none; justify-content: center; width: auto; gap: 8px; height: 205px; min-height: 205px; }
 .game .hand .card { box-sizing: border-box; flex: 0 0 var(--hand-card-width, 150px); width: var(--hand-card-width, 150px); max-width: none; height: 205px; aspect-ratio: auto; padding: 9px 7px 8px; }
 .end-turn { position: absolute; right: 0; bottom: 0; }

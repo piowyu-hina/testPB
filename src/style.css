@@ -225,9 +225,9 @@ h1 {
   0%, 100% { transform: rotate(45deg) scale(1); }
   50% { transform: rotate(45deg) scale(.86); filter: brightness(.82); }
 }
-.battle-help { width: min(560px, calc(100vw - 32px)); max-height: 88svh; overflow: auto; }
-.battle-help ol { padding-left: 22px; line-height: 1.8; font-size: 14px; }
-.battle-help li { margin-bottom: 12px; }
+.battle-help { width: min(610px, calc(100vw - 32px)); max-height: none; overflow: hidden; }
+.battle-help ol { columns: 2; column-gap: 34px; padding-left: 22px; line-height: 1.55; font-size: 13px; }
+.battle-help li { break-inside: avoid; margin-bottom: 9px; padding-right: 4px; }
 .battle-help p { font-size: 12px; line-height: 1.6; }
 .journey-settings { margin-top: 24px; padding: 18px 20px; border: 1px solid #ab987655; border-radius: 12px; background: #fff9ec88; }
 .journey-settings-title { display: flex; justify-content: space-between; align-items: center; color: #475b49; }
@@ -391,7 +391,7 @@ h1 {
 }
 .controls {
   position: relative;
-  margin-top: clamp(26px, 3.8vh, 38px);
+  margin-top: 64px;
   padding: 0 6%;
   display: flex;
   align-items: center;
@@ -478,8 +478,8 @@ h1 {
 .card-cost {
   position: absolute;
   z-index: 3;
-  top: 12px;
-  right: 12px;
+  top: -16px;
+  left: 50%;
   display: grid;
   place-items: center;
   width: 31px;
@@ -493,7 +493,7 @@ h1 {
   line-height: 1;
   text-shadow: 0 1px 1px #245777;
   box-shadow: 0 2px 0 #285e84, 0 3px 7px #1e425c3d;
-  transform: rotate(45deg);
+  transform: translateX(-50%) rotate(45deg);
 }
 .card-cost > span { transform: rotate(-45deg); }
 .card:disabled {
