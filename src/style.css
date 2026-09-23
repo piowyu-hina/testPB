@@ -89,36 +89,49 @@ h1 {
 .exploring .tile.legal:not(:disabled):hover {
   background: #b9ddaa55;
 }
-.exit-door {
+.exit-breeze {
   position: absolute;
-  width: 84%;
-  height: 94%;
-  left: 8%;
-  top: 1%;
+  width: 30%;
+  height: 24%;
+  left: 35%;
+  top: -10%;
+  z-index: 1;
+  overflow: visible;
   pointer-events: none;
 }
-.door-shadow { fill: #162f26a8; }
-.door-frame {
-  fill: #aaa98e;
-  stroke: #4e624f;
-  stroke-width: 4;
-  stroke-linejoin: round;
+.exit-mist {
+  fill: none;
+  stroke: #d5dcc6;
+  stroke-width: 7;
+  stroke-linecap: round;
+  opacity: .16;
+  animation: exit-mist-rise 3.4s ease-in-out infinite;
 }
-.door-interior {
-  fill: #213b34;
+.exit-mist.mist-two { animation-delay: -1.7s; }
+.exit-leaf {
+  fill: #708d55;
+  stroke: #405f3f;
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: exit-leaf-drift 2.8s ease-in infinite;
 }
-.door-stone-lines { fill: none; stroke: #68765e; stroke-width: 2.5; stroke-linecap: round; }
-.door-moss { fill: none; stroke: #5e844a; stroke-width: 7; stroke-linecap: round; }
-.door-vine { fill: none; stroke: #416a46; stroke-width: 3; stroke-linecap: round; }
-.door-leaves { fill: #62894f; stroke: #3d6441; stroke-width: 1.4; }
-.door-step {
-  fill: #bcb99b;
-  stroke: #53634e;
-  stroke-width: 3;
+.exit-leaf.leaf-two { animation-delay: -.7s; }
+.exit-leaf.leaf-three { animation-delay: -1.45s; }
+.exit-leaf.leaf-four { animation-delay: -2.1s; }
+@keyframes exit-leaf-drift {
+  0% { opacity: 0; transform: translate(0, 22px) rotate(-12deg); }
+  20% { opacity: .85; }
+  100% { opacity: 0; transform: translate(13px, -72px) rotate(75deg); }
 }
-.door-step-line { fill: none; stroke: #69755c; stroke-width: 2; }
+@keyframes exit-mist-rise {
+  0%, 100% { opacity: .05; transform: translateY(10px) scaleX(.86); }
+  50% { opacity: .2; transform: translateY(-12px) scaleX(1); }
+}
 
-.tile.exit-tile { background: transparent; }
+.tile.exit-tile {
+  background: linear-gradient(180deg, #172a214f 0%, #2942331f 48%, transparent 78%);
+}
 .elite-crown {
   position: absolute;
   top: -7%;
@@ -185,6 +198,8 @@ h1 {
   border-radius: 5px;
 }
 .tiles {
+  position: relative;
+  z-index: 2;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: repeat(5, 1fr);
@@ -247,6 +262,7 @@ h1 {
 .actors {
   position: absolute;
   inset: 0;
+  z-index: 3;
   pointer-events: none;
 }
 .actor {

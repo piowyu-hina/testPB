@@ -109,22 +109,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         tile.className = 'tile';
         tile.dataset.x = String(x);
         tile.dataset.y = String(y);
-        if (x === 2 && y === 4) {
-          tile.insertAdjacentHTML(
-            'beforeend',
-            `<svg id="room-exit" class="exit-door" viewBox="0 0 100 100" aria-hidden="true" hidden>
-              <ellipse class="door-shadow" cx="50" cy="87" rx="43" ry="10"/>
-              <path class="door-interior" d="M24 84V43a26 26 0 0 1 52 0v41Z"/>
-              <path class="door-frame" d="M8 83V43a42 42 0 0 1 84 0v40H75V43a25 25 0 0 0-50 0v40Z"/>
-              <path class="door-stone-lines" d="M10 64h15m50 0h15M12 42h14m48 0h14M20 17l13 12m47-12L67 29M49 2v16M8 83h17m50 0h17"/>
-              <path class="door-moss" d="M8 52q8-5 17 1M13 27q9-4 15 2M71 18q8-5 14 1M75 73q7-4 17 1"/>
-              <path class="door-vine" d="M5 23q12 1 15 15t-4 23M93 28q-13 4-13 19t8 23"/>
-              <path class="door-leaves" d="M14 36q-10-8-12-2 5 8 12 2Zm6 18q7-9 12-4-3 9-12 4Zm62-13q5-9 11-5-1 8-11 5Zm1 21q-8-7-12-2 5 8 12 2Z"/>
-              <path class="door-step" d="M20 80h60l9 9H11Z"/>
-              <path class="door-step-line" d="M25 84h50M17 89h66"/>
-            </svg>`
-          );
-        }
         tile.addEventListener('pointerenter', () => {
           if (touchLayout()) return;
           if (busy || (room.finished && !exploring())) return;
@@ -547,7 +531,20 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     lock();
     playSound('step');
     await travel(actor('hero'), action.from, action.to, 9);
-    if (equal(destination, journey.exit)) await advanceRoom();
+    if (equal(destination, journey.exit)) {
+      const hero = actor('hero');
+      await animate(
+        hero,
+        [
+          { opacity: 1, transform: 'translate(-50%, -50%)' },
+          { opacity: 0, transform: 'translate(-42%, -180%)' }
+        ],
+        240,
+        'cubic-bezier(.35,.1,.7,1)'
+      );
+      hero.style.opacity = '0';
+      await advanceRoom();
+    }
     busy = false;
     render();
   }
