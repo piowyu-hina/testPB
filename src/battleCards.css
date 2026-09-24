@@ -1,7 +1,7 @@
 .controls {
   position: relative;
   margin-top: 15px;
-  padding: 0 6%;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -147,18 +147,19 @@
 }
 .end-turn {
   position: absolute;
-  right: 0;
-  bottom: 0;
+  right: 18px;
+  top: 50%;
   display: grid;
   place-items: center;
-  width: 84px;
-  height: 84px;
+  width: 70px;
+  height: 70px;
   padding: 0;
   border: 1px solid #aa9f8c;
   border-radius: 14px;
   background: #e9e4d9;
   color: #4c4b48;
   box-shadow: 0 4px 0 #988e7e;
+  transform: translateY(-50%);
 }
 .end-turn svg { width: 47px; height: 47px; fill: none; stroke: currentColor; stroke-width: 2.7; stroke-linecap: round; stroke-linejoin: round; }
 .end-turn .hourglass-sand { fill: currentColor; stroke: none; }

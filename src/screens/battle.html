@@ -31,9 +31,6 @@
       <div class="character-status" aria-label="玩家資訊">
         <div id="health" class="health" aria-label="玩家生命"></div>
         <div class="character-status-resources"><span id="energy-count" class="status-energy" role="img" aria-label="剩餘行動 2 / 2"><span class="action-pip"></span><span class="action-pip"></span></span><button type="button" id="actions" class="actions" aria-label="絕影，殺意 0 / 3" tabindex="-1"><span class="ultimate-name">絕影</span><span class="ultimate-charge"><strong id="ultimate-charge">0/3</strong></span></button></div>
-      </div>
-      <section class="controls" aria-label="手牌與回合">
-        <div class="hand" id="hand"></div>
         <button type="button" class="end-turn" id="end-turn" tabindex="-1" aria-labelledby="end-label" title="結束回合">
           <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
             <path d="M12 7h24M12 41h24M16 8v6c0 5 8 9 8 10s-8 5-8 10v6M32 8v6c0 5-8 9-8 10s8 5 8 10v6" />
@@ -41,6 +38,9 @@
           </svg>
           <span id="end-label">結束回合</span>
         </button>
+      </div>
+      <section class="controls" aria-label="手牌與回合">
+        <div class="hand" id="hand"></div>
       </section>
       <dialog id="battle-help" class="settings-dialog battle-help" aria-labelledby="battle-help-title">
         <div class="settings-heading"><h2 id="battle-help-title"><span class="settings-title-label">設定</span><span class="rules-title-label">玩法說明</span></h2><button id="close-battle-help" class="quiet-button" type="button" tabindex="-1">繼續遊戲</button></div>

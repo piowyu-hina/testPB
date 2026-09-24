@@ -345,7 +345,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const handCount = room.availableCards.length;
     const cardWidth = 160;
     const naturalWidth = handCount * cardWidth + Math.max(0, handCount - 1) * 8;
-    const handWidth = exploring() ? 680 : 586; // Leave a fixed 84px turn button and 10px gap on the right.
+    const handWidth = 680;
     elements.hand.style.width = `${handWidth}px`;
     elements.hand.style.setProperty('--hand-card-width', `${cardWidth}px`);
     elements.hand.style.setProperty('--card-overlap', `${Math.max(0, Math.ceil((naturalWidth - handWidth) / Math.max(1, handCount - 1)))}px`);
