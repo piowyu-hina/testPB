@@ -22,6 +22,7 @@ import '../battleDialogs.css';
 
 export function mountBattle(host: HTMLElement, session: GameSession, onHome: () => void): Screen {
   const root = mountScreenRoot(host, template);
+  root.classList.add('battle-screen');
   const $ = <T extends HTMLElement = HTMLElement>(id: string) => element<T>(id, root);
   const elements = {
     game: $('game'),

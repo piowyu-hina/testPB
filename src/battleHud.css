@@ -1,3 +1,9 @@
+.screen-root.battle-screen {
+  background:
+    linear-gradient(180deg, #17251bd9 0%, #15251cc4 42%, #111b17e8 100%),
+    url('../assets/scenes/forest/ForestRuins.png') 60% center / cover no-repeat;
+}
+
 .game {
   width: var(--board);
   padding: 20px 0 10px;
