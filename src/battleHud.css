@@ -28,13 +28,12 @@
 .status-energy strong { margin-left: 6px; font-size: 28px; color: #fff; }
 .health {
   display: flex;
-  gap: 8px;
+  gap: 2px;
 }
-.health .heart { width: 32px; height: 32px; filter: drop-shadow(0 2px 4px #080e09); }
+.health .health-segment { width: 32px; height: 20px; }
 .tile-info strong:has(.enemy-life), .touch-info strong:has(.enemy-life) { display: flex; align-items: center; gap: 18px; }
-.tile-info .enemy-life, .touch-info .enemy-life { display: inline-flex; align-items: center; gap: 5px; margin: 0; }
-.enemy-life .heart { width: 28px; height: 28px; fill: #d96e66; filter: drop-shadow(0 2px 4px #09140c); }
-.enemy-life .heart.empty { fill: #77746b; }
+.tile-info .enemy-life, .touch-info .enemy-life { display: inline-flex; align-items: center; gap: 2px; margin: 0; }
+.enemy-life .health-segment { width: 32px; height: 20px; }
 .battle-settings-button {
   display: grid;
   place-items: center;
@@ -48,20 +47,9 @@
 }
 .battle-settings-button:hover { background: #b4a48722; }
 .battle-settings-button svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.heart {
-  width: clamp(17px, 2.7vh, 27px);
-  height: clamp(17px, 2.7vh, 27px);
-  fill: var(--red);
-}
-.heart.empty {
-  fill: #cfc6b4;
-}
-.heart.forecast {
-  fill: #e3c0ac;
-  stroke: var(--red);
-  stroke-width: 1.7;
-  stroke-dasharray: 3 2;
-}
+.health-segment { display: block; flex: none; border: 1px solid #9d4d47; border-radius: 3px; background: linear-gradient(180deg, #f19383, #bc5650); box-shadow: inset 0 1px #ffd3b2aa, 0 2px 5px #070f0a88; }
+.health-segment.empty { border-color: #766e64; background: #514f49; box-shadow: inset 0 1px #a29a8666; }
+.health-segment.forecast { border-color: #eac7a6; background: repeating-linear-gradient(135deg, #c9675f 0 5px, #e8b6a1 5px 9px); }
 .actions {
   position: relative;
   min-width: 154px;
@@ -126,4 +114,3 @@
 .action-pip.empty {
   background: #cfc6b4;
 }
-.heart { width: 27px; height: 27px; }

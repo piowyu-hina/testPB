@@ -45,8 +45,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     result: $('result'),
     resultTitle: $('result-title')
   };
-  const heart =
-    '<svg class="heart" viewBox="0 0 32 30" aria-hidden="true"><path d="M16 27C12 23 2 16 2 9C2 1 12-1 16 6C20-1 30 1 30 9C30 16 20 23 16 27Z"/></svg>';
+  const healthSegment = '<span class="health-segment" aria-hidden="true"></span>';
   let journey: Journey,
     room: Room,
     selected = -1,
@@ -359,7 +358,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     });
   }
   function renderHealth(incoming = 0) {
-    elements.health.innerHTML = heart.repeat(5);
+    elements.health.innerHTML = healthSegment.repeat(5);
     [...elements.health.children].forEach((node, index) => {
       node.classList.toggle('empty', index >= room.health);
       node.classList.toggle('forecast', index < room.health && index >= room.health - incoming);
@@ -427,7 +426,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       life.setAttribute('role', 'img');
       life.setAttribute('aria-label', `生命 ${enemy.health ?? 1} / ${enemy.maxHealth ?? (enemy.elite ? 2 : 1)}`);
       const maximum = enemy.maxHealth ?? (enemy.elite ? 2 : 1);
-      life.innerHTML = heart.repeat(maximum);
+      life.innerHTML = healthSegment.repeat(maximum);
       [...life.children].forEach((node, index) => node.classList.toggle('empty', index >= (enemy.health ?? 1)));
       heading.append(life);
     }

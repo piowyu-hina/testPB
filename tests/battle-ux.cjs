@@ -10,7 +10,7 @@ module.exports = async function checkBattleUx(page) {
   assert.match(await page.locator('#hint').textContent(), /不可穿越敵人/);
   await page.locator('.tile[data-x="2"][data-y="2"]').hover();
   assert.match(await page.locator('#tile-info').innerText(), /刺芽團子/);
-  assert.equal(await page.locator('#tile-info .enemy-life .heart').count(), 1);
+  assert.equal(await page.locator('#tile-info .enemy-life .health-segment').count(), 1);
   assert.equal(await page.locator('#tile-info .enemy-life').getAttribute('aria-label'), '生命 1 / 1');
   assert.equal(await page.locator('#hint').isVisible(), false);
   assert.match(await page.locator('#tile-info').innerText(), /攻擊上下左右相鄰格/);
