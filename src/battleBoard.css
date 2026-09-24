@@ -77,7 +77,15 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1;
-  background: #344b3c url('../assets/tiles/ForestFloor.svg') center / 100% 100% no-repeat;
+  background-color: #899581;
+  background-image:
+    linear-gradient(to right, #405b49 0 3px, transparent 3px),
+    linear-gradient(to bottom, #405b49 0 3px, transparent 3px),
+    url('../assets/tiles/ForestFloorPainted.png');
+  background-size: 20% 100%, 100% 20%, cover;
+  background-repeat: repeat-x, repeat-y, no-repeat;
+  background-position: left top, left top, center;
+  box-shadow: inset -3px -3px #405b49;
   border-radius: 5px;
 }
 .tiles {
