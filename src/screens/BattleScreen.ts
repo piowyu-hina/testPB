@@ -29,6 +29,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     board: $('board'),
     tiles: $('tiles'),
     actors: $('actors'),
+    threatMarks: $('threat-marks'),
     tileInfo: $('tile-info'),
     touchInfo: $('touch-info'),
     cardDetails: $('card-details'),
@@ -459,10 +460,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     $('room-exit').toggleAttribute('hidden', !cleared);
     elements.game.classList.toggle('exploring', cleared);
+    const threatMarks = document.createDocumentFragment();
     for (const { tile, point } of tiles) {
       const damage = room.damageAt(point, removedId),
         legal =
-          !busy && (cleared ? room.canExplore(selected, point) : room.canMove(selected, point));
+          !busy && (cleared ? room.canExplore(selected, point) : room.canMove(selected, point)),
+        threatened = Boolean(focus && Room.threatens(focus, point));
       tile.classList.toggle('danger', damage > 0);
       tile.dataset.danger = String(Math.min(damage, 3));
       tile.classList.toggle('legal', legal);
@@ -471,7 +474,13 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       tile.classList.toggle('ultimate-target', ultimateTargeting && Boolean(room.at(point)));
       tile.classList.toggle('blocked', legal && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
       tile.classList.toggle('landing', Boolean(preview && equal(point, chosenId === 'throw' ? hoveredTile! : preview.destination)));
-      tile.classList.toggle('focus-threat', Boolean(focus && Room.threatens(focus, point)));
+      tile.classList.toggle('focus-threat', threatened);
+      if (threatened) {
+        const mark = document.createElement('div');
+        mark.className = 'threat-mark';
+        place(mark, point);
+        threatMarks.append(mark);
+      }
       tile.classList.toggle('exit-tile', cleared && equal(point, journey.exit));
       tile.disabled = busy || (room.finished && !cleared);
       const enemy = room.at(point);
@@ -486,6 +495,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         );
       tile.classList.toggle('has-knife', room.hasKnife(point));
     }
+    elements.threatMarks.replaceChildren(threatMarks);
     $('ground-knives').replaceChildren();
     for (const point of room.knives) {
       const token = document.createElement('div');
@@ -535,6 +545,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     inspectedEnemy = -1;
     elements.hint.textContent = '';
     elements.ghost.hidden = true;
+    elements.threatMarks.replaceChildren();
     elements.tileInfo.hidden = true;
     inspectedTile = null;
     closeCardDetails();
