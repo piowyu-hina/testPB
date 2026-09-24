@@ -35,6 +35,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     cardDetails: $('card-details'),
     hand: $('hand'),
     health: $('health'),
+    statusAvatar: $<HTMLImageElement>('status-avatar'),
     statusName: $('status-name'),
     energyCount: $('energy-count'),
     ultimateCharge: $('ultimate-charge'),
@@ -376,6 +377,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const previousActions = Number(elements.actions.dataset.value);
     elements.actions.dataset.value = String(energy);
     elements.statusName.textContent = characters[session.characterId].name;
+    elements.statusAvatar.src = characters[session.characterId].image;
     elements.energyCount.textContent = `${energy}/2`;
     elements.ultimateCharge.textContent = `${charge}/3`;
     elements.actions.style.setProperty('--ultimate-progress', `${charge / 3 * 100}%`);

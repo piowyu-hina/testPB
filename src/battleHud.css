@@ -18,12 +18,16 @@
   padding: 0 8px 0 12px;
   margin-bottom: 8px;
   gap: 8px;
+  min-height: 40px;
+  justify-content: flex-end;
 }
-.character-status { flex: 1; min-width: 0; padding: 9px 12px; border: 1px solid #d7c79a9c; border-radius: 14px; background: #142119f2; box-shadow: 0 5px 18px #09140c55; }
-.character-status-heading, .character-status-resources { display: flex; align-items: center; gap: 10px; }
-.character-status-heading { margin-bottom: 8px; color: #fff3d6; font-size: 20px; }
-.character-status-heading > span { color: #e7d8b9; font-size: 16px; margin-left: 5px; }
-.character-status-resources { justify-content: space-between; }
+.character-status { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; margin: 18px 4px 0; padding: 7px 10px; border: 1px solid #d7c79a9c; border-radius: 14px; background: #142119f2; box-shadow: 0 5px 18px #09140c55; }
+.character-identity, .character-status-resources { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.status-avatar { width: 48px; height: 48px; object-fit: contain; flex: none; border-radius: 9px; background: #38503a; }
+.character-status-heading { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 8px; color: #fff3d6; font-size: 18px; white-space: nowrap; }
+.character-status-heading > strong { grid-column: 1 / -1; }
+.character-status-heading > span { color: #e7d8b9; font-size: 14px; }
+.character-status-resources { margin-left: auto; }
 .status-energy { color: #d7f1f8; font-size: 17px; white-space: nowrap; }
 .status-energy strong { margin-left: 5px; font-size: 23px; color: #fff; }
 .health {
@@ -123,3 +127,18 @@
   background: #cfc6b4;
 }
 .heart { width: 27px; height: 27px; }
+@media (max-width: 600px) {
+  .character-status { gap: 6px; padding-left: 8px; padding-right: 8px; }
+  .character-identity, .character-status-resources { gap: 6px; }
+  .status-avatar { width: 45px; height: 45px; }
+  .character-status-heading { font-size: 21px; column-gap: 5px; }
+  .character-status-heading > span { font-size: 15px; }
+  .health { gap: 2px; }
+  .heart { width: 25px; height: 25px; }
+  .status-energy { font-size: 17px; }
+  .status-energy strong { font-size: 22px; }
+  .actions { min-width: 150px; padding-left: 9px; padding-right: 9px; }
+  .ultimate-name { font-size: 20px; }
+  .ultimate-charge { font-size: 15px; }
+  .ultimate-charge strong { font-size: 17px; }
+}
