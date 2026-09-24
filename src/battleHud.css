@@ -22,16 +22,19 @@
   justify-content: flex-end;
 }
 .character-status { display: flex; align-items: center; justify-content: space-between; gap: 26px; min-width: 0; margin: 18px 0 0; padding: 4px 26px; color: #fff7e9; text-shadow: 0 2px 5px #061008, 0 0 12px #061008; }
-.character-identity, .character-status-resources { display: flex; align-items: center; gap: 16px; min-width: 0; }
-.status-avatar { width: 58px; height: 58px; object-fit: contain; flex: none; filter: drop-shadow(0 2px 5px #07120a); }
-.character-status-heading { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; font-size: 24px; white-space: nowrap; }
+.character-status-resources { display: flex; align-items: center; min-width: 0; }
 .character-status-resources { margin-left: auto; gap: 26px; }
 .status-energy { color: #e1f5f7; font-size: 20px; white-space: nowrap; }
 .status-energy strong { margin-left: 6px; font-size: 28px; color: #fff; }
 .health {
   display: flex;
-  gap: 5px;
+  gap: 8px;
 }
+.health .heart { width: 32px; height: 32px; filter: drop-shadow(0 2px 4px #080e09); }
+.tile-info strong:has(.enemy-life), .touch-info strong:has(.enemy-life) { display: flex; align-items: center; gap: 18px; }
+.tile-info .enemy-life, .touch-info .enemy-life { display: inline-flex; align-items: center; gap: 5px; margin: 0; }
+.enemy-life .heart { width: 28px; height: 28px; fill: #d96e66; filter: drop-shadow(0 2px 4px #09140c); }
+.enemy-life .heart.empty { fill: #77746b; }
 .battle-settings-button {
   display: grid;
   place-items: center;

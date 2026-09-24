@@ -35,8 +35,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     cardDetails: $('card-details'),
     hand: $('hand'),
     health: $('health'),
-    statusAvatar: $<HTMLImageElement>('status-avatar'),
-    statusName: $('status-name'),
     energyCount: $('energy-count'),
     ultimateCharge: $('ultimate-charge'),
     actions: $('actions'),
@@ -376,8 +374,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const charge = journey.loadout === 'rogue' ? journey.assassination : 0;
     const previousActions = Number(elements.actions.dataset.value);
     elements.actions.dataset.value = String(energy);
-    elements.statusName.textContent = characters[session.characterId].name;
-    elements.statusAvatar.src = characters[session.characterId].image;
     elements.energyCount.textContent = `${energy}/2`;
     elements.ultimateCharge.textContent = `${charge}/3`;
     elements.actions.style.setProperty('--ultimate-progress', `${charge / 3 * 100}%`);
@@ -410,7 +406,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       if (touchLayout() && inspectedTile) elements.touchInfo.replaceChildren();
       return;
     }
-    const title = enemy ? enemySummary(enemy) : isExit ? '出口' : hasKnife ? '地上小刀' : '危險地格';
+    const title = enemy ? `${enemy.elite ? '精英・' : ''}${data.enemies[enemy.kind].name}` : isExit ? '出口' : hasKnife ? '地上小刀' : '危險地格';
     const lines: string[] = [];
     if (enemy) {
       lines.push(data.enemies[enemy.kind].behavior);
@@ -425,6 +421,16 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     panel.replaceChildren();
     const heading = document.createElement('strong');
     heading.textContent = title;
+    if (enemy) {
+      const life = document.createElement('span');
+      life.className = 'enemy-life';
+      life.setAttribute('role', 'img');
+      life.setAttribute('aria-label', `生命 ${enemy.health ?? 1} / ${enemy.maxHealth ?? (enemy.elite ? 2 : 1)}`);
+      const maximum = enemy.maxHealth ?? (enemy.elite ? 2 : 1);
+      life.innerHTML = heart.repeat(maximum);
+      [...life.children].forEach((node, index) => node.classList.toggle('empty', index >= (enemy.health ?? 1)));
+      heading.append(life);
+    }
     panel.append(heading);
     for (const line of lines) {
       const detail = document.createElement('span');
