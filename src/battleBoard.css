@@ -99,41 +99,10 @@
 .tile.danger { background: var(--risk-fill); }
 .tile.focus-threat { box-shadow: inset 0 0 0 4px #a9443dcc; }
 .tile.legal:after {
+  --target-color: #196f58;
   content: '';
   position: absolute;
-  inset: 4px;
-  border: 4px solid #196f58;
-  border-radius: 2px;
-  box-shadow: inset 0 0 0 2px #d8f1be;
-  z-index: 1;
-  pointer-events: none;
-}
-.tile.landing {
-  background: #8dc68a99;
-}
-.tile.landing:after {
-  border-color: #176d59;
-}
-.tile.landing.danger { background: linear-gradient(#8dc68a66, #8dc68a66), var(--risk-fill); }
-.tile.legal:not(.capture):before {
-  content: '';
-  position: absolute;
-  width: 14%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  left: 43%;
-  top: 43%;
-  background: #168668;
-  box-shadow: 0 0 0 2px #e5f4ca, 0 2px 4px #163729;
-}
-.tile.capture {
-  box-shadow: inset 0 0 0 999px #b9655633;
-}
-.tile.capture:after {
-  --target-color: #b94f40;
   inset: 6px;
-  border: 0;
-  box-shadow: none;
   background:
     linear-gradient(var(--target-color), var(--target-color)) left top / 30% 4px,
     linear-gradient(var(--target-color), var(--target-color)) left top / 4px 30%,
@@ -144,12 +113,41 @@
     linear-gradient(var(--target-color), var(--target-color)) right bottom / 30% 4px,
     linear-gradient(var(--target-color), var(--target-color)) right bottom / 4px 30%;
   background-repeat: no-repeat;
+  z-index: 1;
+  pointer-events: none;
+}
+.tile.legal:not(.capture):hover:after {
+  --target-color: #239472;
+}
+.tile.landing {
+  background: #8dc68a99;
+}
+.tile.landing:after {
+  --target-color: #176d59;
+}
+.tile.landing.danger { background: linear-gradient(#8dc68a66, #8dc68a66), var(--risk-fill); }
+.tile.legal:not(.capture):before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #3c9b6924;
+  pointer-events: none;
+}
+.tile.legal:not(.capture):hover:before {
+  background: #3c9b693d;
+}
+.tile.capture {
+  box-shadow: inset 0 0 0 999px #b9655633;
+}
+.tile.capture:after {
+  --target-color: #b94f40;
 }
 .tile.capture:hover {
-  box-shadow: inset 0 0 0 999px #b965564d;
+  box-shadow: inset 0 0 0 999px #b33a3a59;
 }
 .tile.capture:hover:after {
-  --target-color: #d46151;
+  --target-color: #c92f2d;
+  filter: drop-shadow(0 1px 1px #4f211b);
 }
 .tile.blocked.capture:hover {
   box-shadow: inset 0 0 0 999px #5276a04d;
