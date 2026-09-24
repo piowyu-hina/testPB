@@ -455,7 +455,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         else elements.hint.textContent = '';
       }
       else if (chosen) showCardHint(chosen);
-      else if (focusedEnemy) elements.hint.textContent = enemySummary(focusedEnemy);
       else elements.hint.textContent = '';
     }
     $('room-exit').toggleAttribute('hidden', !cleared);
