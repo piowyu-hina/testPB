@@ -98,16 +98,19 @@
 .tile[data-danger='3'] { --risk-fill: #b8433fcc; }
 .tile.danger { background: var(--risk-fill); }
 .tile.focus-threat {
-  --threat-overlay:
-    repeating-linear-gradient(135deg, #dc655ba3 0 4px, transparent 4px 20px),
-    linear-gradient(#8b332a66, #8b332a66);
+  --threat-strokes:
+    radial-gradient(ellipse 28% 5% at 45% 28%, #e37a6dc9 55%, transparent 100%),
+    radial-gradient(ellipse 34% 5% at 55% 50%, #e37a6dba 55%, transparent 100%),
+    radial-gradient(ellipse 25% 5% at 44% 72%, #e37a6da8 55%, transparent 100%);
+  box-shadow: inset 0 0 0 999px #a9443d30;
 }
 .tile.focus-threat:before {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: 8px;
   z-index: 1;
-  background: var(--threat-overlay);
+  background: var(--threat-strokes);
+  transform: rotate(-35deg);
   pointer-events: none;
 }
 .tile.legal:after {
@@ -149,7 +152,9 @@
   background: #3c9b693d;
 }
 .tile.focus-threat.legal:not(.capture):before {
-  background: var(--threat-overlay);
+  inset: 8px;
+  background: var(--threat-strokes);
+  transform: rotate(-35deg);
 }
 .tile.capture {
   box-shadow: inset 0 0 0 999px #b9655633;
