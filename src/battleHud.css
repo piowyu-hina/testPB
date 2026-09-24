@@ -28,12 +28,12 @@
 .status-energy strong { margin-left: 6px; font-size: 28px; color: #fff; }
 .health {
   display: flex;
-  gap: 2px;
+  align-items: center;
 }
-.health .health-segment { width: 32px; height: 20px; }
+.health .health-segment { width: 29px; height: 29px; }
 .tile-info strong:has(.enemy-life), .touch-info strong:has(.enemy-life) { display: flex; align-items: center; gap: 18px; }
-.tile-info .enemy-life, .touch-info .enemy-life { display: inline-flex; align-items: center; gap: 2px; margin: 0; }
-.enemy-life .health-segment { width: 32px; height: 20px; }
+.tile-info .enemy-life, .touch-info .enemy-life { display: inline-flex; align-items: center; margin: 0; }
+.enemy-life .health-segment { width: 29px; height: 29px; }
 .battle-settings-button {
   display: grid;
   place-items: center;
@@ -47,9 +47,10 @@
 }
 .battle-settings-button:hover { background: #b4a48722; }
 .battle-settings-button svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.health-segment { display: block; flex: none; border: 1px solid #9d4d47; border-radius: 3px; background: linear-gradient(180deg, #f19383, #bc5650); box-shadow: inset 0 1px #ffd3b2aa, 0 2px 5px #070f0a88; }
-.health-segment.empty { border-color: #766e64; background: #514f49; box-shadow: inset 0 1px #a29a8666; }
-.health-segment.forecast { border-color: #eac7a6; background: repeating-linear-gradient(135deg, #c9675f 0 5px, #e8b6a1 5px 9px); }
+.health-segment { display: block; flex: none; background: url('../assets/ui/health-berry.png') center / contain no-repeat; filter: drop-shadow(0 2px 2px #080d08); }
+.health-segment + .health-segment { margin-left: -2px; }
+.health-segment.empty { filter: grayscale(1) brightness(.62); opacity: .55; }
+.health-segment.forecast { filter: grayscale(.5) brightness(1.35) drop-shadow(0 0 4px #ffb997); opacity: .62; }
 .actions {
   position: relative;
   min-width: 154px;
