@@ -35,6 +35,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     cardDetails: $('card-details'),
     hand: $('hand'),
     health: $('health'),
+    statusName: $('status-name'),
+    energyCount: $('energy-count'),
+    ultimateCharge: $('ultimate-charge'),
     actions: $('actions'),
     hint: $('hint'),
     end: $<HTMLButtonElement>('end-turn'),
@@ -372,13 +375,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const charge = journey.loadout === 'rogue' ? journey.assassination : 0;
     const previousActions = Number(elements.actions.dataset.value);
     elements.actions.dataset.value = String(energy);
-    const needsRing = journey.loadout === 'rogue';
-    if (!elements.actions.querySelector('.energy-count') || Boolean(elements.actions.querySelector('.ultimate-meter')) !== needsRing)
-      elements.actions.innerHTML = `${needsRing ? '<span class="ultimate-meter" aria-hidden="true"></span>' : ''}<span class="energy-count"></span>`;
-    elements.actions.querySelector<HTMLElement>('.energy-count')!.textContent = String(energy);
-    const ultimateMeter = elements.actions.querySelector<HTMLElement>('.ultimate-meter');
-    if (ultimateMeter) ultimateMeter.style.setProperty('--ultimate-progress', `${charge / 3}turn`);
-    elements.actions.setAttribute('aria-label', `剩餘 ${energy} 點能量，殺意 ${charge} / 3`);
+    elements.statusName.textContent = characters[session.characterId].name;
+    elements.energyCount.textContent = `${energy}/2`;
+    elements.ultimateCharge.textContent = `${charge}/3`;
+    elements.actions.style.setProperty('--ultimate-progress', `${charge / 3 * 100}%`);
+    elements.actions.hidden = journey.loadout !== 'rogue';
+    elements.actions.setAttribute('aria-label', `絕影，殺意 ${charge} / 3${charge >= 3 ? '，可施放' : ''}`);
     elements.actions.classList.toggle('ultimate-ready', journey.loadout === 'rogue' && charge >= 3);
     elements.actions.classList.toggle('ultimate-targeting', ultimateTargeting);
     if (Number.isFinite(previousActions) && previousActions !== energy) {

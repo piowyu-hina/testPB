@@ -1,6 +1,9 @@
     <main class="game" id="game" aria-label="testPB 戰鬥房間">
       <div class="status">
-        <div id="health" class="health" aria-label="生命"></div>
+        <div class="character-status">
+          <div class="character-status-heading"><strong id="status-name"></strong><span>生命</span><div id="health" class="health" aria-label="生命"></div></div>
+          <div class="character-status-resources"><span class="status-energy">行動 <strong id="energy-count">2/2</strong></span><button type="button" id="actions" class="actions" aria-label="絕影，殺意 0 / 3" tabindex="-1"><span class="ultimate-name">絕影</span><span class="ultimate-charge">殺意 <strong id="ultimate-charge">0/3</strong></span></button></div>
+        </div>
         <button id="open-battle-help" class="battle-settings-button" type="button" tabindex="-1" aria-label="開啟設定">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="m19.1 13.3 1.4 1.1-1.8 3.1-1.7-.7a7.9 7.9 0 0 1-2.2 1.3l-.3 1.8h-3.6l-.3-1.8a7.9 7.9 0 0 1-2.2-1.3l-1.7.7-1.8-3.1 1.4-1.1a8 8 0 0 1 0-2.6L4.9 9.6l1.8-3.1 1.7.7a7.9 7.9 0 0 1 2.2-1.3l.3-1.8h3.6l.3 1.8A7.9 7.9 0 0 1 17 7.2l1.7-.7 1.8 3.1-1.4 1.1a8 8 0 0 1 0 2.6Z"/></svg>
         </button>
@@ -31,7 +34,6 @@
       </section>
       <section class="controls" aria-label="手牌與回合">
         <div class="hand" id="hand"></div>
-        <button type="button" id="actions" class="actions" aria-label="剩餘能量與殺意" tabindex="-1"></button>
         <button type="button" class="end-turn" id="end-turn" tabindex="-1" aria-labelledby="end-label" title="結束回合">
           <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
             <path d="M12 7h24M12 41h24M16 8v6c0 5 8 9 8 10s-8 5-8 10v6M32 8v6c0 5-8 9-8 10s8 5 8 10v6" />
