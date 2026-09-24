@@ -47,7 +47,7 @@
 }
 .battle-settings-button:hover { background: #b4a48722; }
 .battle-settings-button svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.health-segment { display: block; flex: none; background: url('../assets/ui/health-berry.png') center / contain no-repeat; filter: drop-shadow(0 2px 2px #080d08); }
+.health-segment { display: block; flex: none; background: url('../assets/ui/health-heart-thorn.png') center / contain no-repeat; filter: drop-shadow(0 2px 2px #080d08); }
 .health-segment + .health-segment { margin-left: -2px; }
 .health-segment.empty { filter: grayscale(1) brightness(.62); opacity: .55; }
 .health-segment.forecast { filter: grayscale(.5) brightness(1.35) drop-shadow(0 0 4px #ffb997); opacity: .62; }
