@@ -89,21 +89,17 @@
   z-index: 3;
   top: -22px;
   left: 50%;
-  display: grid;
-  place-items: center;
-  width: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
   height: 43px;
-  border: 0;
-  background: url('../assets/ui/action-soulflame.png') center / contain no-repeat;
-  color: #fff;
-  font-size: 19px;
-  font-weight: 800;
-  line-height: 1;
-  text-shadow: 0 1px 3px #082d6e, 0 0 4px #082d6e;
   filter: drop-shadow(0 2px 3px #13417688);
   transform: translateX(-50%);
 }
-.card-cost > span { margin-top: 7px; }
+.card-cost[data-cost="0"] { display: none; }
+.cost-flame { display: block; width: 38px; height: 43px; flex: none; background: url('../assets/ui/action-soulflame.png') center / contain no-repeat; }
+.cost-flame + .cost-flame { margin-left: -14px; transform: translateY(2px) rotate(8deg); }
 .card:disabled {
   opacity: 1;
   background: #dedad0;

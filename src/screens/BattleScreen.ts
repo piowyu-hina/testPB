@@ -257,7 +257,13 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         const cost = document.createElement('span');
         cost.className = 'card-cost';
         const costValue = id === 'forward' ? 0 : definition.cost ?? 1;
-        cost.innerHTML = `<span>${costValue}</span>`;
+        cost.dataset.cost = String(costValue);
+        cost.setAttribute('aria-hidden', 'true');
+        for (let pip = 0; pip < costValue; pip++) {
+          const flame = document.createElement('span');
+          flame.className = 'cost-flame';
+          cost.append(flame);
+        }
         card.append(cost);
         const illustration = id === 'forward' && room.loadout !== 'rogue' ? undefined : cardArt[id];
         if (illustration) {
@@ -350,7 +356,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const cost = card.dataset.card === 'forward' ? 0 : room.cardCost(index);
       card.classList.toggle('shadow-unavailable', shadowUnavailable);
       card.classList.toggle('energy-unavailable', !exploring() && room.actions < cost);
-      card.setAttribute('aria-label', reason ? `追影，${reason}` : data.cards[room.availableCards[index]].name);
+      card.setAttribute('aria-label', reason ? `追影，${reason}` : `${data.cards[room.availableCards[index]].name}，消耗 ${cost} 行動`);
       card.classList.toggle('selected', index === selected);
       card.setAttribute('aria-pressed', String(index === selected));
       card.disabled = busy || (!exploring() && !room.canUseCard(index) && card.dataset.card !== 'shadow');

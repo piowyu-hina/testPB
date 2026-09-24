@@ -5,6 +5,8 @@ module.exports = async function checkBattleUx(page) {
   assert.equal(await page.locator('#hint').innerText(), '');
   assert.equal(await page.locator('.action-pip:not(.empty)').count(), 2);
   assert.equal(await page.locator('#energy-count').getAttribute('aria-label'), '剩餘行動 2 / 2');
+  assert.equal(await page.locator('[data-card="rush"] .cost-flame').count(), 1);
+  assert.equal(await page.locator('[data-card="rush"] .card-cost').textContent(), '');
   await page.locator('[data-card="rush"]').click();
   await page.locator('.status').hover();
   assert.match(await page.locator('#hint').innerText(), /^突進\n/);

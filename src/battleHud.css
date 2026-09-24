@@ -24,7 +24,7 @@
 .character-status { display: flex; align-items: center; justify-content: space-between; gap: 26px; min-width: 0; margin: 18px 0 0; padding: 4px 26px; color: #fff7e9; text-shadow: 0 2px 5px #061008, 0 0 12px #061008; }
 .character-status-resources { display: flex; align-items: center; min-width: 0; }
 .character-status-resources { margin-left: auto; gap: 26px; }
-.status-energy { display: inline-flex; align-items: center; gap: 3px; min-width: 0; }
+.status-energy { display: inline-flex; align-items: center; min-width: 0; }
 .health {
   display: flex;
   align-items: center;
@@ -47,7 +47,8 @@
 .battle-settings-button:hover { background: #b4a48722; }
 .battle-settings-button svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .health-segment { display: block; flex: none; background: url('../assets/ui/health-heart-painted-v2.png') center / contain no-repeat; filter: drop-shadow(0 2px 2px #080d08); }
-.health-segment + .health-segment { margin-left: -2px; }
+.health-segment + .health-segment { margin-left: -7px; }
+.health-segment:nth-child(even) { transform: translateY(2px) rotate(5deg); }
 .health-segment.empty { filter: grayscale(1) brightness(.62); opacity: .55; }
 .health-segment.forecast { filter: grayscale(.5) brightness(1.35) drop-shadow(0 0 4px #ffb997); opacity: .62; }
 .actions {
@@ -112,6 +113,7 @@
   background: url('../assets/ui/action-soulflame.png') center / contain no-repeat;
   filter: drop-shadow(0 0 6px #5fd9ff88);
 }
+.action-pip + .action-pip { margin-left: -10px; transform: translateY(2px) rotate(7deg); }
 .action-pip.empty {
   filter: grayscale(1) brightness(.55);
   opacity: .5;
