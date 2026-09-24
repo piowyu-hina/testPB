@@ -11,6 +11,7 @@ export const cards = {
   shadow: { name: '追影', hint: '瞬移至場上任意小刀格；若有怪物先攻擊，成功落地才撿刀', offsets: anywhere, canJump: true, copies: 4, cost: 1, effect: 'shadow' },
   lunge: { name: '突進', hint: '向周圍八方向移動 1 格，攻擊落點怪物', offsets: around, canJump: false, copies: 6, cost: 1 },
   knife: { name: '小刀', hint: '原地攻擊上下左右相鄰 1 格的怪物；使用後消失', offsets: cross, canJump: false, copies: 0, cost: 0, effect: 'knife' },
+  absoluteShadow: { name: '絕影', hint: '選擇場上任意怪物，造成 2 點無視格擋傷害；擊殺才移至目標格', offsets: [], canJump: true, copies: 0, cost: 0, effect: 'ultimate' },
   forward: { name: '前進', hint: '清場後走向周圍一格，可重複使用且不消耗行動', offsets: around, canJump: false, copies: 0 },
   short: {
     name: '短步',

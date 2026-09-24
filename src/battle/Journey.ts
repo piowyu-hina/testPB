@@ -1,5 +1,5 @@
 import type { Loadout } from '../data/cards.ts';
-import { Room, equal } from './Room.ts';
+import { Room, equal, HAND_LIMIT } from './Room.ts';
 import type { Point, RoomDefinition } from '../types/game.ts';
 import { dungeons } from '../data/dungeons/index.ts';
 import type { DungeonId } from '../data/dungeons/index.ts';
@@ -34,6 +34,13 @@ export class Journey {
   spendAssassination() {
     if (this.loadout !== 'rogue' || this.assassination < 3) return false;
     this.assassination = 0;
+    this.room.removeUltimateCard();
+    return true;
+  }
+  claimUltimate(replaceIndex?: number) {
+    if (this.loadout !== 'rogue' || this.assassination < 3 || this.finished || this.room.hand.includes('absoluteShadow')) return false;
+    if (this.room.hand.length >= HAND_LIMIT && (replaceIndex === undefined || this.room.discardForUltimate(replaceIndex) === null)) return false;
+    this.room.hand.push('absoluteShadow');
     return true;
   }
   get definition() {
@@ -60,8 +67,10 @@ export class Journey {
   advance() {
     if (!this.room.won || this.finished || !equal(this.room.hero, this.exit)) return false;
     const health = this.room.health + this.recovery;
+    const carriesUltimate = this.room.hand.includes('absoluteShadow');
     this.stage++;
     this.room = new Room(this.seed + this.stage * 1009, this.activeRooms[this.stage], health, this.loadout);
+    if (carriesUltimate) this.room.hand.push('absoluteShadow');
     return true;
   }
 }

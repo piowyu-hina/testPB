@@ -36,7 +36,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     hand: $('hand'),
     health: $('health'),
     energyCount: $('energy-count'),
-    ultimateCharge: $('ultimate-charge'),
     actions: $('actions'),
     hint: $('hint'),
     end: $<HTMLButtonElement>('end-turn'),
@@ -62,6 +61,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     cardHoldTimer = 0,
     heldCard: HTMLButtonElement | null = null,
     ultimateTargeting = false,
+    replacingUltimate = false,
     ultimateHoldTimer = 0,
     ultimateHeld = false,
     dismissDetailsClick = false;
@@ -117,7 +117,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const name = document.createElement('strong');
     name.textContent = `絕影 · 殺意 ${charge}/3`;
     const description = document.createElement('span');
-    description.textContent = '普通擊殺 +1，菁英擊殺 +2。集滿後點擊，選擇任意怪物造成 2 點傷害並無視格擋。';
+    description.textContent = '普通擊殺 +1，菁英擊殺 +2。集滿後點圖案領取絕影卡；打出後可對任意怪物造成 2 點無視格擋的傷害。';
     elements.hint.replaceChildren(name, description);
   }
   function openCardDetails(id: keyof typeof data.cards) {
@@ -245,6 +245,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         card.type = 'button';
         card.tabIndex = -1;
         card.className = 'card';
+        card.classList.toggle('ultimate-card', id === 'absoluteShadow');
         card.dataset.card = id;
         card.dataset.index = String(index);
         if (entering[index]) {
@@ -273,14 +274,13 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           image.alt = '';
           image.draggable = false;
           card.append(image);
-        } else card.innerHTML = diagram(definition);
-        const label = document.createElement('span');
-        label.className = 'card-name';
-        label.textContent = definition.name;
-        card.append(label);
+        } else card.insertAdjacentHTML('beforeend', diagram(definition));
         card.addEventListener('pointerenter', () => {
           if (touchLayout()) return;
-          if (!busy) showCardHint(definition, id === 'shadow' ? shadowRequirement(index) : '');
+          if (!busy) {
+            if (replacingUltimate) elements.hint.textContent = `換掉${definition.name}，取得絕影卡`;
+            else showCardHint(definition, id === 'shadow' ? shadowRequirement(index) : '');
+          }
         });
         card.addEventListener('pointerleave', () => {
           if (touchLayout()) return;
@@ -316,6 +316,21 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         }, true);
         onClick(card, () => {
           if (busy) return;
+          if (replacingUltimate) {
+            if (!journey.claimUltimate(index)) return;
+            replacingUltimate = false;
+            selected = -1;
+            render();
+            return;
+          }
+          if (id === 'absoluteShadow') {
+            closeCardDetails();
+            selected = -1;
+            ultimateTargeting = !ultimateTargeting;
+            inspectedTile = null;
+            render();
+            return;
+          }
           ultimateTargeting = false;
           if (!exploring() && !room.canUseCard(index)) {
             if (id === 'shadow') {
@@ -351,16 +366,20 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.hand.style.setProperty('--card-overlap', `${Math.max(0, Math.ceil((naturalWidth - handWidth) / Math.max(1, handCount - 1)))}px`);
     [...root.querySelectorAll<HTMLButtonElement>('.card')].forEach((card) => {
       const index = Number(card.dataset.index);
+      const isUltimate = card.dataset.card === 'absoluteShadow';
       const reason = card.dataset.card === 'shadow' ? shadowRequirement(index) : '';
       const shadowUnavailable = Boolean(reason);
       const cost = card.dataset.card === 'forward' ? 0 : room.cardCost(index);
       card.classList.toggle('shadow-unavailable', shadowUnavailable);
-      card.classList.toggle('energy-unavailable', !exploring() && room.actions < cost);
-      card.setAttribute('aria-label', reason ? `追影，${reason}` : `${data.cards[room.availableCards[index]].name}，消耗 ${cost} 行動`);
-      card.classList.toggle('selected', index === selected);
-      card.setAttribute('aria-pressed', String(index === selected));
-      card.disabled = busy || (!exploring() && !room.canUseCard(index) && card.dataset.card !== 'shadow');
-      card.setAttribute('aria-disabled', String(busy || (!exploring() && !room.canUseCard(index))));
+      card.classList.toggle('energy-unavailable', !isUltimate && !exploring() && room.actions < cost);
+      card.classList.toggle('replace-candidate', replacingUltimate);
+      card.setAttribute('aria-label', replacingUltimate ? `換掉${data.cards[room.availableCards[index]].name}，取得絕影` : reason ? `追影，${reason}` : `${data.cards[room.availableCards[index]].name}，消耗 ${cost} 行動`);
+      const chosen = isUltimate ? ultimateTargeting : index === selected;
+      card.classList.toggle('selected', chosen);
+      card.setAttribute('aria-pressed', String(chosen));
+      const unusable = !isUltimate && !exploring() && !room.canUseCard(index) && card.dataset.card !== 'shadow';
+      card.disabled = busy || (!replacingUltimate && unusable);
+      card.setAttribute('aria-disabled', String(card.disabled));
     });
   }
   function renderHealth(incoming = 0) {
@@ -381,12 +400,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.energyCount.dataset.value = String(energy);
     elements.energyCount.setAttribute('aria-label', `剩餘行動 ${energy} / 2`);
     [...elements.energyCount.children].forEach((pip, index) => pip.classList.toggle('empty', index >= energy));
-    elements.ultimateCharge.textContent = `${charge}/3`;
     elements.actions.style.setProperty('--ultimate-progress', `${charge / 3 * 100}%`);
     elements.actions.hidden = journey.loadout !== 'rogue';
-    elements.actions.setAttribute('aria-label', `絕影，殺意 ${charge} / 3${charge >= 3 ? '，可施放' : ''}`);
-    elements.actions.classList.toggle('ultimate-ready', journey.loadout === 'rogue' && charge >= 3);
-    elements.actions.classList.toggle('ultimate-targeting', ultimateTargeting);
+    const claimed = room.hand.includes('absoluteShadow');
+    elements.actions.setAttribute('aria-label', claimed ? '絕影卡已在手牌' : `絕影充能 ${charge} / 3${charge >= 3 ? '，點擊領取絕影卡' : ''}`);
+    elements.actions.classList.toggle('ultimate-ready', journey.loadout === 'rogue' && charge >= 3 && !claimed);
+    elements.actions.classList.toggle('ultimate-claimed', claimed);
     if (Number.isFinite(previousActions) && previousActions !== energy) {
       elements.energyCount.classList.remove('energy-gain', 'energy-spend');
       void elements.energyCount.offsetWidth;
@@ -466,7 +485,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const chosen = chosenId ? data.cards[chosenId] : undefined;
     renderTileInfo(preview);
     if (!busy) {
-      if (cleared) {
+      if (replacingUltimate) elements.hint.textContent = '手牌已滿。點一張手牌換掉，領取絕影卡；再點蓄力圖案可取消。';
+      else if (ultimateTargeting) showCardHint(data.cards.absoluteShadow);
+      else if (cleared) {
         if (chosen) showCardHint(chosen);
         else elements.hint.textContent = '';
       }
@@ -497,7 +518,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         threatMarks.append(mark);
       }
       tile.classList.toggle('exit-tile', cleared && equal(point, journey.exit));
-      tile.disabled = busy || (room.finished && !cleared);
+      tile.disabled = busy || replacingUltimate || (room.finished && !cleared);
       const enemy = room.at(point);
       tile.setAttribute(
         'aria-label',
@@ -541,7 +562,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     renderEnergy();
     renderJourneyProgress();
     elements.game.dataset.turn = String(room.turn);
-    elements.end.disabled = busy || (room.finished && !cleared);
+    elements.end.disabled = busy || replacingUltimate || (room.finished && !cleared);
     $<HTMLButtonElement>('back-home').disabled = busy;
     $<HTMLButtonElement>('open-battle-help').disabled = busy;
     elements.game.classList.toggle('choosing', selected >= 0 && !busy);
@@ -712,8 +733,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (busy || exploring() || !ultimateTargeting || journey.assassination < 3) return;
     const target = room.enemies.find(enemy => enemy.id === enemyId);
     if (!target) return;
+    if (!room.hand.includes('absoluteShadow') || !journey.spendAssassination()) return;
     const action = room.assassinate(enemyId);
-    if (!action || !journey.spendAssassination()) return;
+    if (!action) return;
     ultimateTargeting = false;
     lock();
     renderEnergy();
@@ -905,6 +927,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     hoveredTile = null;
     hoveredEnemy = -1;
     ultimateTargeting = false;
+    replacingUltimate = false;
     busy = false;
     handSignature = '';
     renderedHand = [];
@@ -976,15 +999,17 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       showUltimateHint();
       return;
     }
+    if (room.hand.includes('absoluteShadow')) {
+      elements.hint.textContent = '絕影卡已在手牌，點卡片後選擇怪物。';
+      return;
+    }
     selected = -1;
-    ultimateTargeting = !ultimateTargeting;
-    if (ultimateTargeting) {
-      const name = document.createElement('strong');
-      name.textContent = '絕影';
-      const description = document.createElement('span');
-      description.textContent = '選擇一隻怪物。';
-      elements.hint.replaceChildren(name, description);
-    } else elements.hint.textContent = '';
+    ultimateTargeting = false;
+    if (room.hand.length >= HAND_LIMIT) replacingUltimate = !replacingUltimate;
+    else {
+      journey.claimUltimate();
+      replacingUltimate = false;
+    }
     render();
   });
   onClick($('replay'), () => {
@@ -998,6 +1023,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     closeCardDetails();
     selected = -1;
     ultimateTargeting = false;
+    replacingUltimate = false;
     hoveredTile = null;
     hoveredEnemy = -1;
     elements.hint.textContent = '';

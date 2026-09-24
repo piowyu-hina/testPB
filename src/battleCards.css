@@ -77,12 +77,16 @@
   width: 26%;
   left: 37%;
 }
-.card-name {
-  display: block;
-  color: var(--ink);
-  font-size: clamp(11px, 1.6vh, 15px);
-  line-height: 1.2;
-  flex-shrink: 0;
+.card.ultimate-card {
+  border-color: #c9a95c;
+  background: linear-gradient(150deg, #fff8df, #efe0b6);
+  box-shadow: inset 0 0 0 4px #fff9e9, 0 4px 0 #9b783e, 0 0 22px #f3c75d99;
+  animation: ultimate-card-glow 2.6s ease-in-out infinite alternate;
+}
+.card.ultimate-card.selected { border-color: #f3d47e; transform: translateY(-11px); }
+.card.replace-candidate:not(:disabled) { border-color: #e0b45b; box-shadow: inset 0 0 0 4px #fff9e9, 0 0 16px #f0bd56aa; }
+@keyframes ultimate-card-glow {
+  to { box-shadow: inset 0 0 0 4px #fff9e9, 0 4px 0 #9b783e, 0 0 32px #ffd66bcc; }
 }
 .card-cost {
   position: absolute;
@@ -154,18 +158,14 @@
   width: 70px;
   height: 70px;
   padding: 0;
-  border: 1px solid #aa9f8c;
-  border-radius: 14px;
-  background: #e9e4d9;
-  color: #4c4b48;
-  box-shadow: 0 4px 0 #988e7e;
+  border: 0;
+  background: url('../assets/ui/hourglass.png') center / contain no-repeat;
+  filter: drop-shadow(0 3px 4px #09130a99);
   transform: translateY(-50%);
 }
-.end-turn svg { width: 47px; height: 47px; fill: none; stroke: currentColor; stroke-width: 2.7; stroke-linecap: round; stroke-linejoin: round; }
-.end-turn .hourglass-sand { fill: currentColor; stroke: none; }
-.end-turn:not(:disabled):hover { background: #f6f0e4; }
+.end-turn:not(:disabled):hover { filter: brightness(1.15) drop-shadow(0 3px 7px #b18c55aa); }
 .end-turn:focus-visible { outline: 3px solid #e8d388; outline-offset: 3px; }
-.end-turn:disabled { opacity: .5; box-shadow: none; }
+.end-turn:disabled { opacity: .5; filter: grayscale(.8); }
 #end-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .hint {
   min-height: 2.8em;

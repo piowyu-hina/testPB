@@ -127,11 +127,21 @@ export class Room {
     for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) if (this.canMove(index, [x, y])) return true;
     return false;
   }
-  hasPlayableCard() { return this.hand.some((_, i) => this.canUseCard(i)); }
+  hasPlayableCard() { return this.hand.some((id, i) => id === 'absoluteShadow' || this.canUseCard(i)); }
+  discardForUltimate(index: number): CardId | null {
+    if (!Number.isInteger(index) || index < 0 || index >= this.hand.length) return null;
+    const [removed] = this.hand.splice(index, 1);
+    if (removed !== 'knife' && removed !== 'absoluteShadow') this.discard.push(removed);
+    return removed;
+  }
+  removeUltimateCard() {
+    const index = this.hand.indexOf('absoluteShadow');
+    if (index >= 0) this.hand.splice(index, 1);
+  }
   setLoadout(next: Loadout) {
     if (next === this.loadout) return;
     const previous = loadouts[this.loadout], target = loadouts[next];
-    const convert = (pile: CardId[]) => pile.filter(id => id !== 'knife').map(id => target[Math.max(0, previous.indexOf(id)) % target.length]);
+    const convert = (pile: CardId[]) => pile.filter(id => id !== 'knife' && id !== 'absoluteShadow').map(id => target[Math.max(0, previous.indexOf(id)) % target.length]);
     this.hand = convert(this.hand); this.deck = convert(this.deck); this.discard = convert(this.discard);
     this.knives = []; this.loadout = next;
   }
@@ -282,8 +292,8 @@ export class Room {
         if (enemy.kind === 'stump') enemy.facing = faceToward(enemy, this.hero);
         if (!equal(from, best)) motions.push({ id: enemy.id, from, to: best.slice() as Point });
       }
-      this.discard.push(...this.hand.filter(id => id !== 'knife'));
-      this.hand = [];
+      this.discard.push(...this.hand.filter(id => id !== 'knife' && id !== 'absoluteShadow'));
+      this.hand = this.hand.filter(id => id === 'absoluteShadow');
       for (let i = 0; i < 3 && this.hand.length < HAND_LIMIT; i++) this.draw();
       this.actions = 2;
       this.turn++;

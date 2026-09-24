@@ -185,3 +185,23 @@ test('ultimate ignores guard, deals two, returns on survival and lands on a kill
   assert.deepEqual(r.hero, [2, 2]);
   assert.equal(r.won, true);
 });
+
+test('ultimate becomes a held card, requires a replacement at five, and survives turns and rooms', () => {
+  const j = new Journey(1, 'rogue');
+  j.room.hand = ['throw', 'throw', 'throw', 'throw', 'throw'];
+  j.gainAssassination(true); j.gainAssassination();
+  assert.equal(j.claimUltimate(), false);
+  assert.equal(j.claimUltimate(2), true);
+  assert.equal(j.room.hand.length, 5);
+  assert.equal(j.room.hand.filter(id => id === 'absoluteShadow').length, 1);
+  assert.equal(j.claimUltimate(), false);
+  assert.equal(j.room.hasPlayableCard(), true);
+  j.room.endTurn();
+  assert.equal(j.room.hand.includes('absoluteShadow'), true);
+  j.room.enemies = [];
+  j.room.hero = [...j.exit];
+  assert.equal(j.advance(), true);
+  assert.equal(j.room.hand.includes('absoluteShadow'), true);
+  assert.equal(j.spendAssassination(), true);
+  assert.equal(j.room.hand.includes('absoluteShadow'), false);
+});

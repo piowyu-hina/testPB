@@ -20,7 +20,7 @@ export interface CardDefinition {
   canJump: boolean;
   copies: number;
   cost?: number;
-  effect?: 'throw' | 'shadow' | 'knife';
+  effect?: 'throw' | 'shadow' | 'knife' | 'ultimate';
 }
 export type EnemyKind = 'sprout' | 'stump';
 export type Facing = 'north' | 'east' | 'south' | 'west';

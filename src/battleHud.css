@@ -53,45 +53,29 @@
 .health-segment.forecast { filter: grayscale(.5) brightness(1.35) drop-shadow(0 0 4px #ffb997); opacity: .62; }
 .actions {
   position: relative;
-  min-width: 154px;
-  min-height: 50px;
-  padding: 5px 4px 9px;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
+  display: block;
+  width: 70px;
+  height: 70px;
+  min-width: 70px;
+  padding: 0;
   border: 0;
   background: transparent;
-  color: #ffe4a3;
-  text-shadow: 0 2px 5px #091107, 0 0 10px #091107;
   cursor: pointer;
 }
-.actions::before { content: '✦'; font-size: 19px; }
 .actions[hidden] { display: none; }
-.actions::after {
-  content: '';
+.ultimate-meter-base, .ultimate-meter-fill {
   position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: 4px;
-  border-radius: 4px;
-  background: linear-gradient(90deg, #f4c667 var(--ultimate-progress), #d5bb8466 var(--ultimate-progress));
+  inset: 0;
+  background: url('../assets/ui/ultimate-charge.png') center / contain no-repeat;
   pointer-events: none;
 }
-.ultimate-name { font-size: 24px; font-weight: 800; white-space: nowrap; }
-.ultimate-charge { font-size: 20px; white-space: nowrap; }
-.ultimate-charge strong { font-size: 20px; }
+.ultimate-meter-base { filter: grayscale(1) brightness(.48); opacity: .75; }
+.ultimate-meter-fill { clip-path: inset(calc(100% - var(--ultimate-progress, 0%)) 0 0 0); transition: clip-path .35s ease-out; }
 .actions.ultimate-ready {
-  color: #fff0b2;
   animation: ultimate-ready 2.2s ease-in-out infinite;
 }
-.actions.ultimate-ready::before { content: '✦'; color: #ffe37e; }
-.actions.ultimate-ready .ultimate-charge { font-size: 0; }
-.actions.ultimate-ready .ultimate-charge::before { content: '可施放'; font-size: 19px; font-weight: 900; }
-.actions.ultimate-ready .ultimate-charge strong { display: none; }
-.actions.ultimate-targeting {
-  color: #fff8cf;
-  filter: drop-shadow(0 0 8px #f4c95c);
-}
+.actions.ultimate-claimed { filter: brightness(.7); }
+.actions:focus-visible { outline: 2px solid #f5d48c; border-radius: 10px; }
 @keyframes ultimate-ready {
   0%, 100% { filter: drop-shadow(0 0 2px #f1c75b88); }
   50% { filter: drop-shadow(0 0 10px #ffd86d); }
