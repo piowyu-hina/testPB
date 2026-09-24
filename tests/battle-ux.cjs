@@ -3,7 +3,8 @@ const assert = require('node:assert/strict');
 module.exports = async function checkBattleUx(page) {
   await page.locator('.status').hover();
   assert.equal(await page.locator('#hint').innerText(), '');
-  assert.match(await page.locator('#energy-count').textContent(), /2\/2/);
+  assert.equal(await page.locator('.action-pip:not(.empty)').count(), 2);
+  assert.equal(await page.locator('#energy-count').getAttribute('aria-label'), '剩餘行動 2 / 2');
   await page.locator('[data-card="rush"]').click();
   await page.locator('.status').hover();
   assert.match(await page.locator('#hint').innerText(), /^突進\n/);

@@ -87,24 +87,23 @@
 .card-cost {
   position: absolute;
   z-index: 3;
-  top: -16px;
+  top: -22px;
   left: 50%;
   display: grid;
   place-items: center;
-  width: 31px;
-  height: 31px;
-  border: 2px solid #c9e7f6;
-  border-radius: 6px;
-  background: linear-gradient(145deg, #70b7dc, #3b7fab);
+  width: 43px;
+  height: 43px;
+  border: 0;
+  background: url('../assets/ui/action-soulflame.png') center / contain no-repeat;
   color: #fff;
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 800;
   line-height: 1;
-  text-shadow: 0 1px 1px #245777;
-  box-shadow: 0 2px 0 #285e84, 0 3px 7px #1e425c3d;
-  transform: translateX(-50%) rotate(45deg);
+  text-shadow: 0 1px 3px #082d6e, 0 0 4px #082d6e;
+  filter: drop-shadow(0 2px 3px #13417688);
+  transform: translateX(-50%);
 }
-.card-cost > span { transform: rotate(-45deg); }
+.card-cost > span { margin-top: 7px; }
 .card:disabled {
   opacity: 1;
   background: #dedad0;

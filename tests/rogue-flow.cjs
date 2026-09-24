@@ -43,7 +43,7 @@ module.exports = async function checkRogue(page, output) {
   await page.locator('.tile[data-x="2"][data-y="2"]').click();
   await idle();
   assert.equal(await page.locator('#game').getAttribute('data-turn'), '1');
-  assert.match(await page.locator('#energy-count').textContent(), /1\/2/);
+  assert.equal(await page.locator('.action-pip:not(.empty)').count(), 1);
   assert.equal(await page.locator('.ground-knife').count(), 0);
   assert.equal(await page.locator('[data-card="knife"]').count(), 1);
   assert.notEqual(await page.locator('[data-actor="hero"]').getAttribute('style'), origin);

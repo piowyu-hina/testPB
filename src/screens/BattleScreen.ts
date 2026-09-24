@@ -371,9 +371,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   function renderEnergy(value = room.actions) {
     const energy = Math.max(0, Math.min(9, value));
     const charge = journey.loadout === 'rogue' ? journey.assassination : 0;
-    const previousActions = Number(elements.actions.dataset.value);
-    elements.actions.dataset.value = String(energy);
-    elements.energyCount.textContent = `${energy}/2`;
+    const previousActions = Number(elements.energyCount.dataset.value);
+    elements.energyCount.dataset.value = String(energy);
+    elements.energyCount.setAttribute('aria-label', `剩餘行動 ${energy} / 2`);
+    [...elements.energyCount.children].forEach((pip, index) => pip.classList.toggle('empty', index >= energy));
     elements.ultimateCharge.textContent = `${charge}/3`;
     elements.actions.style.setProperty('--ultimate-progress', `${charge / 3 * 100}%`);
     elements.actions.hidden = journey.loadout !== 'rogue';
@@ -381,9 +382,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.actions.classList.toggle('ultimate-ready', journey.loadout === 'rogue' && charge >= 3);
     elements.actions.classList.toggle('ultimate-targeting', ultimateTargeting);
     if (Number.isFinite(previousActions) && previousActions !== energy) {
-      elements.actions.classList.remove('energy-gain', 'energy-spend');
-      void elements.actions.offsetWidth;
-      elements.actions.classList.add(energy > previousActions ? 'energy-gain' : 'energy-spend');
+      elements.energyCount.classList.remove('energy-gain', 'energy-spend');
+      void elements.energyCount.offsetWidth;
+      elements.energyCount.classList.add(energy > previousActions ? 'energy-gain' : 'energy-spend');
     }
   }
   function shadowRequirement(index: number): string {
