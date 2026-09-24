@@ -126,9 +126,36 @@
   background: #168668;
   box-shadow: 0 0 0 2px #e5f4ca, 0 2px 4px #163729;
 }
+.tile.capture {
+  box-shadow: inset 0 0 0 999px #b965561c;
+}
 .tile.capture:after {
-  border-color: #bc403b;
-  border-width: 4px;
+  --target-color: #a85549;
+  inset: 8px;
+  border: 0;
+  box-shadow: none;
+  background:
+    linear-gradient(var(--target-color), var(--target-color)) left top / 22% 3px,
+    linear-gradient(var(--target-color), var(--target-color)) left top / 3px 22%,
+    linear-gradient(var(--target-color), var(--target-color)) right top / 22% 3px,
+    linear-gradient(var(--target-color), var(--target-color)) right top / 3px 22%,
+    linear-gradient(var(--target-color), var(--target-color)) left bottom / 22% 3px,
+    linear-gradient(var(--target-color), var(--target-color)) left bottom / 3px 22%,
+    linear-gradient(var(--target-color), var(--target-color)) right bottom / 22% 3px,
+    linear-gradient(var(--target-color), var(--target-color)) right bottom / 3px 22%;
+  background-repeat: no-repeat;
+}
+.tile.capture:hover {
+  box-shadow: inset 0 0 0 999px #b9655633;
+}
+.tile.capture:hover:after {
+  --target-color: #c36e5b;
+}
+.tile.blocked.capture:hover {
+  box-shadow: inset 0 0 0 999px #5276a03d;
+}
+.tile.blocked.capture:hover:after {
+  --target-color: #6b9fc2;
 }
 .tile.legal {
   cursor: pointer;
