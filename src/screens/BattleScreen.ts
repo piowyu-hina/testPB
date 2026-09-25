@@ -1015,7 +1015,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
             room.hand.push(card);
           }
           render();
-        } else if (action === 'card' && !room.finished && room.hand.length < HAND_LIMIT) {
+        } else if (action === 'card' && !room.finished && room.hand.length < 8) {
           const card = room.deck.pop() ?? room.discard.pop();
           if (card) room.hand.push(card);
           render();
