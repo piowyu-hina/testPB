@@ -1010,7 +1010,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     overflowTimer = window.setTimeout(() => {
       elements.overflowFeedback.hidden = true;
       elements.overflowFeedback.classList.remove('active');
-    }, 2300);
+    }, 1200);
   }
   function openExchange() {
     const options = $('ultimate-exchange-options');
