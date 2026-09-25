@@ -511,7 +511,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const cleared = exploring();
     const chosenId = room.availableCards[selected];
     const chosen = chosenId ? data.cards[chosenId] : undefined;
-    const sweepReady = chosenId === 'sweep' && room.canMove(selected, room.hero);
     renderTileInfo(preview);
     if (!busy) {
       if (ultimateTargeting) showCardHint(data.cards[journey.loadout === 'qinghe' ? 'dawnSpear' : 'absoluteShadow']);
@@ -548,13 +547,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         place(mark, point);
         threatMarks.append(mark);
       }
-      const sweepTarget = sweepReady && data.cards.sweep.offsets.some(offset => equal(point, [room.hero[0] + offset[0], room.hero[1] + offset[1]]));
-      if (room.at(point) && (legal || dawnPreview.some(enemy => equal(enemy.position, point)) || sweepTarget)) {
+      if (room.at(point) && (legal || dawnPreview.some(enemy => equal(enemy.position, point)))) {
         const mark = document.createElement('div');
         mark.className = 'target-mark';
-        mark.classList.toggle('sweep-target', sweepTarget);
         mark.classList.toggle('hovered', Boolean(hoveredTile && equal(hoveredTile, point)));
-        mark.classList.toggle('blocked', !sweepTarget && !dawnPreview.some(enemy => equal(enemy.position, point)) && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
+        mark.classList.toggle('blocked', !dawnPreview.some(enemy => equal(enemy.position, point)) && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
         place(mark, point);
         targetMarks.append(mark);
       }
@@ -588,7 +585,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     for (const enemy of room.enemies) {
       const sprite = actor(enemy.id);
       place(sprite, enemy.position);
-      sprite.classList.toggle('victim-preview', removedIds.includes(enemy.id));
+      sprite.classList.toggle('victim-preview', chosenId !== 'sweep' && removedIds.includes(enemy.id));
       sprite.classList.toggle('hovered', enemy.id === hoveredEnemy && !busy);
       const skill = enemySkill(enemy);
       sprite.dataset.skill = skill.id;
