@@ -6,10 +6,10 @@
   align-items: center;
   justify-content: center;
 }
-.overflow-feedback { position: absolute; z-index: 80; left: 50%; top: -230px; width: 340px; height: 240px; transform: translateX(-50%); pointer-events: none; text-align: center; }
+.overflow-feedback { position: absolute; z-index: 80; left: 50%; top: -248px; width: 340px; height: 258px; transform: translateX(-50%); pointer-events: none; text-align: center; }
 .overflow-feedback[hidden] { display: none; }
-.overflow-card { position: absolute; left: 50%; top: 0; width: 140px; height: 205px; box-sizing: border-box; padding: 9px; border: 3px solid #b8a784; border-radius: 12px; background: #fff9ea; box-shadow: 0 5px 18px #09120c99; transform: translateX(-50%); }
-.overflow-card img { display: block; width: 100%; height: 153px; object-fit: contain; }
+.overflow-card { position: absolute; left: 50%; top: 0; width: 153px; height: 222px; box-sizing: border-box; padding: 10px; border: 3px solid #b8a784; border-radius: 12px; background: #fff9ea; box-shadow: 0 5px 18px #09120c99; transform: translateX(-50%); }
+.overflow-card img { display: block; width: 100%; height: 168px; object-fit: contain; }
 .overflow-card img[hidden] { display: none; }
 .overflow-card span { display: block; color: #3f3d36; font-size: 27px; line-height: 1.25; }
 .overflow-sparks { position: absolute; left: 50%; top: 100px; width: 12px; height: 12px; border-radius: 50%; background: #fff0b1; box-shadow: -65px -22px #ed9b50, 62px -39px #e9bd66, -48px 54px #d86143, 60px 45px #e77944; opacity: 0; }
