@@ -39,6 +39,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     cardDetails: $('card-details'),
     hand: $('hand'),
     overflowFeedback: $('overflow-feedback'),
+    ultimateReveal: $('ultimate-reveal'),
+    ultimatePortrait: $<HTMLImageElement>('ultimate-reveal-portrait'),
     health: $('health'),
     energyCount: $('energy-count'),
     actions: $('actions'),
@@ -415,6 +417,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.actions.hidden = journey.loadout === 'basic';
     elements.actions.style.setProperty('--ultimate-art', `url("${journey.loadout === 'qinghe' ? qingheChargeArt : rogueChargeArt}")`);
     const ultimateName = journey.loadout === 'qinghe' ? '破曉一槍' : '絕影';
+    const chargeTestButton = root.querySelector<HTMLButtonElement>('[data-test-action="charge"]');
+    if (chargeTestButton) {
+      chargeTestButton.setAttribute('aria-label', `蓄滿${ultimateName}`);
+      chargeTestButton.title = `蓄滿${ultimateName}`;
+    }
     const claimed = room.hand.includes(journey.loadout === 'qinghe' ? 'dawnSpear' : 'absoluteShadow');
     elements.actions.setAttribute('aria-label', claimed ? `${ultimateName}卡已在手牌` : `${ultimateName}充能 ${charge} / ${journey.ultimateThreshold}${charge >= journey.ultimateThreshold ? `，點擊領取${ultimateName}卡` : ''}`);
     elements.actions.classList.toggle('ultimate-ready', journey.loadout !== 'basic' && charge >= journey.ultimateThreshold && !claimed);
@@ -541,11 +548,13 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         place(mark, point);
         threatMarks.append(mark);
       }
-      if (room.at(point) && (legal || dawnPreview.some(enemy => equal(enemy.position, point)) || sweepReady && data.cards.sweep.offsets.some(offset => equal(point, [room.hero[0] + offset[0], room.hero[1] + offset[1]])))) {
+      const sweepTarget = sweepReady && data.cards.sweep.offsets.some(offset => equal(point, [room.hero[0] + offset[0], room.hero[1] + offset[1]]));
+      if (room.at(point) && (legal || dawnPreview.some(enemy => equal(enemy.position, point)) || sweepTarget)) {
         const mark = document.createElement('div');
         mark.className = 'target-mark';
+        mark.classList.toggle('sweep-target', sweepTarget);
         mark.classList.toggle('hovered', Boolean(hoveredTile && equal(hoveredTile, point)));
-        mark.classList.toggle('blocked', !dawnPreview.some(enemy => equal(enemy.position, point)) && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
+        mark.classList.toggle('blocked', !sweepTarget && !dawnPreview.some(enemy => equal(enemy.position, point)) && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
         place(mark, point);
         targetMarks.append(mark);
       }
@@ -1009,6 +1018,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     dealingHand = false;
     dealSequence++;
     elements.game.classList.remove('dealing-hand');
+    elements.ultimateReveal.hidden = true;
     elements.result.hidden = true;
     elements.game.inert = false;
     elements.hint.textContent = '';
@@ -1049,6 +1059,20 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     replacingUltimate = false;
     if (exchange.open) exchange.close();
     render();
+  }
+  async function grantUltimate(replaceIndex?: number) {
+    if (busy || journey.ultimateCharge < journey.ultimateThreshold) return;
+    busy = true;
+    selected = -1;
+    render();
+    elements.ultimatePortrait.src = characters[journey.loadout === 'qinghe' ? 'qinghe' : 'rogue'].portrait;
+    elements.ultimateReveal.hidden = false;
+    await pause(850);
+    elements.ultimateReveal.hidden = true;
+    const granted = journey.claimUltimate(replaceIndex);
+    busy = false;
+    render();
+    if (granted) lockWhileCardsEnter(1);
   }
   async function useDawnUltimate(direction: Point) {
     if (busy || exploring() || !ultimateTargeting || journey.loadout !== 'qinghe' || journey.dawnCharge < 4) return;
@@ -1119,8 +1143,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       name.textContent = data.cards[id].name;
       button.append(name);
       onClick(button, () => {
-        if (!replacingUltimate || !journey.claimUltimate(index)) return;
+        if (!replacingUltimate) return;
         closeExchange();
+        void grantUltimate(index);
       });
       return button;
     }));
@@ -1227,9 +1252,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       render();
       openExchange();
     } else {
-      journey.claimUltimate();
       replacingUltimate = false;
-      render();
+      void grantUltimate();
     }
   });
   onClick($('replay'), () => {
