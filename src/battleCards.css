@@ -35,6 +35,7 @@
   transition:
     transform 0.13s,
     border-color 0.13s,
+    box-shadow 0.13s,
     opacity 0.12s;
   touch-action: manipulation;
 }
@@ -59,12 +60,15 @@
   background: #c3aa7a;
 }
 .card:not(:disabled):hover {
-  transform: translateY(-5px);
+  z-index: 30 !important;
+  transform: translateY(-12px);
   border-color: #83734f;
+  box-shadow: inset 0 0 0 4px #fffaf0, 0 4px 0 #b6a386, 0 14px 20px #30291f55;
 }
 .card.selected,
 .card.selected:not(:disabled):hover {
-  transform: translateY(-11px);
+  z-index: 20 !important;
+  transform: translateY(-16px);
   border-color: var(--teal);
   background: linear-gradient(150deg, #fffdf4, #e1ebd6);
   box-shadow:
@@ -77,14 +81,16 @@
   width: 26%;
   left: 37%;
 }
+.card.selected:not(:disabled):hover { z-index: 30 !important; }
 .card.ultimate-card {
   border-color: #c9a95c;
   background: linear-gradient(150deg, #fff8df, #efe0b6);
   box-shadow: inset 0 0 0 4px #fff9e9, 0 4px 0 #9b783e, 0 0 22px #f3c75d99;
   animation: ultimate-card-glow 2.6s ease-in-out infinite alternate;
 }
-.card.ultimate-card.selected { border-color: #f3d47e; transform: translateY(-11px); }
-.card.replace-candidate:not(:disabled) { border-color: #e0b45b; box-shadow: inset 0 0 0 4px #fff9e9, 0 0 16px #f0bd56aa; }
+.card.ultimate-card.selected { border-color: #f3d47e; transform: translateY(-16px); }
+.card.replace-candidate:not(:disabled):hover { transform: translateY(-20px); border-color: #c25248; box-shadow: inset 0 0 0 4px #fffaf0, 0 4px 0 #9a514c, 0 15px 24px #45262377; }
+.card.replace-candidate:not(:disabled):hover::after { content: '×'; position: absolute; z-index: 4; top: 9px; right: 10px; width: 27px; height: 27px; border-radius: 50%; background: #a63834; color: #fff8e8; font: 700 24px/25px sans-serif; text-align: center; box-shadow: 0 2px 5px #4b262688; }
 @keyframes ultimate-card-glow {
   to { box-shadow: inset 0 0 0 4px #fff9e9, 0 4px 0 #9b783e, 0 0 32px #ffd66bcc; }
 }
