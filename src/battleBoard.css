@@ -130,7 +130,7 @@
   pointer-events: none;
 }
 .target-mark {
-  --target-color: #b94f40;
+  --target-color: #d93f37;
   position: absolute;
   width: 20%;
   height: 20%;
@@ -148,9 +148,9 @@
   background-origin: content-box;
   padding: 6px;
   box-sizing: border-box;
-  filter: drop-shadow(0 1px 1px #4f211b);
+  filter: drop-shadow(0 1px 2px #4f211b) drop-shadow(0 0 3px #db413977);
 }
-.target-mark.hovered { --target-color: #db4139; filter: drop-shadow(0 1px 2px #4f211b) drop-shadow(0 0 3px #db413977); }
+.target-mark.hovered { --target-color: #ed433b; filter: drop-shadow(0 1px 2px #4f211b) drop-shadow(0 0 5px #ed433baa); }
 .target-mark.blocked { --target-color: #6b9fc2; }
 .tile.legal:after {
   --target-color: #196f58;
