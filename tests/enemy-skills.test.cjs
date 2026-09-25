@@ -4,9 +4,11 @@ const { Room } = require('../src/battle/Room.ts');
 const { enemySkill, blocksAttack, facingOffsets } = require('../src/battle/EnemyRules.ts');
 
 function guardRoom(hero = [2, 1], extra = {}) {
-  return new Room(1, { name: 'Guard test', hero, enemies: [
+  const room = new Room(1, { name: 'Guard test', hero, enemies: [
     { id: 0, kind: 'stump', position: [2, 2], facing: 'south', ...extra }
   ] });
+  room.hand = ['short', 'diagonal', 'rush'];
+  return room;
 }
 
 test('all four facings block straight frontal attacks but not flanks or rear', () => {

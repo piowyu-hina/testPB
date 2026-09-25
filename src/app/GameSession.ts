@@ -15,7 +15,7 @@ export class GameSession {
   // Only one dungeon exists today; this is where a future dungeon-select screen would set it.
   private selectedDungeon: DungeonId = 'forest';
   get dungeonId() { return this.selectedDungeon; }
-  private seed = 1;
+  private seed = Math.floor(Math.random() * 0x100000000);
   private started = false;
   private current = new Journey(this.seed++, this.characterId === 'rogue' ? 'rogue' : this.characterId === 'qinghe' ? 'qinghe' : 'basic', this.selectedDungeon);
   get journey() { return this.current; }

@@ -67,16 +67,16 @@ export class Room {
     this.actions = 2;
     this.turn = 1;
     this.enemies = definition.enemies.map((enemy) => ({ ...enemy, health: enemy.health ?? (enemy.elite ? 2 : 1), maxHealth: enemy.maxHealth ?? enemy.health ?? (enemy.elite ? 2 : 1), position: [...enemy.position] }));
-    this.hand = loadouts[loadout].slice(0, 3);
+    this.hand = [];
     this.deck = [];
     this.discard = [];
     this.random = rng(seed);
     for (const id of loadouts[loadout]) {
       const card = data.cards[id];
-      const remaining = card.copies - this.hand.filter((x) => x === id).length;
-      for (let i = 0; i < remaining; i++) this.deck.push(id as CardId);
+      for (let i = 0; i < card.copies; i++) this.deck.push(id as CardId);
     }
     this.shuffle(this.deck);
+    for (let i = 0; i < 3; i++) this.draw();
   }
   get won() {
     return this.enemies.length === 0;

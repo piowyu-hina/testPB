@@ -8,13 +8,19 @@ function room() {
   const result = new Room(1, undefined, 5, 'qinghe');
   result.hero = [2, 1];
   result.enemies = [enemy(0, [4, 4])];
+  result.hand = ['advance', 'thrust', 'sweep'];
   return result;
 }
 
-test('Qinghe starts with one of each simple action and no rogue state', () => {
-  const result = room();
-  assert.deepEqual(result.hand, ['advance', 'thrust', 'sweep']);
+test('Qinghe starts with three cards drawn from a shuffled full deck and no rogue state', () => {
+  const result = new Room(1, undefined, 5, 'qinghe');
+  assert.equal(result.hand.length, 3);
   assert.equal(result.deck.length, 15);
+  for (const id of ['advance', 'thrust', 'sweep'])
+    assert.equal([...result.hand, ...result.deck].filter(card => card === id).length, 6);
+  assert.notDeepEqual(result.hand, ['advance', 'thrust', 'sweep']);
+  assert.deepEqual(new Room(1, undefined, 5, 'qinghe').hand, result.hand);
+  assert.notDeepEqual(new Room(2, undefined, 5, 'qinghe').hand, result.hand);
   assert.deepEqual(result.knives, []);
 });
 

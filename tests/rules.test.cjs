@@ -8,7 +8,8 @@ test('opening state and data-driven twelve-card deck', () => {
   const room = new Room();
   assert.equal(room.enemies.length, 4);
   assert.equal(room.health, 5);
-  assert.deepEqual(room.hand, ['short', 'diagonal', 'rush']);
+  assert.equal(room.hand.length, 3);
+  assert.equal(room.deck.length, 9);
   for (const id of ['short', 'diagonal', 'rush', 'leap'])
     assert.equal([...room.hand, ...room.deck].filter((x) => x === id).length, 3);
 });
@@ -65,6 +66,7 @@ test('preview excludes defeated threats, sums surviving attacks and never mutate
 
 test('last capture wins immediately; lethal attack does not draw another hand', () => {
   const room = new Room();
+  room.hand = ['short', 'diagonal', 'rush'];
   room.enemies = [enemy(0, 'sprout', [2, 2])];
   room.move(2, [2, 2]);
   assert.equal(room.won, true);
@@ -95,6 +97,7 @@ test('enemies attack before approaching, and may not overlap', () => {
 
 test('zero actions prevents a third move; next turn discards unused cards', () => {
   const room = new Room();
+  room.hand = ['short', 'diagonal', 'rush'];
   room.move(2, [2, 2]);
   room.move(0, [2, 1]);
   assert.equal(room.actions, 0);

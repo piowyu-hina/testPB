@@ -77,7 +77,9 @@ test('only clearing advances; healing is capped and cannot be repeated', () => {
   assert.equal(run.room.health, 3);
   assert.equal(run.room.turn, 1);
   assert.equal(run.room.actions, 2);
-  assert.deepEqual(run.room.hand, ['short', 'diagonal', 'rush']);
+  assert.equal(run.room.hand.length, 3);
+  for (const id of ['short', 'diagonal', 'rush', 'leap'])
+    assert.equal([...run.room.hand, ...run.room.deck].filter(card => card === id).length, 3);
   assert.equal(run.advance(), false);
   assert.equal(run.room.health, 3);
   run.room.health = 5;
@@ -118,6 +120,7 @@ test('elite damage preview matches resolution, capture removes its entire threat
   assert.equal(room.health, hp - 2);
   const capture = new Room(1, definition);
   capture.hero = [2, 2];
+  capture.hand = ['short'];
   const preview = capture.preview(0, [2, 3]);
   assert.equal(preview.removedId, -1);
   assert.deepEqual(preview.destination, [2, 2]);
@@ -143,6 +146,7 @@ test('last boss survives first hit without overlap or opening the exit', () => {
   const room = new Room(1, { name: 'Boss', hero: [2, 2], enemies: [
     { id: 0, kind: 'sprout', position: [2, 3], elite: true }
   ] });
+  room.hand = ['short', 'diagonal', 'rush'];
   const cardsBefore = room.hand.length;
   room.move(0, [2, 3]);
   assert.equal(room.won, false);

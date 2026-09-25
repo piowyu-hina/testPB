@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const { Room } = require('../src/battle/Room.ts');
 const { Journey } = require('../src/battle/Journey.ts');
 const enemy = (id, position, kind = 'sprout', extra = {}) => ({ id, position, kind, health: 1, ...extra });
-function room() { const r = new Room(1, undefined, 5, 'rogue'); r.hero = [2, 0]; return r; }
+function room() { const r = new Room(1, undefined, 5, 'rogue'); r.hero = [2, 0]; r.hand = ['throw', 'shadow', 'lunge']; return r; }
 
 test('throw is stationary, cardinal, first enemy only, keeps multiple knives after kills', () => {
   const r = room(); r.enemies = [enemy(0, [2, 2]), enemy(1, [2, 4]), enemy(2, [4, 0])];
@@ -116,7 +116,8 @@ test('unused knife cards expire on end turn while ground knives remain; next roo
   const j = new Journey(1, 'rogue'); j.room.knives = [[1, 1]]; j.room.hand.push('knife'); j.room.enemies = []; j.room.hero = [2, 4];
   assert.equal(j.advance(), true); assert.deepEqual(j.room.knives, []);
   assert.equal(j.room.hand.includes('knife'), false);
-  assert.deepEqual(j.room.hand, ['throw', 'shadow', 'lunge']);
+  assert.equal(j.room.hand.length, 3);
+  assert.ok(j.room.hand.every(id => ['throw', 'shadow', 'lunge'].includes(id)));
 });
 test('knife attacks one cardinal tile without moving or collecting a ground knife', () => {
   const r = room(); r.hand = ['throw']; r.enemies = [enemy(0, [3, 2])];
