@@ -21,6 +21,28 @@
   min-height: 40px;
   justify-content: flex-end;
 }
+.battle-test-tools { display: flex; align-items: center; gap: 5px; margin-right: auto; }
+.battle-test-tools[hidden] { display: none; }
+.battle-test-tools button { position: relative; flex: none; width: 46px; height: 46px; padding: 4px; border: 1px solid #a9916866; border-radius: 9px; background: #18271fdc; cursor: pointer; }
+.battle-test-tools button:hover { border-color: #ebcb7c; background-color: #2b4132; }
+.battle-test-tools button:focus-visible { outline: 2px solid #ebcb7c; outline-offset: 2px; }
+.battle-test-tools button::before { content: ''; display: block; width: 100%; height: 100%; background: center / contain no-repeat; }
+.battle-test-tools [data-test-action='opening']::before { background-image: url('../assets/monsters/forest/ThornSprout.png'); }
+.battle-test-tools [data-test-action='guard']::before,
+.battle-test-tools [data-test-action='elite']::before { background-image: url('../assets/monsters/forest/StumpGuard.png'); }
+.battle-test-tools [data-test-action='charge']::before { background-image: url('../assets/ui/ultimate-charge.png'); }
+.battle-test-tools [data-test-action='hand']::before,
+.battle-test-tools [data-test-action='card']::before { background-image: url('../assets/cards/luxue/Throw.png'); }
+.battle-test-tools [data-test-action='health']::before { background-image: url('../assets/ui/health-heart-painted-v2.png'); }
+.battle-test-tools [data-test-action='energy']::before { background-image: url('../assets/ui/action-soulflame.png'); }
+.battle-test-tools [data-test-action='elite']::after,
+.battle-test-tools [data-test-action='hand']::after,
+.battle-test-tools [data-test-action='energy']::after,
+.battle-test-tools [data-test-action='card']::after { position: absolute; right: -2px; bottom: -4px; min-width: 17px; padding: 0 2px; border-radius: 5px; background: #f3d38b; color: #392914; font: 700 17px/18px sans-serif; }
+.battle-test-tools [data-test-action='elite']::after { content: '★'; }
+.battle-test-tools [data-test-action='hand']::after { content: '5'; }
+.battle-test-tools [data-test-action='energy']::after,
+.battle-test-tools [data-test-action='card']::after { content: '+'; }
 .character-status { position: relative; display: flex; align-items: center; justify-content: flex-start; gap: 14px; min-width: 0; margin: 18px 0 0; padding: 4px 105px 4px 26px; color: #fff7e9; text-shadow: 0 2px 5px #061008, 0 0 12px #061008; }
 .character-status-resources { display: flex; align-items: center; min-width: 0; }
 .character-status-resources { margin-left: auto; gap: 14px; }

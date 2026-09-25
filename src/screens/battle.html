@@ -1,5 +1,15 @@
     <main class="game" id="game" aria-label="testPB 戰鬥房間">
       <div class="status">
+        <div id="battle-test-tools" class="battle-test-tools" aria-label="開發測試" hidden>
+          <button type="button" data-test-action="opening" aria-label="測試開局" title="開局"></button>
+          <button type="button" data-test-action="guard" aria-label="測試守衛房" title="守衛房"></button>
+          <button type="button" data-test-action="elite" aria-label="測試菁英房" title="菁英房"></button>
+          <button type="button" data-test-action="charge" aria-label="蓄滿絕影" title="蓄滿絕影"></button>
+          <button type="button" data-test-action="hand" aria-label="手牌補到五張" title="手牌五張"></button>
+          <button type="button" data-test-action="health" aria-label="生命剩一" title="生命剩一"></button>
+          <button type="button" data-test-action="energy" aria-label="魂火增加一點" title="魂火 +1"></button>
+          <button type="button" data-test-action="card" aria-label="抽一張卡" title="抽卡 +1"></button>
+        </div>
         <button id="open-battle-help" class="battle-settings-button" type="button" tabindex="-1" aria-label="開啟設定">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="m19.1 13.3 1.4 1.1-1.8 3.1-1.7-.7a7.9 7.9 0 0 1-2.2 1.3l-.3 1.8h-3.6l-.3-1.8a7.9 7.9 0 0 1-2.2-1.3l-1.7.7-1.8-3.1 1.4-1.1a8 8 0 0 1 0-2.6L4.9 9.6l1.8-3.1 1.7.7a7.9 7.9 0 0 1 2.2-1.3l.3-1.8h3.6l.3 1.8A7.9 7.9 0 0 1 17 7.2l1.7-.7 1.8 3.1-1.4 1.1a8 8 0 0 1 0 2.6Z"/></svg>
         </button>
@@ -47,17 +57,6 @@
         </section>
         <div class="settings-row"><div><strong>戰鬥音效</strong><p>移動、攻擊與擊殺</p></div><button id="battle-sound-toggle" class="sound-toggle" type="button" tabindex="-1" aria-pressed="true">開</button></div>
         <div class="settings-row"><div><strong>介面主題</strong><p>切換淺色／深色介面</p></div><button class="theme-toggle" type="button" tabindex="-1" aria-label="切換為淺色背景"></button></div>
-        <section id="battle-test-tools" class="battle-test-tools" aria-label="開發測試" hidden>
-          <strong>測試情境</strong>
-          <div class="battle-test-buttons">
-            <button type="button" data-test-action="opening">開局</button>
-            <button type="button" data-test-action="guard">守衛房</button>
-            <button type="button" data-test-action="elite">菁英房</button>
-            <button type="button" data-test-action="charge">蓄滿絕影</button>
-            <button type="button" data-test-action="hand">手牌五張</button>
-            <button type="button" data-test-action="health">生命剩一</button>
-          </div>
-        </section>
         <details class="battle-rules"><summary><span class="rules-open-label">玩法說明</span><span class="rules-back-label">‹ 返回設定</span></summary><ol>
           <li><strong>選牌，再點亮起的格子。</strong>卡牌中央是你，綠點是相對落點；再點同一張牌可取消。</li>
           <li><strong>手機操作。</strong>沒選牌時點格子查看資訊；選牌後點合法格行動。長按卡片可閱讀完整說明，點說明外收起。</li>

@@ -396,10 +396,16 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   function renderEnergy(value = room.actions) {
     const energy = Math.max(0, Math.min(9, value));
+    const capacity = Math.max(2, room.actions, elements.energyCount.children.length);
+    while (elements.energyCount.children.length < capacity) {
+      const pip = document.createElement('span');
+      pip.className = 'action-pip';
+      elements.energyCount.append(pip);
+    }
     const charge = journey.loadout === 'rogue' ? journey.assassination : 0;
     const previousActions = Number(elements.energyCount.dataset.value);
     elements.energyCount.dataset.value = String(energy);
-    elements.energyCount.setAttribute('aria-label', `剩餘行動 ${energy} / 2`);
+    elements.energyCount.setAttribute('aria-label', `剩餘行動 ${energy} / ${capacity}`);
     [...elements.energyCount.children].forEach((pip, index) => pip.classList.toggle('empty', index >= energy));
     elements.actions.style.setProperty('--ultimate-progress', `${charge / 3 * 100}%`);
     elements.actions.hidden = journey.loadout !== 'rogue';
@@ -951,6 +957,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.game.inert = false;
     elements.hint.textContent = '';
     elements.endLabel.textContent = '結束回合';
+    elements.energyCount.replaceChildren(...Array.from({ length: 2 }, () => {
+      const pip = document.createElement('span');
+      pip.className = 'action-pip';
+      return pip;
+    }));
+    delete elements.energyCount.dataset.value;
     elements.actors.replaceChildren();
     actors.clear();
     for (const enemy of room.enemies) {
@@ -1003,11 +1015,17 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
             room.hand.push(card);
           }
           render();
+        } else if (action === 'card' && !room.finished && room.hand.length < HAND_LIMIT) {
+          const card = room.deck.pop() ?? room.discard.pop();
+          if (card) room.hand.push(card);
+          render();
+        } else if (action === 'energy' && !room.finished) {
+          room.actions = Math.min(5, room.actions + 1);
+          render();
         } else if (action === 'health' && !room.finished) {
           room.health = 1;
           render();
         }
-        help.close();
       });
     }
   }
