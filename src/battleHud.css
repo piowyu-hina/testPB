@@ -52,10 +52,10 @@
   display: flex;
   align-items: center;
 }
-.health .health-segment { width: 33px; height: 33px; }
+.health .health-segment { width: 37px; height: 37px; }
 .tile-info strong:has(.enemy-life), .touch-info strong:has(.enemy-life) { display: flex; align-items: center; gap: 18px; }
 .tile-info .enemy-life, .touch-info .enemy-life { display: inline-flex; align-items: center; margin: 0; }
-.enemy-life .health-segment { width: 33px; height: 33px; }
+.enemy-life .health-segment { width: 37px; height: 37px; }
 .battle-settings-button {
   display: grid;
   place-items: center;
@@ -115,13 +115,13 @@
 }
 .action-pip {
   display: block;
-  width: 44px;
-  height: 47px;
+  width: 49px;
+  height: 53px;
   background: url('../assets/ui/action-soulflame.png') center / contain no-repeat;
   filter: drop-shadow(0 0 6px #5fd9ff88);
 }
 .action-pip { position: relative; }
-.action-pip + .action-pip { margin-right: -30px; transform: translateY(3px) rotate(8deg); }
+.action-pip + .action-pip { margin-right: -33px; transform: translateY(3px) rotate(8deg); }
 .action-pip:nth-child(odd) { z-index: 1; }
 .action-pip.empty {
   filter: grayscale(1) brightness(.55);
