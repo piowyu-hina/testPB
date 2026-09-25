@@ -39,6 +39,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     energyCount: $('energy-count'),
     actions: $('actions'),
     hint: $('hint'),
+    cancelUltimate: $<HTMLButtonElement>('cancel-ultimate-replace'),
     end: $<HTMLButtonElement>('end-turn'),
     endLabel: $('end-label'),
     ghost: $('ghost'),
@@ -491,8 +492,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const chosenId = room.availableCards[selected];
     const chosen = chosenId ? data.cards[chosenId] : undefined;
     renderTileInfo(preview);
+    elements.cancelUltimate.hidden = !replacingUltimate || busy;
     if (!busy) {
-      if (replacingUltimate) elements.hint.textContent = '手牌已滿。點一張手牌換掉，領取絕影卡；再點蓄力圖案可取消。';
+      if (replacingUltimate) elements.hint.textContent = '手牌已滿。請選一張手牌換成絕影卡。';
       else if (ultimateTargeting) showCardHint(data.cards.absoluteShadow);
       else if (cleared) {
         if (chosen) showCardHint(chosen);
@@ -956,6 +958,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.result.hidden = true;
     elements.game.inert = false;
     elements.hint.textContent = '';
+    elements.cancelUltimate.hidden = true;
     elements.endLabel.textContent = '結束回合';
     elements.energyCount.replaceChildren(...Array.from({ length: 2 }, () => {
       const pip = document.createElement('span');
@@ -1033,6 +1036,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   onClick($('close-battle-help'), () => help.close());
   onClick(soundToggle, () => { setSoundEnabled(!soundEnabled()); renderSoundToggle(); });
   onClick(elements.end, () => exploring() ? redrawExplorationCard() : enemyTurn());
+  onClick(elements.cancelUltimate, () => {
+    replacingUltimate = false;
+    render();
+  });
   elements.actions.addEventListener('pointerenter', () => {
     if (!touchLayout() && journey.loadout === 'rogue') showUltimateHint();
   });
