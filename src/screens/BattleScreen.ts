@@ -347,11 +347,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           }
           closeCardDetails();
           inspectedTile = null;
-          if (id === 'sweep') {
-            selected = index;
-            void move(room.hero);
-            return;
-          }
           selected = selected === index ? -1 : index;
           inspectedEnemy = -1;
           hoveredTile = null;
@@ -497,6 +492,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const cleared = exploring();
     const chosenId = room.availableCards[selected];
     const chosen = chosenId ? data.cards[chosenId] : undefined;
+    const sweepReady = chosenId === 'sweep' && room.canMove(selected, room.hero);
     renderTileInfo(preview);
     if (!busy) {
       if (ultimateTargeting) showCardHint(data.cards[journey.loadout === 'qinghe' ? 'dawnSpear' : 'absoluteShadow']);
@@ -531,7 +527,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         place(mark, point);
         threatMarks.append(mark);
       }
-      if (legal && room.at(point)) {
+      if (room.at(point) && (legal || sweepReady && data.cards.sweep.offsets.some(offset => equal(point, [room.hero[0] + offset[0], room.hero[1] + offset[1]])))) {
         const mark = document.createElement('div');
         mark.className = 'target-mark';
         mark.classList.toggle('hovered', Boolean(hoveredTile && equal(hoveredTile, point)));
@@ -544,7 +540,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const enemy = room.at(point);
       tile.setAttribute(
         'aria-label',
-        `${point[0] + 1},${point[1] + 1}${enemy ? ` ${enemySummary(enemy)}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? ['throw', 'knife', 'thrust'].includes(chosenId) ? '，可攻擊' : '，可移動' : ''}`
+        `${point[0] + 1},${point[1] + 1}${enemy ? ` ${enemySummary(enemy)}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? chosenId === 'sweep' ? '，點擊自己施放橫掃' : ['throw', 'knife', 'thrust'].includes(chosenId) ? '，可攻擊' : '，可移動' : ''}`
       );
       if (cleared)
         tile.setAttribute(
