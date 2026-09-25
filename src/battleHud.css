@@ -21,9 +21,9 @@
   min-height: 40px;
   justify-content: flex-end;
 }
-.character-status { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 26px; min-width: 0; margin: 18px 0 0; padding: 4px 105px 4px 26px; color: #fff7e9; text-shadow: 0 2px 5px #061008, 0 0 12px #061008; }
+.character-status { position: relative; display: flex; align-items: center; justify-content: flex-start; gap: 14px; min-width: 0; margin: 18px 0 0; padding: 4px 105px 4px 26px; color: #fff7e9; text-shadow: 0 2px 5px #061008, 0 0 12px #061008; }
 .character-status-resources { display: flex; align-items: center; min-width: 0; }
-.character-status-resources { margin-left: auto; gap: 26px; }
+.character-status-resources { gap: 14px; }
 .status-energy { display: inline-flex; align-items: center; min-width: 0; }
 .health {
   display: flex;
