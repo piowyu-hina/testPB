@@ -89,7 +89,7 @@
 .ultimate-meter-base, .ultimate-meter-fill {
   position: absolute;
   inset: 0;
-  background: url('../assets/ui/ultimate-charge.png') center / contain no-repeat;
+  background: var(--ultimate-art, url('../assets/ui/ultimate-charge.png')) center / contain no-repeat;
   pointer-events: none;
 }
 .ultimate-meter-base { filter: grayscale(1) brightness(.48); opacity: .75; }

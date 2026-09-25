@@ -136,21 +136,23 @@ export class Room {
     for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) if (this.canMove(index, [x, y])) return true;
     return false;
   }
-  hasPlayableCard() { return this.hand.some((id, i) => id === 'absoluteShadow' || this.canUseCard(i)); }
+  hasPlayableCard() { return this.hand.some((id, i) => id === 'absoluteShadow' || id === 'dawnSpear' || this.canUseCard(i)); }
   discardForUltimate(index: number): CardId | null {
     if (!Number.isInteger(index) || index < 0 || index >= this.hand.length) return null;
     const [removed] = this.hand.splice(index, 1);
-    if (removed !== 'knife' && removed !== 'absoluteShadow') this.discard.push(removed);
+    if (removed !== 'knife' && removed !== 'absoluteShadow' && removed !== 'dawnSpear') this.discard.push(removed);
     return removed;
   }
   removeUltimateCard() {
     const index = this.hand.indexOf('absoluteShadow');
     if (index >= 0) this.hand.splice(index, 1);
+    const spearIndex = this.hand.indexOf('dawnSpear');
+    if (spearIndex >= 0) this.hand.splice(spearIndex, 1);
   }
   setLoadout(next: Loadout) {
     if (next === this.loadout) return;
     const previous = loadouts[this.loadout], target = loadouts[next];
-    const convert = (pile: CardId[]) => pile.filter(id => id !== 'knife' && id !== 'absoluteShadow').map(id => target[Math.max(0, previous.indexOf(id)) % target.length]);
+    const convert = (pile: CardId[]) => pile.filter(id => id !== 'knife' && id !== 'absoluteShadow' && id !== 'dawnSpear').map(id => target[Math.max(0, previous.indexOf(id)) % target.length]);
     this.hand = convert(this.hand); this.deck = convert(this.deck); this.discard = convert(this.discard);
     this.knives = []; this.loadout = next;
   }
@@ -160,8 +162,10 @@ export class Room {
     if (!card) return false;
     if (!this.matchesCard(index, destination)) return false;
     if (card.effect === 'throw') return Boolean(this.at(destination));
+    if (card.effect === 'thrust') return Boolean(this.at(destination));
     if (card.effect === 'shadow' && !this.hasKnife(destination)) return false;
     if (card.effect === 'knife') return Boolean(this.at(destination));
+    if (this.hand[index] === 'step' && this.at(destination)) return false;
     return true;
   }
   private matchesCard(index: number, destination: Point) {
@@ -197,7 +201,7 @@ export class Room {
     const victim = this.at(destination);
     const blocked = victim ? blocksAttack(victim, this.hero) : false;
     const survives = victim && (blocked || (victim.health ?? 1) > 1);
-    const stationary = this.hand[index] === 'throw' || this.hand[index] === 'knife';
+    const stationary = this.hand[index] === 'throw' || this.hand[index] === 'knife' || this.hand[index] === 'thrust';
     const landing = survives || stationary ? this.hero : destination;
     return {
       blocked,
@@ -269,6 +273,23 @@ export class Room {
     if (this.won) this.knives = [];
     return action;
   }
+  strikeUltimate(enemyId: number): UltimateAction | null {
+    if (this.finished || this.loadout !== 'qinghe') return null;
+    const victim = this.enemies.find(enemy => enemy.id === enemyId);
+    if (!victim) return null;
+    const action: UltimateAction = {
+      from: this.hero.slice() as Point,
+      to: victim.position.slice() as Point,
+      hitId: victim.id,
+      removedId: -1
+    };
+    victim.health = (victim.health ?? 1) - 2;
+    if (victim.health <= 0) {
+      action.removedId = victim.id;
+      this.enemies = this.enemies.filter(enemy => enemy.id !== victim.id);
+    }
+    return action;
+  }
   endTurn(): TurnOutcome | null {
     if (this.finished) return null;
     const attacks = this.enemies
@@ -307,8 +328,8 @@ export class Room {
         if (enemy.kind === 'stump') enemy.facing = faceToward(enemy, this.hero);
         if (!equal(from, best)) motions.push({ id: enemy.id, from, to: best.slice() as Point });
       }
-      this.discard.push(...this.hand.filter(id => id !== 'knife' && id !== 'absoluteShadow'));
-      this.hand = this.hand.filter(id => id === 'absoluteShadow');
+      this.discard.push(...this.hand.filter(id => id !== 'knife' && id !== 'absoluteShadow' && id !== 'dawnSpear'));
+      this.hand = this.hand.filter(id => id === 'absoluteShadow' || id === 'dawnSpear');
       for (let i = 0; i < 3 && this.hand.length < HAND_LIMIT; i++) this.draw();
       this.actions = 2;
       this.turn++;

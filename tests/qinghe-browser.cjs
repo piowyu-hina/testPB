@@ -1,0 +1,34 @@
+const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
+
+(async () => {
+  const browser = await chromium.launch({ channel: 'chrome', headless: true });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.stack));
+  try {
+    await page.goto('http://127.0.0.1:1420');
+    await page.locator('#home-portrait').waitFor();
+    assert.match(await page.locator('#home-portrait').getAttribute('src'), /qinghe/);
+    await page.screenshot({ path: 'test-results/qinghe-home.png' });
+    await page.locator('#open-dungeons').click();
+    await page.locator('#start-game').click();
+    await page.locator('.screen-curtain').waitFor({ state: 'hidden' });
+    await page.waitForFunction(() => [...document.images].filter(image => image.getAttribute('src')).every(image => image.complete && image.naturalWidth > 0));
+    assert.deepEqual(await page.locator('.card').evaluateAll(cards => cards.map(card => card.dataset.card)), ['step', 'thrust', 'advance']);
+    assert.match(await page.locator('#actions').getAttribute('aria-label'), /破曉一槍/);
+    await page.screenshot({ path: 'test-results/qinghe-opening.png' });
+    await page.locator('[data-test-action="charge"]').click();
+    await page.locator('#actions').click();
+    assert.equal(await page.locator('[data-card="dawnSpear"]').count(), 1);
+    await page.waitForFunction(() => [...document.images].filter(image => image.getAttribute('src')).every(image => image.complete && image.naturalWidth > 0));
+    await page.locator('[data-card="dawnSpear"]').click();
+    await page.locator('.tile[data-x="2"][data-y="2"]').click();
+    await page.waitForFunction(() => document.getElementById('game')?.getAttribute('aria-busy') === 'false');
+    assert.equal(await page.locator('[data-actor="0"]').count(), 0);
+    await page.screenshot({ path: 'test-results/qinghe-ultimate.png' });
+    assert.deepEqual(errors, []);
+  } finally {
+    await browser.close();
+  }
+})().catch(error => { console.error(error); process.exitCode = 1; });
