@@ -35,7 +35,7 @@ const assert = require('node:assert/strict');
     await page.locator('.tile[data-x="2"][data-y="2"]').click();
     await page.waitForFunction(() => document.getElementById('game')?.getAttribute('aria-busy') === 'false');
     assert.equal(await page.locator('[data-actor="0"]').count(), 0);
-    assert.match(await page.locator('[data-card="forward"] .card-art').getAttribute('src'), /qinghe\/Forward/);
+    assert.match(await page.locator('[data-card="forward"] .card-art').getAttribute('src'), /qinghe\/Forward-v2/);
     await page.screenshot({ path: 'test-results/qinghe-ultimate.png' });
     const heroTop = await page.locator('[data-actor="hero"]').evaluate(actor => actor.style.top);
     await page.locator('[data-card="forward"]').click();
