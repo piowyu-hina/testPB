@@ -976,6 +976,41 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   makeTiles();
   const help = $<HTMLDialogElement>('battle-help');
+  if (import.meta.env.DEV) {
+    const tools = $('battle-test-tools');
+    tools.hidden = false;
+    for (const button of tools.querySelectorAll<HTMLButtonElement>('button[data-test-action]')) {
+      onClick(button, () => {
+        if (busy) return;
+        const action = button.dataset.testAction;
+        if (action === 'opening' || action === 'guard' || action === 'elite') {
+          journey = session.startNewJourney();
+          const stage = action === 'opening' ? 0 : action === 'guard' ? 1 : 2;
+          for (let index = 0; index < stage; index++) {
+            journey.room.enemies = [];
+            journey.room.hero = [...journey.exit];
+            journey.advance();
+          }
+          loadRoom();
+        } else if (action === 'charge' && journey.loadout === 'rogue') {
+          journey.gainAssassination(true);
+          journey.gainAssassination(true);
+          render();
+        } else if (action === 'hand' && !room.finished) {
+          while (room.hand.length < HAND_LIMIT) {
+            const card = room.deck.pop() ?? room.discard.pop();
+            if (!card) break;
+            room.hand.push(card);
+          }
+          render();
+        } else if (action === 'health' && !room.finished) {
+          room.health = 1;
+          render();
+        }
+        help.close();
+      });
+    }
+  }
   onClick($('open-battle-help'), () => { renderSoundToggle(); renderJourneyProgress(); help.showModal(); });
   onClick($('close-battle-help'), () => help.close());
   onClick(soundToggle, () => { setSoundEnabled(!soundEnabled()); renderSoundToggle(); });
