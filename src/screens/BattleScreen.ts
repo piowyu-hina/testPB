@@ -11,7 +11,7 @@ import type { GameSession } from '../app/GameSession';
 import template from './battle.html?raw';
 import { place, animate, pause, travel, teleport } from '../ui/animations';
 import { diagram } from '../ui/cardDiagram';
-import { cardArt } from '../data/cardArt';
+import { cardArt, qingheForwardArt } from '../data/cardArt';
 import { daggerIcon, groundDaggerIcon } from '../ui/dagger';
 import { approach, contactPoint, shield, impact, recoil, heartBurst } from '../ui/battleFeedback';
 import { enemySkill, blocksAttack } from '../battle/EnemyRules';
@@ -275,7 +275,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           cost.append(flame);
         }
         card.append(cost);
-        const illustration = id === 'forward' && room.loadout !== 'rogue' ? undefined : cardArt[id];
+        const illustration = id === 'forward'
+          ? room.loadout === 'qinghe' ? qingheForwardArt : room.loadout === 'rogue' ? cardArt.forward : undefined
+          : cardArt[id];
         if (illustration) {
           const image = document.createElement('img');
           image.className = 'card-art';

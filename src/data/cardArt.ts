@@ -8,6 +8,7 @@ import sweepImage from '../../assets/cards/qinghe/Sweep.png';
 import thrustImage from '../../assets/cards/qinghe/Thrust.png';
 import advanceImage from '../../assets/cards/qinghe/Advance.png';
 import dawnSpearImage from '../../assets/cards/qinghe/DawnSpear.png';
+import qingheForwardImage from '../../assets/cards/qinghe/Forward.png';
 import type { CardId } from './cards';
 
 export const cardArt: Partial<Record<CardId, string>> = {
@@ -22,3 +23,5 @@ export const cardArt: Partial<Record<CardId, string>> = {
   advance: advanceImage,
   dawnSpear: dawnSpearImage
 };
+
+export const qingheForwardArt = qingheForwardImage;
