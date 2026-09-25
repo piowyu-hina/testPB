@@ -201,7 +201,7 @@ export class Room {
   preview(index: number, destination: Point): MovePreview | null {
     if (!this.canMove(index, destination)) return null;
     if (this.hand[index] === 'sweep') {
-      const victims = this.enemies.filter(enemy => cardinal.some(offset => equal(enemy.position, [this.hero[0] + offset[0], this.hero[1] + offset[1]])));
+      const victims = this.enemies.filter(enemy => data.cards.sweep.offsets.some(offset => equal(enemy.position, [this.hero[0] + offset[0], this.hero[1] + offset[1]])));
       const removedIds = victims.filter(enemy => !blocksAttack(enemy, this.hero) && (enemy.health ?? 1) <= 1).map(enemy => enemy.id);
       const selected = this.at(destination)!;
       return {
@@ -232,7 +232,7 @@ export class Room {
     if (this.hand[index] === 'sweep') {
       const cost = this.cardCost(index);
       const hits = this.enemies
-        .filter(enemy => cardinal.some(offset => equal(enemy.position, [this.hero[0] + offset[0], this.hero[1] + offset[1]])))
+        .filter(enemy => data.cards.sweep.offsets.some(offset => equal(enemy.position, [this.hero[0] + offset[0], this.hero[1] + offset[1]])))
         .map(enemy => ({
           id: enemy.id,
           position: enemy.position.slice() as Point,

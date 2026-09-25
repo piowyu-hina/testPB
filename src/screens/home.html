@@ -3,7 +3,7 @@
   <div class="village-shade"></div>
   <header class="village-header">
     <div><p class="scene-eyebrow">冒險的起點</p><h1>林畔村莊</h1></div>
-    <button id="open-settings" class="scene-button" type="button" tabindex="-1"><span aria-hidden="true">⚙</span> 設定</button>
+    <div class="village-header-actions"><button id="open-characters" class="scene-button" type="button" tabindex="-1">選擇角色</button><button id="open-settings" class="scene-button" type="button" tabindex="-1"><span aria-hidden="true">⚙</span> 設定</button></div>
   </header>
   <figure class="village-portrait">
     <img id="home-portrait" alt="露雪立繪" draggable="false" />
@@ -17,5 +17,9 @@
     <div class="settings-row"><div><strong>介面主題</strong><p>切換淺色／深色介面</p></div><button class="theme-toggle" type="button" tabindex="-1" aria-label="切換背景主題"></button></div>
     <div class="settings-row"><div><strong>戰鬥音效</strong><p>移動、攻擊與擊殺</p></div><button id="sound-toggle" class="sound-toggle" type="button" tabindex="-1" aria-pressed="true">開</button></div>
     <p class="settings-note">冒險進度僅保留於本次開啟期間。關閉遊戲後，將重新出發。</p>
+  </dialog>
+  <dialog id="character-picker" class="character-picker" aria-labelledby="character-picker-title">
+    <header class="character-picker-header"><h2 id="character-picker-title">選擇角色</h2><button id="close-characters" class="scene-button" type="button">返回</button></header>
+    <div id="character-picker-options" class="character-picker-options"></div>
   </dialog>
 </main>

@@ -448,7 +448,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (hasKnife) lines.push('撿刀：補 1 行動，可抽 1 張牌');
     if (danger) lines.push(`回合結束時，站在此格受${danger}點傷害`);
     const chosenId = room.availableCards[selected];
-    if (preview?.blocked) lines.push(chosenId === 'sweep' ? '此怪物正面格擋；其他鄰近怪物仍會受攻擊' : '正面格擋：攻擊無效，仍消耗行動');
+    if (preview?.blocked) lines.push(chosenId === 'sweep' ? '此怪物正面格擋；其他周圍怪物仍會受攻擊' : '正面格擋：攻擊無效，仍消耗行動');
     else if (preview && enemy && preview.removedId === enemy.id) lines.push('預計擊殺 · 點擊後才會出手');
     else if (preview && enemy && preview.removedId < 0 && chosenId !== 'throw') lines.push('目標未倒下，角色留在原地');
     panel.replaceChildren();

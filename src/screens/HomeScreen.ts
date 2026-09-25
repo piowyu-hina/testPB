@@ -28,6 +28,38 @@ export function mountHome(host: HTMLElement, session: GameSession, onStart: () =
   renderCharacter();
   $<HTMLImageElement>('village-art').src = villageImage;
   onClick($('open-dungeons'), onStart);
+  const picker = $<HTMLDialogElement>('character-picker');
+  const choices = $('character-picker-options');
+  const choiceButtons = (['qinghe', 'rogue'] as const).map((id) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'character-choice';
+    button.dataset.character = id;
+    button.setAttribute('aria-label', `選擇${characters[id].name}`);
+    const image = document.createElement('img');
+    image.src = characters[id].portrait;
+    image.alt = '';
+    image.draggable = false;
+    const name = document.createElement('strong');
+    name.textContent = characters[id].name;
+    button.append(image, name);
+    onClick(button, () => {
+      session.characterId = id;
+      renderCharacter();
+      renderChoices();
+    });
+    choices.append(button);
+    return button;
+  });
+  function renderChoices() {
+    for (const button of choiceButtons) {
+      const selected = button.dataset.character === session.characterId;
+      button.classList.toggle('selected', selected);
+      button.setAttribute('aria-pressed', String(selected));
+    }
+  }
+  onClick($('open-characters'), () => { renderChoices(); picker.showModal(); });
+  onClick($('close-characters'), () => picker.close());
   const settings = $<HTMLDialogElement>('village-settings');
   onClick($('open-settings'), () => settings.showModal());
   onClick($('close-settings'), () => settings.close());
@@ -35,12 +67,13 @@ export function mountHome(host: HTMLElement, session: GameSession, onStart: () =
     root,
     enter() {
       renderCharacter();
+      renderChoices();
       renderSound();
       $('village-status').textContent = session.canResume
         ? `森林遺跡 · 第 ${session.journey.stage + 1} / ${session.journey.total} 間`
         : '準備好了，就向森林出發吧。';
       $('dungeon-entry-note').textContent = session.canResume ? '旅途中 · 可繼續' : '探索森林遺跡';
     },
-    leave() { settings.close(); }
+    leave() { settings.close(); picker.close(); }
   };
 }
