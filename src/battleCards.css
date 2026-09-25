@@ -150,6 +150,7 @@
   object-fit: contain;
   pointer-events: none;
 }
+.card-art-qinghe-forward { scale: .85; }
 .card .dot {
   fill: #c9bea4;
 }

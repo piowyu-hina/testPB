@@ -281,6 +281,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         if (illustration) {
           const image = document.createElement('img');
           image.className = 'card-art';
+          image.classList.toggle('card-art-qinghe-forward', id === 'forward' && room.loadout === 'qinghe');
           image.src = illustration;
           image.alt = '';
           image.draggable = false;
