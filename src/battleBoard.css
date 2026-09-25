@@ -258,6 +258,7 @@
   opacity: 0.5;
   filter: grayscale(0.6) drop-shadow(0 0 5px #d66e63);
 }
+.actor.sweep-victim-preview img { opacity: .45; filter: grayscale(.45); }
 .clearing-reveal .exit-breeze:not([hidden]) {
   animation: clearing-cue-in .62s ease-out both;
 }

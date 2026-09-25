@@ -586,6 +586,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const sprite = actor(enemy.id);
       place(sprite, enemy.position);
       sprite.classList.toggle('victim-preview', chosenId !== 'sweep' && removedIds.includes(enemy.id));
+      sprite.classList.toggle('sweep-victim-preview', chosenId === 'sweep' && Boolean(preview) && removedIds.includes(enemy.id));
       sprite.classList.toggle('hovered', enemy.id === hoveredEnemy && !busy);
       const skill = enemySkill(enemy);
       sprite.dataset.skill = skill.id;
@@ -626,7 +627,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     inspectedTile = null;
     closeCardDetails();
     for (const actor of actors.values())
-      actor.classList.remove('origin-preview', 'victim-preview', 'hovered');
+      actor.classList.remove('origin-preview', 'victim-preview', 'sweep-victim-preview', 'hovered');
     elements.end.disabled = true;
     $<HTMLButtonElement>('back-home').disabled = true;
     $<HTMLButtonElement>('open-battle-help').disabled = true;
