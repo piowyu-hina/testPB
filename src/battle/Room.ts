@@ -312,22 +312,32 @@ export class Room {
     if (this.won) this.knives = [];
     return action;
   }
-  strikeUltimate(enemyId: number): UltimateAction | null {
-    if (this.finished || this.loadout !== 'qinghe') return null;
-    const victim = this.enemies.find(enemy => enemy.id === enemyId);
-    if (!victim) return null;
-    const action: UltimateAction = {
-      from: this.hero.slice() as Point,
-      to: victim.position.slice() as Point,
-      hitId: victim.id,
-      removedId: -1
-    };
-    victim.health = (victim.health ?? 1) - 2;
-    if (victim.health <= 0) {
-      action.removedId = victim.id;
-      this.enemies = this.enemies.filter(enemy => enemy.id !== victim.id);
+  dawnRay(direction: Point): Enemy[] {
+    if (this.loadout !== 'qinghe' || !cardinal.some(point => equal(point, direction))) return [];
+    const victims: Enemy[] = [];
+    for (let step = 1; step < 5; step++) {
+      const point: Point = [this.hero[0] + direction[0] * step, this.hero[1] + direction[1] * step];
+      if (!inside(point)) break;
+      const victim = this.at(point);
+      if (victim) victims.push(victim);
     }
-    return action;
+    return victims;
+  }
+  strikeUltimate(direction: Point): MoveAction | null {
+    if (this.finished || this.loadout !== 'qinghe') return null;
+    const victims = this.dawnRay(direction);
+    if (!victims.length) return null;
+    const hits = victims.map(victim => ({
+      id: victim.id,
+      position: victim.position.slice() as Point,
+      blocked: false,
+      removed: (victim.health ?? 1) <= 2,
+      elite: Boolean(victim.elite)
+    }));
+    for (const victim of victims) victim.health = (victim.health ?? 1) - 2;
+    this.enemies = this.enemies.filter(enemy => (enemy.health ?? 1) > 0);
+    if (this.won) this.knives = [];
+    return { from: this.hero.slice() as Point, to: [this.hero[0] + direction[0], this.hero[1] + direction[1]], kind: 'dawnSpear', removedId: -1, hits };
   }
   endTurn(): TurnOutcome | null {
     if (this.finished) return null;

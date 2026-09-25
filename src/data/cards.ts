@@ -10,7 +10,7 @@ export const cards = {
   thrust: { name: '槍刺', hint: '原地攻擊上下左右距離 1～2 格的第一隻怪物', offsets: rays(cross, 2), canJump: false, copies: 6, cost: 1, effect: 'thrust' },
   advance: { name: '突進', hint: '移動到周圍 1 格；若落點有怪物則攻擊', offsets: around, canJump: false, copies: 6, cost: 1 },
   sweep: { name: '橫掃', hint: '原地掃一圈，攻擊周圍八格的所有怪物', offsets: around, canJump: false, copies: 6, cost: 1, effect: 'sweep' },
-  dawnSpear: { name: '破曉一槍', hint: '選擇場上任意怪物，造成 2 點無視格擋傷害；不移動', offsets: [], canJump: true, copies: 0, cost: 0, effect: 'ultimate' },
+  dawnSpear: { name: '破曉一槍', hint: '點選一個方向，貫穿該方向直線上的所有怪物，各造成 2 點無視格擋傷害；不移動', offsets: cross, canJump: true, copies: 0, cost: 0, effect: 'ultimate' },
   throw: { name: '飛刀', hint: '原地攻擊十字方向第一隻怪物，刀留在命中格', offsets: rays(cross), canJump: false, copies: 6, cost: 1, effect: 'throw' },
   shadow: { name: '追影', hint: '瞬移至場上任意小刀格；若有怪物先攻擊，成功落地才撿刀', offsets: anywhere, canJump: true, copies: 4, cost: 1, effect: 'shadow' },
   lunge: { name: '突進', hint: '向周圍八方向移動 1 格，攻擊落點怪物', offsets: around, canJump: false, copies: 6, cost: 1 },

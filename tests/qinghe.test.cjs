@@ -83,17 +83,21 @@ test('thrust reaches two cardinal tiles but not through a monster', () => {
   assert.equal(result.canMove(1, [3, 2]), false);
 });
 
-test('Qinghe ultimate deals two damage without moving and persists between rooms', () => {
+test('Qinghe ultimate pierces a straight ray without moving or respecting front guard', () => {
   const journey = new Journey(1, 'qinghe');
   journey.room.hero = [2, 1];
-  journey.room.enemies = [enemy(0, [3, 3], { health: 2, maxHealth: 2 })];
-  journey.gainAssassination(true);
-  journey.gainAssassination();
+  journey.room.enemies = [enemy(0, [2, 2], { health: 2, maxHealth: 2, kind: 'stump', facing: 'south' }), enemy(1, [2, 4]), enemy(2, [3, 3])];
+  assert.equal(journey.gainAssassination(true), 0);
+  for (let index = 0; index < 4; index++) journey.gainDawnCharge();
+  assert.equal(journey.dawnCharge, 4);
   assert.equal(journey.claimUltimate(), true);
   assert.equal(journey.room.hand.includes('dawnSpear'), true);
-  assert.equal(journey.spendAssassination(), true);
-  const action = journey.room.strikeUltimate(0);
-  assert.equal(action.removedId, 0);
+  assert.equal(journey.room.strikeUltimate([1, 1]), null);
+  const action = journey.room.strikeUltimate([0, 1]);
+  assert.deepEqual(action.hits.map(hit => [hit.id, hit.blocked, hit.removed]), [[0, false, true], [1, false, true]]);
+  assert.equal(journey.spendDawnCharge(), true);
+  assert.equal(journey.dawnCharge, 0);
+  assert.deepEqual(journey.room.enemies.map(monster => monster.id), [2]);
   assert.deepEqual(journey.room.hero, [2, 1]);
   assert.deepEqual(journey.room.knives, []);
 });
@@ -109,8 +113,7 @@ test('Qinghe ultimate stays in hand when ending a turn', () => {
 test('Qinghe full hand requires one replacement before receiving the ultimate', () => {
   const journey = new Journey(1, 'qinghe');
   journey.room.hand = ['advance', 'thrust', 'sweep', 'advance', 'thrust'];
-  journey.gainAssassination(true);
-  journey.gainAssassination();
+  for (let index = 0; index < 4; index++) journey.gainDawnCharge();
   assert.equal(journey.claimUltimate(), false);
   assert.equal(journey.claimUltimate(1), true);
   assert.equal(journey.room.hand.length, 5);

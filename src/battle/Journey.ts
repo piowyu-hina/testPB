@@ -9,6 +9,7 @@ export class Journey {
   readonly dungeonId: DungeonId;
   stage = 0;
   assassination = 0;
+  dawnCharge = 0;
   room: Room;
   private seed: number;
   private activeRooms: RoomDefinition[];
@@ -22,23 +23,38 @@ export class Journey {
     this.room = new Room(seed, this.activeRooms[0], 5, loadout);
   }
   setLoadout(next: Loadout) {
-    if (next !== this.loadout) this.assassination = 0;
+    if (next !== this.loadout) {
+      this.assassination = 0;
+      this.dawnCharge = 0;
+    }
     this.loadout = next;
     this.room.setLoadout(next);
   }
   gainAssassination(elite = false) {
-    if (this.loadout !== 'rogue' && this.loadout !== 'qinghe') return this.assassination;
+    if (this.loadout !== 'rogue') return this.assassination;
     this.assassination = Math.min(3, this.assassination + (elite ? 2 : 1));
     return this.assassination;
   }
   spendAssassination() {
-    if ((this.loadout !== 'rogue' && this.loadout !== 'qinghe') || this.assassination < 3) return false;
+    if (this.loadout !== 'rogue' || this.assassination < 3) return false;
     this.assassination = 0;
     this.room.removeUltimateCard();
     return true;
   }
+  get ultimateCharge() { return this.loadout === 'qinghe' ? this.dawnCharge : this.assassination; }
+  get ultimateThreshold() { return this.loadout === 'qinghe' ? 4 : 3; }
+  gainDawnCharge() {
+    if (this.loadout === 'qinghe') this.dawnCharge = Math.min(4, this.dawnCharge + 1);
+    return this.dawnCharge;
+  }
+  spendDawnCharge() {
+    if (this.loadout !== 'qinghe' || this.dawnCharge < 4) return false;
+    this.dawnCharge = 0;
+    this.room.removeUltimateCard();
+    return true;
+  }
   claimUltimate(replaceIndex?: number) {
-    if ((this.loadout !== 'rogue' && this.loadout !== 'qinghe') || this.assassination < 3 || this.finished) return false;
+    if (this.loadout === 'basic' || this.ultimateCharge < this.ultimateThreshold || this.finished) return false;
     const ultimate = this.loadout === 'rogue' ? 'absoluteShadow' : 'dawnSpear';
     if (this.room.hand.includes(ultimate)) return false;
     if (this.room.hand.length >= HAND_LIMIT && (replaceIndex === undefined || this.room.discardForUltimate(replaceIndex) === null)) return false;

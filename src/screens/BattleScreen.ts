@@ -119,13 +119,13 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   function closeCardDetails() { elements.cardDetails.hidden = true; }
   function showUltimateHint() {
-    const charge = journey.assassination;
+    const charge = journey.ultimateCharge;
     const nameText = journey.loadout === 'qinghe' ? '破曉一槍' : '絕影';
     const name = document.createElement('strong');
-    name.textContent = `${nameText} · ${charge}/3`;
+    name.textContent = `${nameText} · ${charge}/${journey.ultimateThreshold}`;
     const description = document.createElement('span');
     description.textContent = journey.loadout === 'qinghe'
-      ? '擊倒普通怪物 +1，菁英 +2。集滿後點圖案取得破曉一槍；指定任意怪物造成 2 點傷害，不移動。'
+      ? '每打出 1 張普通牌累積 1 點。集滿後點圖案取得破曉一槍；選方向，貫穿該直線所有怪物。'
       : '普通擊殺 +1，菁英擊殺 +2。集滿後點圖案領取絕影卡；打出後可對任意怪物造成 2 點無視格擋的傷害。';
     elements.hint.replaceChildren(name, description);
   }
@@ -197,8 +197,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           if (busy) return;
           const point: Point = [x, y];
           if (ultimateTargeting) {
+            const direction: Point = [point[0] - room.hero[0], point[1] - room.hero[1]];
             const target = room.at(point);
-            if (target) void useUltimate(target.id);
+            if (journey.loadout === 'qinghe' && room.dawnRay(direction).length) void useDawnUltimate(direction);
+            else if (journey.loadout === 'rogue' && target) void useUltimate(target.id);
             else {
               ultimateTargeting = false;
               elements.hint.textContent = '';
@@ -404,18 +406,18 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       pip.className = 'action-pip';
       elements.energyCount.append(pip);
     }
-    const charge = journey.loadout === 'basic' ? 0 : journey.assassination;
+    const charge = journey.loadout === 'basic' ? 0 : journey.ultimateCharge;
     const previousActions = Number(elements.energyCount.dataset.value);
     elements.energyCount.dataset.value = String(energy);
     elements.energyCount.setAttribute('aria-label', `剩餘行動 ${energy} / ${capacity}`);
     [...elements.energyCount.children].forEach((pip, index) => pip.classList.toggle('empty', index >= energy));
-    elements.actions.style.setProperty('--ultimate-progress', `${charge / 3 * 100}%`);
+    elements.actions.style.setProperty('--ultimate-progress', `${charge / journey.ultimateThreshold * 100}%`);
     elements.actions.hidden = journey.loadout === 'basic';
     elements.actions.style.setProperty('--ultimate-art', `url("${journey.loadout === 'qinghe' ? qingheChargeArt : rogueChargeArt}")`);
     const ultimateName = journey.loadout === 'qinghe' ? '破曉一槍' : '絕影';
     const claimed = room.hand.includes(journey.loadout === 'qinghe' ? 'dawnSpear' : 'absoluteShadow');
-    elements.actions.setAttribute('aria-label', claimed ? `${ultimateName}卡已在手牌` : `${ultimateName}充能 ${charge} / 3${charge >= 3 ? `，點擊領取${ultimateName}卡` : ''}`);
-    elements.actions.classList.toggle('ultimate-ready', journey.loadout !== 'basic' && charge >= 3 && !claimed);
+    elements.actions.setAttribute('aria-label', claimed ? `${ultimateName}卡已在手牌` : `${ultimateName}充能 ${charge} / ${journey.ultimateThreshold}${charge >= journey.ultimateThreshold ? `，點擊領取${ultimateName}卡` : ''}`);
+    elements.actions.classList.toggle('ultimate-ready', journey.loadout !== 'basic' && charge >= journey.ultimateThreshold && !claimed);
     elements.actions.classList.toggle('ultimate-claimed', claimed);
     if (Number.isFinite(previousActions) && previousActions !== energy) {
       elements.energyCount.classList.remove('energy-gain', 'energy-spend');
@@ -431,6 +433,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   function renderTileInfo(preview: ReturnType<Room['preview']>) {
     const panel = elements.tileInfo;
+    if (ultimateTargeting) {
+      panel.hidden = true;
+      elements.hint.hidden = false;
+      return;
+    }
     const point = touchLayout() ? inspectedTile : hoveredTile;
     const enemy = point ? room.at(point) : undefined;
     const hasKnife = point ? room.hasKnife(point) : false;
@@ -489,7 +496,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           : room.preview(selected, hoveredTile)
         : null;
     const removedId = preview?.removedId ?? -1;
-    const removedIds = preview?.removedIds ?? [removedId];
+    const dawnDirection: Point | null = hoveredTile ? [hoveredTile[0] - room.hero[0], hoveredTile[1] - room.hero[1]] : null;
+    const dawnPreview = ultimateTargeting && journey.loadout === 'qinghe' && dawnDirection ? room.dawnRay(dawnDirection) : [];
+    const removedIds = dawnPreview.length ? dawnPreview.filter(enemy => (enemy.health ?? 1) <= 2).map(enemy => enemy.id) : preview?.removedIds ?? [removedId];
     const focusedEnemy = room.enemies.find((e) => e.id === (hoveredEnemy >= 0 ? hoveredEnemy : inspectedEnemy));
     const focus = !preview ? focusedEnemy : null;
     const cleared = exploring();
@@ -520,7 +529,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       tile.classList.toggle('legal', legal);
       tile.classList.toggle('inspectable', !busy && !room.finished && selected < 0 && Boolean(room.at(point)));
       tile.classList.toggle('capture', legal && Boolean(room.at(point)));
-      tile.classList.toggle('ultimate-target', ultimateTargeting && Boolean(room.at(point)));
+      const direction: Point = [point[0] - room.hero[0], point[1] - room.hero[1]];
+      const dawnTarget = ultimateTargeting && journey.loadout === 'qinghe' && room.dawnRay(direction).length > 0;
+      tile.classList.toggle('ultimate-target', ultimateTargeting && (journey.loadout === 'qinghe' ? dawnTarget : Boolean(room.at(point))));
       tile.classList.toggle('blocked', legal && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
       tile.classList.toggle('landing', Boolean(preview && equal(point, chosenId === 'throw' ? hoveredTile! : preview.destination)));
       tile.classList.toggle('focus-threat', threatened);
@@ -530,11 +541,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         place(mark, point);
         threatMarks.append(mark);
       }
-      if (room.at(point) && (legal || sweepReady && data.cards.sweep.offsets.some(offset => equal(point, [room.hero[0] + offset[0], room.hero[1] + offset[1]])))) {
+      if (room.at(point) && (legal || dawnPreview.some(enemy => equal(enemy.position, point)) || sweepReady && data.cards.sweep.offsets.some(offset => equal(point, [room.hero[0] + offset[0], room.hero[1] + offset[1]])))) {
         const mark = document.createElement('div');
         mark.className = 'target-mark';
         mark.classList.toggle('hovered', Boolean(hoveredTile && equal(hoveredTile, point)));
-        mark.classList.toggle('blocked', Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
+        mark.classList.toggle('blocked', !dawnPreview.some(enemy => equal(enemy.position, point)) && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
         place(mark, point);
         targetMarks.append(mark);
       }
@@ -580,7 +591,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     actor('hero').classList.toggle('origin-preview', Boolean(preview && !stationaryPreview));
     elements.ghost.hidden = !preview || stationaryPreview;
     if (preview) place(elements.ghost, preview.destination);
-    renderHealth(room.finished || busy ? 0 : preview ? preview.damage : room.damageAt(room.hero));
+    renderHealth(room.finished || busy ? 0 : dawnPreview.length ? room.damageAt(room.hero, removedIds) : preview ? preview.damage : room.damageAt(room.hero));
     renderEnergy();
     renderJourneyProgress();
     elements.game.dataset.turn = String(room.turn);
@@ -672,6 +683,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const blocked = room.preview(selected, destination)?.blocked ?? false;
     const action = room.move(selected, destination);
     if (!action) return;
+    if (journey.loadout === 'qinghe' && ['advance', 'thrust', 'sweep'].includes(action.kind)) journey.gainDawnCharge();
     lock();
     renderEnergy(paidEnergy);
     if (action.hits) {
@@ -785,26 +797,22 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
   }
   async function useUltimate(enemyId: number) {
-    if (busy || exploring() || !ultimateTargeting || journey.assassination < 3) return;
+    if (busy || exploring() || !ultimateTargeting || journey.loadout !== 'rogue' || journey.assassination < 3) return;
     const target = room.enemies.find(enemy => enemy.id === enemyId);
     if (!target) return;
-    const isRogue = journey.loadout === 'rogue';
-    const ultimate = isRogue ? 'absoluteShadow' : 'dawnSpear';
-    if (!room.hand.includes(ultimate) || !journey.spendAssassination()) return;
-    const action = isRogue ? room.assassinate(enemyId) : room.strikeUltimate(enemyId);
+    if (!room.hand.includes('absoluteShadow') || !journey.spendAssassination()) return;
+    const action = room.assassinate(enemyId);
     if (!action) return;
     ultimateTargeting = false;
     lock();
     renderEnergy();
     const hero = actor('hero');
-    if (isRogue) {
-      playSound('blink');
-      await animate(hero, [
-        { opacity: 1, scale: 1 },
-        { opacity: 0, scale: .78 }
-      ], 130, 'ease-in');
-      hero.style.opacity = '0';
-    } else playSound('dash');
+    playSound('blink');
+    await animate(hero, [
+      { opacity: 1, scale: 1 },
+      { opacity: 0, scale: .78 }
+    ], 130, 'ease-in');
+    hero.style.opacity = '0';
     playSound(action.removedId >= 0 ? 'kill' : 'hit');
     await Promise.all([
       impact(elements.board, action.to, action.removedId >= 0),
@@ -817,14 +825,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       victim.remove();
       actors.delete(action.removedId);
     }
-    if (isRogue) {
-      place(hero, room.hero);
-      await animate(hero, [
-        { opacity: 0, scale: .78 },
-        { opacity: 1, scale: 1 }
-      ], 150, 'ease-out');
-      hero.style.opacity = '';
-    }
+    place(hero, room.hero);
+    await animate(hero, [
+      { opacity: 0, scale: .78 },
+      { opacity: 1, scale: 1 }
+    ], 150, 'ease-out');
+    hero.style.opacity = '';
     if (room.won && !journey.finished) {
       await revealClearedRoom();
       return;
@@ -1044,6 +1050,34 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (exchange.open) exchange.close();
     render();
   }
+  async function useDawnUltimate(direction: Point) {
+    if (busy || exploring() || !ultimateTargeting || journey.loadout !== 'qinghe' || journey.dawnCharge < 4) return;
+    if (!room.hand.includes('dawnSpear') || !room.dawnRay(direction).length) return;
+    const action = room.strikeUltimate(direction);
+    if (!action || !journey.spendDawnCharge()) return;
+    lock();
+    renderEnergy();
+    const hits = action.hits ?? [];
+    playSound(hits.some(hit => hit.removed) ? 'kill' : 'hit');
+    await Promise.all(hits.map(hit => Promise.all([
+      impact(elements.board, hit.position, hit.removed),
+      recoil(actor(hit.id), action.from, hit.position),
+      ...(hit.removed ? [] : [heartBurst(elements.board, hit.position)])
+    ])));
+    await Promise.all(hits.filter(hit => hit.removed).map(async hit => {
+      const victim = actor(hit.id);
+      await animate(victim, [{ opacity: 1 }, { opacity: 0 }], 180, 'ease-out');
+      victim.remove();
+      actors.delete(hit.id);
+    }));
+    if (room.won && !journey.finished) {
+      await revealClearedRoom();
+      return;
+    }
+    busy = false;
+    render();
+    if (room.finished) showResult();
+  }
   function showOverflowFeedback(card: CardId) {
     clearTimeout(overflowTimer);
     const art = cardArt[card];
@@ -1113,8 +1147,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           }
           loadRoom();
         } else if (action === 'charge' && journey.loadout !== 'basic') {
-          journey.gainAssassination(true);
-          journey.gainAssassination(true);
+          if (journey.loadout === 'qinghe') for (let index = 0; index < 4; index++) journey.gainDawnCharge();
+          else {
+            journey.gainAssassination(true);
+            journey.gainAssassination(true);
+          }
           render();
         } else if (action === 'hand' && !room.finished) {
           while (room.hand.length < HAND_LIMIT) {
@@ -1174,13 +1211,13 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       showUltimateHint();
       return;
     }
-    if (journey.assassination < 3) {
+    if (journey.ultimateCharge < journey.ultimateThreshold) {
       showUltimateHint();
       return;
     }
     const ultimateName = journey.loadout === 'qinghe' ? '破曉一槍' : '絕影';
     if (room.hand.includes(journey.loadout === 'qinghe' ? 'dawnSpear' : 'absoluteShadow')) {
-      elements.hint.textContent = `${ultimateName}卡已在手牌，點卡片後選擇怪物。`;
+      elements.hint.textContent = `${ultimateName}卡已在手牌，點卡片後選擇${journey.loadout === 'qinghe' ? '方向' : '怪物'}。`;
       return;
     }
     selected = -1;
