@@ -123,6 +123,35 @@
   transform: rotate(-35deg);
   filter: drop-shadow(0 1px 1px #50231f);
 }
+.target-marks {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+.target-mark {
+  --target-color: #b94f40;
+  position: absolute;
+  width: 20%;
+  height: 20%;
+  transform: translate(-50%, -50%);
+  background:
+    linear-gradient(var(--target-color), var(--target-color)) left top / 30% 4px,
+    linear-gradient(var(--target-color), var(--target-color)) left top / 4px 30%,
+    linear-gradient(var(--target-color), var(--target-color)) right top / 30% 4px,
+    linear-gradient(var(--target-color), var(--target-color)) right top / 4px 30%,
+    linear-gradient(var(--target-color), var(--target-color)) left bottom / 30% 4px,
+    linear-gradient(var(--target-color), var(--target-color)) left bottom / 4px 30%,
+    linear-gradient(var(--target-color), var(--target-color)) right bottom / 30% 4px,
+    linear-gradient(var(--target-color), var(--target-color)) right bottom / 4px 30%;
+  background-repeat: no-repeat;
+  background-origin: content-box;
+  padding: 6px;
+  box-sizing: border-box;
+  filter: drop-shadow(0 1px 1px #4f211b);
+}
+.target-mark.hovered { --target-color: #db4139; filter: drop-shadow(0 1px 2px #4f211b) drop-shadow(0 0 3px #db413977); }
+.target-mark.blocked { --target-color: #6b9fc2; }
 .tile.legal:after {
   --target-color: #196f58;
   content: '';
@@ -164,21 +193,12 @@
 .tile.capture {
   box-shadow: inset 0 0 0 999px #b9655633;
 }
-.tile.capture:after {
-  --target-color: #b94f40;
-}
+.tile.capture:after { display: none; }
 .tile.capture:hover {
   box-shadow: inset 0 0 0 999px #b33a3a59;
 }
-.tile.capture:hover:after {
-  --target-color: #c92f2d;
-  filter: drop-shadow(0 1px 1px #4f211b);
-}
 .tile.blocked.capture:hover {
   box-shadow: inset 0 0 0 999px #5276a04d;
-}
-.tile.blocked.capture:hover:after {
-  --target-color: #6b9fc2;
 }
 .tile.legal {
   cursor: pointer;

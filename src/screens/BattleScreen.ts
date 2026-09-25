@@ -30,6 +30,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     tiles: $('tiles'),
     actors: $('actors'),
     threatMarks: $('threat-marks'),
+    targetMarks: $('target-marks'),
     tileInfo: $('tile-info'),
     touchInfo: $('touch-info'),
     cardDetails: $('card-details'),
@@ -497,6 +498,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     $('room-exit').toggleAttribute('hidden', !cleared);
     elements.game.classList.toggle('exploring', cleared);
     const threatMarks = document.createDocumentFragment();
+    const targetMarks = document.createDocumentFragment();
     for (const { tile, point } of tiles) {
       const damage = room.damageAt(point, removedId),
         legal =
@@ -517,6 +519,14 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         place(mark, point);
         threatMarks.append(mark);
       }
+      if (legal && room.at(point)) {
+        const mark = document.createElement('div');
+        mark.className = 'target-mark';
+        mark.classList.toggle('hovered', Boolean(hoveredTile && equal(hoveredTile, point)));
+        mark.classList.toggle('blocked', Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
+        place(mark, point);
+        targetMarks.append(mark);
+      }
       tile.classList.toggle('exit-tile', cleared && equal(point, journey.exit));
       tile.disabled = busy || replacingUltimate || (room.finished && !cleared);
       const enemy = room.at(point);
@@ -532,6 +542,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       tile.classList.toggle('has-knife', room.hasKnife(point));
     }
     elements.threatMarks.replaceChildren(threatMarks);
+    elements.targetMarks.replaceChildren(targetMarks);
     $('ground-knives').replaceChildren();
     for (const point of room.knives) {
       const token = document.createElement('div');
@@ -582,6 +593,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.hint.textContent = '';
     elements.ghost.hidden = true;
     elements.threatMarks.replaceChildren();
+    elements.targetMarks.replaceChildren();
     elements.tileInfo.hidden = true;
     inspectedTile = null;
     closeCardDetails();

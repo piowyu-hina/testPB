@@ -25,7 +25,7 @@
 .character-status-resources { display: flex; align-items: center; min-width: 0; }
 .character-status-resources { margin-left: auto; gap: 14px; }
 .character-status-resources .actions { order: -1; }
-.status-energy { display: inline-flex; align-items: center; min-width: 0; }
+.status-energy { display: inline-flex; flex-direction: row-reverse; align-items: center; min-width: 0; }
 .health {
   display: flex;
   align-items: center;
@@ -98,7 +98,7 @@
   background: url('../assets/ui/action-soulflame.png') center / contain no-repeat;
   filter: drop-shadow(0 0 6px #5fd9ff88);
 }
-.action-pip + .action-pip { margin-left: -10px; transform: translateY(2px) rotate(7deg); }
+.action-pip + .action-pip { margin-right: -10px; transform: translateY(2px) rotate(7deg); }
 .action-pip.empty {
   filter: grayscale(1) brightness(.55);
   opacity: .5;
