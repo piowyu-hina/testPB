@@ -131,7 +131,7 @@ test('knife attacks one cardinal tile without moving or collecting a ground knif
   assert.deepEqual(r.hand, []);
   assert.deepEqual(r.enemies.map(e => e.id), [1]);
 });
-test('five-card hand keeps every knife separate and skips an extra draw when full', () => {
+test('five-card hand overflows the actual drawn card into discard without growing the hand', () => {
   const r = room();
   r.hero = [2, 1]; r.enemies = [enemy(0, [4, 4])]; r.knives = [[2, 2]];
   r.hand = ['lunge', 'throw', 'shadow', 'lunge', 'knife'];
@@ -139,7 +139,9 @@ test('five-card hand keeps every knife separate and skips an extra draw when ful
   const pickup = r.move(0, [2, 2]);
   assert.equal(pickup.pickedKnife, true);
   assert.equal(pickup.drawn, undefined);
-  assert.equal(r.deck.length, deckBefore);
+  assert.ok(pickup.overflowed);
+  assert.equal(r.deck.length, deckBefore - 1);
+  assert.equal(r.discard.at(-1), pickup.overflowed);
   assert.equal(r.hand.length, 5);
   assert.equal(r.hand.filter(id => id === 'knife').length, 2);
   r.endTurn();

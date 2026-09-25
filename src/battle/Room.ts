@@ -10,6 +10,7 @@ export interface MoveAction {
   hitId?: number;
   pickedKnife?: boolean;
   drawn?: CardId;
+  overflowed?: CardId;
   from: Point;
   to: Point;
   kind: CardId;
@@ -22,6 +23,7 @@ export interface UltimateAction {
   removedId: number;
   pickedKnife?: boolean;
   drawn?: CardId;
+  overflowed?: CardId;
 }
 
 const cardinal: Point[] = [
@@ -113,6 +115,13 @@ export class Room {
     const drawn = this.deck.pop();
     if (!drawn) throw new Error('Cannot draw from an empty deck; check card copy counts.');
     this.hand.push(drawn);
+    return drawn;
+  }
+  drawOverflow(): CardId | undefined {
+    if (this.hand.length < HAND_LIMIT || (!this.deck.length && !this.discard.length)) return undefined;
+    const drawn = this.draw();
+    this.hand.pop();
+    this.discard.push(drawn);
     return drawn;
   }
   shuffle(cards: CardId[]) {
@@ -223,7 +232,10 @@ export class Room {
       action.pickedKnife = true;
       this.hand.push('knife');
       this.actions = Math.min(2, this.actions + 1);
-      if (this.hand.length < HAND_LIMIT && (this.deck.length || this.discard.length)) action.drawn = this.draw();
+      if (this.deck.length || this.discard.length) {
+        if (this.hand.length < HAND_LIMIT) action.drawn = this.draw();
+        else action.overflowed = this.drawOverflow();
+      }
     }
     if (this.won) this.knives = [];
     return action;
@@ -248,7 +260,10 @@ export class Room {
         action.pickedKnife = true;
         this.hand.push('knife');
         this.actions = Math.min(2, this.actions + 1);
-        if (this.hand.length < HAND_LIMIT && (this.deck.length || this.discard.length)) action.drawn = this.draw();
+        if (this.deck.length || this.discard.length) {
+          if (this.hand.length < HAND_LIMIT) action.drawn = this.draw();
+          else action.overflowed = this.drawOverflow();
+        }
       }
     }
     if (this.won) this.knives = [];

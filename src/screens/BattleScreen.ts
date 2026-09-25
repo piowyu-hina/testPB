@@ -2,6 +2,7 @@ import { Room, data, equal, HAND_LIMIT } from '../battle/Room';
 import type { Journey } from '../battle/Journey';
 import { characters, enemyArt } from '../data/art';
 import type { Point, CardDefinition } from '../types/game';
+import type { CardId } from '../data/cards';
 import { element, mountScreenRoot, onClick } from '../ui/dom';
 import type { Screen } from '../app/ScreenManager';
 import type { GameSession } from '../app/GameSession';
@@ -736,8 +737,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     render();
     if (action.pickedKnife) {
       lockWhileCardsEnter(1 + Number(Boolean(action.drawn)));
-      elements.hint.textContent = `撿回小刀 · 行動 +1 · ${action.drawn ? `抽到${data.cards[action.drawn].name}` : room.hand.length >= HAND_LIMIT ? '手牌已滿，未抽牌' : '牌堆已空'}`;
-      if (!action.drawn && room.hand.length >= HAND_LIMIT) showOverflowFeedback();
+      elements.hint.textContent = `撿回小刀 · 行動 +1 · ${action.drawn ? `抽到${data.cards[action.drawn].name}` : action.overflowed ? `爆牌：${data.cards[action.overflowed].name}` : '牌堆已空'}`;
+      if (action.overflowed) showOverflowFeedback(action.overflowed);
     }
   }
   async function useUltimate(enemyId: number) {
@@ -789,7 +790,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     render();
     if (action.pickedKnife) {
       lockWhileCardsEnter(1 + Number(Boolean(action.drawn)));
-      if (!action.drawn && room.hand.length >= HAND_LIMIT) showOverflowFeedback();
+      if (action.overflowed) showOverflowFeedback(action.overflowed);
     }
   }
   async function walk(destination: Point) {
@@ -995,8 +996,13 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (exchange.open) exchange.close();
     render();
   }
-  function showOverflowFeedback() {
+  function showOverflowFeedback(card: CardId) {
     clearTimeout(overflowTimer);
+    const art = cardArt[card];
+    const image = $<HTMLImageElement>('overflow-card-art');
+    image.hidden = !art;
+    if (art) image.src = art;
+    $('overflow-card-name').textContent = data.cards[card].name;
     elements.overflowFeedback.hidden = false;
     elements.overflowFeedback.classList.remove('active');
     void elements.overflowFeedback.offsetWidth;
@@ -1004,7 +1010,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     overflowTimer = window.setTimeout(() => {
       elements.overflowFeedback.hidden = true;
       elements.overflowFeedback.classList.remove('active');
-    }, 1250);
+    }, 2300);
   }
   function openExchange() {
     const options = $('ultimate-exchange-options');
@@ -1063,8 +1069,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           render();
         } else if (action === 'card' && !room.finished) {
           if (room.hand.length >= HAND_LIMIT) {
-            elements.hint.textContent = '手牌已滿，未抽牌';
-            showOverflowFeedback();
+            const overflowed = room.drawOverflow();
+            elements.hint.textContent = overflowed ? `爆牌：${data.cards[overflowed].name}` : '牌堆已空';
+            if (overflowed) showOverflowFeedback(overflowed);
             return;
           }
           const card = room.deck.pop() ?? room.discard.pop();
