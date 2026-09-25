@@ -737,7 +737,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     render();
     if (action.pickedKnife) {
       lockWhileCardsEnter(1 + Number(Boolean(action.drawn)));
-      elements.hint.textContent = `撿回小刀 · 行動 +1 · ${action.drawn ? `抽到${data.cards[action.drawn].name}` : action.overflowed ? `爆牌：${data.cards[action.overflowed].name}` : '牌堆已空'}`;
+      elements.hint.textContent = `撿回小刀 · 行動 +1${action.drawn ? ` · 抽到${data.cards[action.drawn].name}` : ''}`;
       if (action.overflowed) showOverflowFeedback(action.overflowed);
     }
   }
@@ -1070,7 +1070,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         } else if (action === 'card' && !room.finished) {
           if (room.hand.length >= HAND_LIMIT) {
             const overflowed = room.drawOverflow();
-            elements.hint.textContent = overflowed ? `爆牌：${data.cards[overflowed].name}` : '牌堆已空';
+            elements.hint.textContent = overflowed ? '' : '牌堆已空';
             if (overflowed) showOverflowFeedback(overflowed);
             return;
           }

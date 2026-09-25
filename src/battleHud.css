@@ -120,7 +120,7 @@
   background: url('../assets/ui/action-soulflame.png') center / contain no-repeat;
   filter: drop-shadow(0 0 6px #5fd9ff88);
 }
-.action-pip + .action-pip { margin-right: -10px; transform: translateY(2px) rotate(7deg); }
+.action-pip + .action-pip { margin-right: -15px; transform: translateY(2px) rotate(7deg); }
 .action-pip.empty {
   filter: grayscale(1) brightness(.55);
   opacity: .5;
