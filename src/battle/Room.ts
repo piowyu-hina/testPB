@@ -161,10 +161,13 @@ export class Room {
     if (this.finished || this.actions < this.cardCost(index) || !inside(destination)) return false;
     const card = data.cards[this.hand[index]] as CardDefinition | undefined;
     if (!card) return false;
+    if (card.effect === 'sweep')
+      return equal(destination, this.hero) && this.enemies.some(enemy =>
+        card.offsets.some(offset => equal(enemy.position, [this.hero[0] + offset[0], this.hero[1] + offset[1]]))
+      );
     if (!this.matchesCard(index, destination)) return false;
     if (card.effect === 'throw') return Boolean(this.at(destination));
     if (card.effect === 'thrust') return Boolean(this.at(destination));
-    if (card.effect === 'sweep') return Boolean(this.at(destination));
     if (card.effect === 'shadow' && !this.hasKnife(destination)) return false;
     if (card.effect === 'knife') return Boolean(this.at(destination));
     return true;
@@ -203,12 +206,10 @@ export class Room {
     if (this.hand[index] === 'sweep') {
       const victims = this.enemies.filter(enemy => data.cards.sweep.offsets.some(offset => equal(enemy.position, [this.hero[0] + offset[0], this.hero[1] + offset[1]])));
       const removedIds = victims.filter(enemy => !blocksAttack(enemy, this.hero) && (enemy.health ?? 1) <= 1).map(enemy => enemy.id);
-      const selected = this.at(destination)!;
       return {
-        blocked: blocksAttack(selected, this.hero),
+        blocked: false,
         destination: this.hero.slice() as Point,
-        hitId: selected.id,
-        removedId: removedIds.includes(selected.id) ? selected.id : -1,
+        removedId: -1,
         removedIds,
         damage: this.damageAt(this.hero, removedIds)
       };
@@ -250,7 +251,7 @@ export class Room {
       this.discard.push(this.hand.splice(index, 1)[0]);
       this.actions -= cost;
       if (this.won) this.knives = [];
-      return { from: this.hero.slice() as Point, to: destination.slice() as Point, kind: 'sweep', hitId: preview.hitId, removedId: preview.removedId, hits };
+      return { from: this.hero.slice() as Point, to: destination.slice() as Point, kind: 'sweep', removedId: -1, hits };
     }
     const cost = this.cardCost(index);
     const action: MoveAction = {

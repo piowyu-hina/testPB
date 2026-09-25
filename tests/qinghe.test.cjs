@@ -37,12 +37,13 @@ test('sweep damages all eight adjacent tiles but not distant monsters, with matc
   result.hero = [2, 2];
   result.hand = ['sweep'];
   result.enemies = [enemy(0, [2, 3]), enemy(1, [3, 2]), enemy(2, [1, 1]), enemy(3, [0, 0])];
-  assert.equal(result.canMove(0, [1, 1]), true);
+  assert.equal(result.canMove(0, [2, 2]), true);
+  assert.equal(result.canMove(0, [1, 1]), false);
   assert.equal(result.canMove(0, [0, 0]), false);
-  const preview = result.preview(0, [2, 3]);
+  const preview = result.preview(0, [2, 2]);
   assert.deepEqual(preview.removedIds.sort(), [0, 1, 2]);
   assert.deepEqual(preview.destination, [2, 2]);
-  const action = result.move(0, [2, 3]);
+  const action = result.move(0, [2, 2]);
   assert.deepEqual(action.hits.filter(hit => hit.removed).map(hit => hit.id).sort(), [0, 1, 2]);
   assert.deepEqual(result.enemies.map(monster => monster.id), [3]);
   assert.deepEqual(result.hero, [2, 2]);
@@ -56,12 +57,22 @@ test('sweep checks front guards for each neighboring monster independently', () 
     enemy(0, [2, 3], { kind: 'stump', facing: 'south' }),
     enemy(1, [3, 2])
   ];
-  const preview = result.preview(0, [2, 3]);
-  assert.equal(preview.blocked, true);
+  const preview = result.preview(0, [2, 2]);
+  assert.equal(preview.blocked, false);
   assert.deepEqual(preview.removedIds, [1]);
-  const action = result.move(0, [2, 3]);
+  const action = result.move(0, [2, 2]);
   assert.deepEqual(action.hits.map(hit => [hit.id, hit.blocked, hit.removed]), [[0, true, false], [1, false, true]]);
   assert.deepEqual(result.enemies.map(monster => monster.id), [0]);
+});
+
+test('sweep needs an adjacent monster and cannot consume a card on an empty ring', () => {
+  const result = room();
+  result.hand = ['sweep'];
+  assert.equal(result.canUseCard(0), false);
+  assert.equal(result.preview(0, result.hero), null);
+  assert.equal(result.move(0, result.hero), null);
+  assert.deepEqual(result.hand, ['sweep']);
+  assert.equal(result.actions, 2);
 });
 
 test('thrust reaches two cardinal tiles but not through a monster', () => {
