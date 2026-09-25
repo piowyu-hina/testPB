@@ -4,7 +4,7 @@ import knifeImage from '../../assets/cards/luxue/Knife.png';
 import forwardImage from '../../assets/cards/luxue/Forward.png';
 import lungeImage from '../../assets/cards/luxue/Lunge.png';
 import absoluteShadowImage from '../../assets/cards/luxue/AbsoluteShadow.png';
-import stepImage from '../../assets/cards/qinghe/Step.png';
+import sweepImage from '../../assets/cards/qinghe/Sweep.png';
 import thrustImage from '../../assets/cards/qinghe/Thrust.png';
 import advanceImage from '../../assets/cards/qinghe/Advance.png';
 import dawnSpearImage from '../../assets/cards/qinghe/DawnSpear.png';
@@ -17,7 +17,7 @@ export const cardArt: Partial<Record<CardId, string>> = {
   forward: forwardImage,
   lunge: lungeImage,
   absoluteShadow: absoluteShadowImage,
-  step: stepImage,
+  sweep: sweepImage,
   thrust: thrustImage,
   advance: advanceImage,
   dawnSpear: dawnSpearImage

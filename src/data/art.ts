@@ -3,7 +3,7 @@ import portrait from '../../assets/characters/luxue/Portrait.png';
 import pinkHead from '../../assets/characters/lianmiao/Token.png';
 import pinkPortrait from '../../assets/characters/lianmiao/Portrait.png';
 import qingheHead from '../../assets/characters/qinghe/Token.png';
-import qinghePortrait from '../../assets/characters/qinghe/Portrait.png';
+import qinghePortrait from '../../assets/characters/qinghe/Portrait-v3.png';
 import sprout from '../../assets/monsters/forest/ThornSprout.png';
 import stump from '../../assets/monsters/forest/StumpGuard.png';
 import forestScene from '../../assets/scenes/forest/ForestRuins.png';

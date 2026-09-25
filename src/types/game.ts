@@ -20,7 +20,7 @@ export interface CardDefinition {
   canJump: boolean;
   copies: number;
   cost?: number;
-  effect?: 'throw' | 'shadow' | 'knife' | 'thrust' | 'ultimate';
+  effect?: 'throw' | 'shadow' | 'knife' | 'thrust' | 'sweep' | 'ultimate';
 }
 export type EnemyKind = 'sprout' | 'stump';
 export type Facing = 'north' | 'east' | 'south' | 'west';
@@ -52,6 +52,7 @@ export interface MovePreview {
   hitId?: number;
   destination: Point;
   removedId: number;
+  removedIds?: number[];
   damage: number;
 }
 export interface EnemyMotion {

@@ -13,23 +13,54 @@ function room() {
 
 test('Qinghe starts with one of each simple action and no rogue state', () => {
   const result = room();
-  assert.deepEqual(result.hand, ['step', 'thrust', 'advance']);
+  assert.deepEqual(result.hand, ['advance', 'thrust', 'sweep']);
   assert.equal(result.deck.length, 15);
   assert.deepEqual(result.knives, []);
 });
 
-test('step only moves, thrust only attacks, advance moves and attacks', () => {
+test('thrust attacks without moving; advance moves through empty space or attacks on landing', () => {
   const result = room();
   result.enemies = [enemy(0, [2, 2]), enemy(1, [4, 4])];
-  assert.equal(result.canMove(0, [2, 2]), false);
+  assert.equal(result.canMove(0, [1, 1]), true);
   assert.equal(result.canMove(1, [2, 2]), true);
   assert.deepEqual(result.preview(1, [2, 2]).destination, [2, 1]);
   result.move(1, [2, 2]);
   assert.deepEqual(result.hero, [2, 1]);
   assert.deepEqual(result.knives, []);
-  result.hand = ['step', 'advance'];
-  assert.deepEqual(result.move(1, [2, 2]).to, [2, 2]);
+  result.hand = ['advance'];
+  assert.deepEqual(result.move(0, [2, 2]).to, [2, 2]);
   assert.deepEqual(result.hero, [2, 2]);
+});
+
+test('sweep damages all adjacent monsters but not diagonal ones, with matching preview', () => {
+  const result = room();
+  result.hero = [2, 2];
+  result.hand = ['sweep'];
+  result.enemies = [enemy(0, [2, 3]), enemy(1, [3, 2]), enemy(2, [1, 1])];
+  assert.equal(result.canMove(0, [1, 1]), false);
+  const preview = result.preview(0, [2, 3]);
+  assert.deepEqual(preview.removedIds.sort(), [0, 1]);
+  assert.deepEqual(preview.destination, [2, 2]);
+  const action = result.move(0, [2, 3]);
+  assert.deepEqual(action.hits.filter(hit => hit.removed).map(hit => hit.id).sort(), [0, 1]);
+  assert.deepEqual(result.enemies.map(monster => monster.id), [2]);
+  assert.deepEqual(result.hero, [2, 2]);
+});
+
+test('sweep checks front guards for each neighboring monster independently', () => {
+  const result = room();
+  result.hero = [2, 2];
+  result.hand = ['sweep'];
+  result.enemies = [
+    enemy(0, [2, 3], { kind: 'stump', facing: 'south' }),
+    enemy(1, [3, 2])
+  ];
+  const preview = result.preview(0, [2, 3]);
+  assert.equal(preview.blocked, true);
+  assert.deepEqual(preview.removedIds, [1]);
+  const action = result.move(0, [2, 3]);
+  assert.deepEqual(action.hits.map(hit => [hit.id, hit.blocked, hit.removed]), [[0, true, false], [1, false, true]]);
+  assert.deepEqual(result.enemies.map(monster => monster.id), [0]);
 });
 
 test('thrust reaches two cardinal tiles but not through a monster', () => {
@@ -57,7 +88,7 @@ test('Qinghe ultimate deals two damage without moving and persists between rooms
 
 test('Qinghe ultimate stays in hand when ending a turn', () => {
   const result = room();
-  result.hand = ['dawnSpear', 'step'];
+  result.hand = ['dawnSpear', 'advance'];
   result.endTurn();
   assert.equal(result.hand.includes('dawnSpear'), true);
   assert.equal(result.discard.includes('dawnSpear'), false);
@@ -65,7 +96,7 @@ test('Qinghe ultimate stays in hand when ending a turn', () => {
 
 test('Qinghe full hand requires one replacement before receiving the ultimate', () => {
   const journey = new Journey(1, 'qinghe');
-  journey.room.hand = ['step', 'thrust', 'advance', 'step', 'thrust'];
+  journey.room.hand = ['advance', 'thrust', 'sweep', 'advance', 'thrust'];
   journey.gainAssassination(true);
   journey.gainAssassination();
   assert.equal(journey.claimUltimate(), false);

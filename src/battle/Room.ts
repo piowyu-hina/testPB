@@ -8,6 +8,7 @@ export const data = { cards, enemies };
 export const HAND_LIMIT = 5;
 export interface MoveAction {
   hitId?: number;
+  hits?: { id: number; position: Point; blocked: boolean; removed: boolean; elite: boolean }[];
   pickedKnife?: boolean;
   drawn?: CardId;
   overflowed?: CardId;
@@ -163,9 +164,9 @@ export class Room {
     if (!this.matchesCard(index, destination)) return false;
     if (card.effect === 'throw') return Boolean(this.at(destination));
     if (card.effect === 'thrust') return Boolean(this.at(destination));
+    if (card.effect === 'sweep') return Boolean(this.at(destination));
     if (card.effect === 'shadow' && !this.hasKnife(destination)) return false;
     if (card.effect === 'knife') return Boolean(this.at(destination));
-    if (this.hand[index] === 'step' && this.at(destination)) return false;
     return true;
   }
   private matchesCard(index: number, destination: Point) {
@@ -188,16 +189,30 @@ export class Room {
       (o) => enemy.position[0] + o[0] === tile[0] && enemy.position[1] + o[1] === tile[1]
     );
   }
-  damageAt(tile: Point, removedId = -1, addedKnife?: Point) {
+  damageAt(tile: Point, removedId: number | number[] = -1, addedKnife?: Point) {
+    const removed = Array.isArray(removedId) ? removedId : [removedId];
     return this.enemies.reduce(
       (damage, enemy) =>
         damage +
-        (enemy.id !== removedId && Room.threatens(enemy, tile) ? (enemy.elite ? 2 : 1) + Number(this.hasKnife(enemy.position) || Boolean(addedKnife && equal(enemy.position, addedKnife))) : 0),
+        (!removed.includes(enemy.id) && Room.threatens(enemy, tile) ? (enemy.elite ? 2 : 1) + Number(this.hasKnife(enemy.position) || Boolean(addedKnife && equal(enemy.position, addedKnife))) : 0),
       0
     );
   }
   preview(index: number, destination: Point): MovePreview | null {
     if (!this.canMove(index, destination)) return null;
+    if (this.hand[index] === 'sweep') {
+      const victims = this.enemies.filter(enemy => cardinal.some(offset => equal(enemy.position, [this.hero[0] + offset[0], this.hero[1] + offset[1]])));
+      const removedIds = victims.filter(enemy => !blocksAttack(enemy, this.hero) && (enemy.health ?? 1) <= 1).map(enemy => enemy.id);
+      const selected = this.at(destination)!;
+      return {
+        blocked: blocksAttack(selected, this.hero),
+        destination: this.hero.slice() as Point,
+        hitId: selected.id,
+        removedId: removedIds.includes(selected.id) ? selected.id : -1,
+        removedIds,
+        damage: this.damageAt(this.hero, removedIds)
+      };
+    }
     const victim = this.at(destination);
     const blocked = victim ? blocksAttack(victim, this.hero) : false;
     const survives = victim && (blocked || (victim.health ?? 1) > 1);
@@ -214,6 +229,29 @@ export class Room {
   move(index: number, destination: Point): MoveAction | null {
     const preview = this.preview(index, destination);
     if (!preview) return null;
+    if (this.hand[index] === 'sweep') {
+      const cost = this.cardCost(index);
+      const hits = this.enemies
+        .filter(enemy => cardinal.some(offset => equal(enemy.position, [this.hero[0] + offset[0], this.hero[1] + offset[1]])))
+        .map(enemy => ({
+          id: enemy.id,
+          position: enemy.position.slice() as Point,
+          blocked: blocksAttack(enemy, this.hero),
+          removed: preview.removedIds!.includes(enemy.id),
+          elite: Boolean(enemy.elite)
+        }));
+      for (const hit of hits) {
+        if (!hit.blocked) {
+          const victim = this.enemies.find(enemy => enemy.id === hit.id)!;
+          victim.health = (victim.health ?? 1) - 1;
+        }
+      }
+      this.enemies = this.enemies.filter(enemy => !preview.removedIds!.includes(enemy.id));
+      this.discard.push(this.hand.splice(index, 1)[0]);
+      this.actions -= cost;
+      if (this.won) this.knives = [];
+      return { from: this.hero.slice() as Point, to: destination.slice() as Point, kind: 'sweep', hitId: preview.hitId, removedId: preview.removedId, hits };
+    }
     const cost = this.cardCost(index);
     const action: MoveAction = {
       from: this.hero.slice() as Point,
