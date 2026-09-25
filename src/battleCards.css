@@ -6,6 +6,18 @@
   align-items: center;
   justify-content: center;
 }
+.overflow-feedback { position: absolute; z-index: 80; left: 50%; top: -128px; width: 190px; height: 150px; transform: translateX(-50%); pointer-events: none; text-align: center; }
+.overflow-feedback[hidden] { display: none; }
+.overflow-card { position: absolute; left: 50%; top: 8px; width: 88px; height: 108px; border: 4px double #e3c688; border-radius: 10px; background: radial-gradient(circle at center, #98815b 0 10%, transparent 11%), linear-gradient(135deg, #233b31, #172923); box-shadow: 0 5px 15px #09120c99; transform: translateX(-50%); }
+.overflow-card::before { content: ''; position: absolute; inset: 18px; border: 2px solid #b9a36f; border-radius: 50%; }
+.overflow-sparks { position: absolute; left: 50%; top: 53px; width: 12px; height: 12px; border-radius: 50%; background: #fff0b1; box-shadow: -45px -15px #ed9b50, 38px -28px #e9bd66, -31px 35px #d86143, 42px 24px #e77944; opacity: 0; }
+.overflow-feedback strong { position: absolute; left: 0; right: 0; bottom: -4px; color: #fff1dc; font-size: 27px; text-shadow: 0 2px 5px #21100d, 0 0 12px #d46941; opacity: 0; }
+.overflow-feedback.active .overflow-card { animation: overflow-card-burst 1s ease-out both; }
+.overflow-feedback.active .overflow-sparks { animation: overflow-sparks 1s ease-out both; }
+.overflow-feedback.active strong { animation: overflow-label 1.15s ease-out both; }
+@keyframes overflow-card-burst { 0% { opacity: 0; transform: translate(-50%, 65px) scale(.65) rotate(-8deg); } 28% { opacity: 1; transform: translate(-50%, 0) scale(1) rotate(0); } 54% { opacity: 1; filter: brightness(1.7) sepia(1); transform: translate(-50%, -8px) scale(1.08) rotate(4deg); } 72%, 100% { opacity: 0; filter: brightness(2) sepia(1); transform: translate(-50%, -22px) scale(1.4) rotate(14deg); } }
+@keyframes overflow-sparks { 0%, 48% { opacity: 0; transform: translate(-50%, 0) scale(.3); } 60% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -30px) scale(1.8); } }
+@keyframes overflow-label { 0%, 22% { opacity: 0; transform: translateY(10px); } 40%, 82% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-5px); } }
 .hand {
   display: flex;
   gap: clamp(9px, 1.6vh, 16px);

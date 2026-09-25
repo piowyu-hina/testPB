@@ -35,6 +35,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     touchInfo: $('touch-info'),
     cardDetails: $('card-details'),
     hand: $('hand'),
+    overflowFeedback: $('overflow-feedback'),
     health: $('health'),
     energyCount: $('energy-count'),
     actions: $('actions'),
@@ -65,7 +66,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     replacingUltimate = false,
     ultimateHoldTimer = 0,
     ultimateHeld = false,
-    dismissDetailsClick = false;
+    dismissDetailsClick = false,
+    overflowTimer = 0;
   const touchLayout = () => matchMedia('(hover: none) and (pointer: coarse)').matches;
   const soundToggle = $<HTMLButtonElement>('battle-sound-toggle');
   function renderSoundToggle() {
@@ -735,6 +737,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (action.pickedKnife) {
       lockWhileCardsEnter(1 + Number(Boolean(action.drawn)));
       elements.hint.textContent = `撿回小刀 · 行動 +1 · ${action.drawn ? `抽到${data.cards[action.drawn].name}` : room.hand.length >= HAND_LIMIT ? '手牌已滿，未抽牌' : '牌堆已空'}`;
+      if (!action.drawn && room.hand.length >= HAND_LIMIT) showOverflowFeedback();
     }
   }
   async function useUltimate(enemyId: number) {
@@ -784,7 +787,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     busy = false;
     render();
-    if (action.pickedKnife) lockWhileCardsEnter(1 + Number(Boolean(action.drawn)));
+    if (action.pickedKnife) {
+      lockWhileCardsEnter(1 + Number(Boolean(action.drawn)));
+      if (!action.drawn && room.hand.length >= HAND_LIMIT) showOverflowFeedback();
+    }
   }
   async function walk(destination: Point) {
     if (busy || !exploring()) return;
@@ -937,6 +943,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     ultimateTargeting = false;
     replacingUltimate = false;
     if (exchange.open) exchange.close();
+    clearTimeout(overflowTimer);
+    elements.overflowFeedback.hidden = true;
+    elements.overflowFeedback.classList.remove('active');
     busy = false;
     handSignature = '';
     renderedHand = [];
@@ -985,6 +994,17 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     replacingUltimate = false;
     if (exchange.open) exchange.close();
     render();
+  }
+  function showOverflowFeedback() {
+    clearTimeout(overflowTimer);
+    elements.overflowFeedback.hidden = false;
+    elements.overflowFeedback.classList.remove('active');
+    void elements.overflowFeedback.offsetWidth;
+    elements.overflowFeedback.classList.add('active');
+    overflowTimer = window.setTimeout(() => {
+      elements.overflowFeedback.hidden = true;
+      elements.overflowFeedback.classList.remove('active');
+    }, 1250);
   }
   function openExchange() {
     const options = $('ultimate-exchange-options');
@@ -1044,6 +1064,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         } else if (action === 'card' && !room.finished) {
           if (room.hand.length >= HAND_LIMIT) {
             elements.hint.textContent = '手牌已滿，未抽牌';
+            showOverflowFeedback();
             return;
           }
           const card = room.deck.pop() ?? room.discard.pop();
