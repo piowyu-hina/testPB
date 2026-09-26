@@ -529,6 +529,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.game.classList.toggle('exploring', cleared);
     const threatMarks = document.createDocumentFragment();
     const targetMarks = document.createDocumentFragment();
+    // Outline the union of affected cells, including the hole around the hero.
+    const sweepCells = new Set(chosenId === 'sweep' && !busy
+      ? tiles.filter(({ point }) => !equal(point, room.hero) && room.canMove(selected, point)).map(({ point }) => point.join(','))
+      : []);
     for (const { tile, point } of tiles) {
       const damage = room.damageAt(point, removedIds),
         legal =
@@ -539,6 +543,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const sweepTargeting = chosenId === 'sweep';
       tile.classList.toggle('legal', legal && !sweepTargeting);
       tile.classList.toggle('sweep-range', legal && sweepTargeting && !equal(point, room.hero));
+      if (sweepCells.has(point.join(','))) {
+        const [x, y] = point;
+        const edge = (nx: number, ny: number) => sweepCells.has(`${nx},${ny}`) ? '0px' : '2px';
+        tile.style.setProperty('--sweep-edges', `${edge(x, y + 1)} ${edge(x + 1, y)} ${edge(x, y - 1)} ${edge(x - 1, y)}`);
+      } else tile.style.removeProperty('--sweep-edges');
       tile.classList.toggle('sweep-active', legal && sweepTargeting && !equal(point, room.hero) && Boolean(preview));
       tile.classList.toggle('inspectable', !busy && !room.finished && selected < 0 && Boolean(room.at(point)));
       tile.classList.toggle('capture', legal && !sweepTargeting && Boolean(room.at(point)));
