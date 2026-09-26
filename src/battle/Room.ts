@@ -138,18 +138,6 @@ export class Room {
     return false;
   }
   hasPlayableCard() { return this.hand.some((id, i) => id === 'absoluteShadow' || id === 'dawnSpear' || this.canUseCard(i)); }
-  discardForUltimate(index: number): CardId | null {
-    if (!Number.isInteger(index) || index < 0 || index >= this.hand.length) return null;
-    const [removed] = this.hand.splice(index, 1);
-    if (removed !== 'knife' && removed !== 'absoluteShadow' && removed !== 'dawnSpear') this.discard.push(removed);
-    return removed;
-  }
-  removeUltimateCard() {
-    const index = this.hand.indexOf('absoluteShadow');
-    if (index >= 0) this.hand.splice(index, 1);
-    const spearIndex = this.hand.indexOf('dawnSpear');
-    if (spearIndex >= 0) this.hand.splice(spearIndex, 1);
-  }
   setLoadout(next: Loadout) {
     if (next === this.loadout) return;
     const previous = loadouts[this.loadout], target = loadouts[next];

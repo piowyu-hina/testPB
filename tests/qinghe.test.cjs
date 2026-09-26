@@ -99,8 +99,7 @@ test('Qinghe ultimate pierces a straight ray without moving or respecting front 
   assert.equal(journey.gainAssassination(true), 0);
   for (let index = 0; index < 4; index++) journey.gainDawnCharge();
   assert.equal(journey.dawnCharge, 4);
-  assert.equal(journey.claimUltimate(), true);
-  assert.equal(journey.room.hand.includes('dawnSpear'), true);
+  assert.equal(journey.room.hand.includes('dawnSpear'), false);
   assert.equal(journey.room.strikeUltimate([1, 1]), null);
   const action = journey.room.strikeUltimate([0, 1]);
   assert.deepEqual(action.hits.map(hit => [hit.id, hit.blocked, hit.removed]), [[0, false, true], [1, false, true]]);
@@ -111,12 +110,12 @@ test('Qinghe ultimate pierces a straight ray without moving or respecting front 
   assert.deepEqual(journey.room.knives, []);
 });
 
-test('Qinghe ultimate stays in hand when ending a turn', () => {
-  const result = room();
-  result.hand = ['dawnSpear', 'advance'];
-  result.endTurn();
-  assert.equal(result.hand.includes('dawnSpear'), true);
-  assert.equal(result.discard.includes('dawnSpear'), false);
+test('Qinghe charge persists across turns without taking a hand slot', () => {
+  const journey = new Journey(1, 'qinghe');
+  for (let i = 0; i < 4; i++) journey.gainDawnCharge();
+  journey.room.endTurn();
+  assert.equal(journey.dawnCharge, 4);
+  assert.equal(journey.room.hand.includes('dawnSpear'), false);
 });
 
 test('dawn targeting accepts every in-board tile on a cardinal ray, not diagonals or self', () => {
@@ -131,15 +130,15 @@ test('dawn targeting accepts every in-board tile on a cardinal ray, not diagonal
   assert.equal(result.dawnDirectionTo([2, 5]), null);
 });
 
-test('Qinghe full hand requires one replacement before receiving the ultimate', () => {
+test('Qinghe ultimate works at full hand without replacing or spending cards', () => {
   const journey = new Journey(1, 'qinghe');
   journey.room.hand = ['advance', 'thrust', 'sweep', 'advance', 'thrust'];
-  for (let index = 0; index < 4; index++) journey.gainDawnCharge();
-  assert.equal(journey.claimUltimate(), false);
-  assert.equal(journey.claimUltimate(1), true);
-  assert.equal(journey.room.hand.length, 5);
-  assert.equal(journey.room.hand.includes('dawnSpear'), true);
+  const hand = [...journey.room.hand];
+  for (let i = 0; i < 4; i++) journey.gainDawnCharge();
+  assert.ok(journey.room.strikeUltimate([0, 1]));
+  assert.equal(journey.spendDawnCharge(), true);
+  assert.deepEqual(journey.room.hand, hand);
+  assert.equal(journey.spendDawnCharge(), false);
   journey.setLoadout('rogue');
-  assert.equal(journey.room.hand.includes('dawnSpear'), false);
-  assert.deepEqual(journey.room.knives, []);
+  assert.equal(journey.dawnCharge, 0);
 });

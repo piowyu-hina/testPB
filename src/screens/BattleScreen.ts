@@ -68,7 +68,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     cardHoldTimer = 0,
     heldCard: HTMLButtonElement | null = null,
     ultimateTargeting = false,
-    replacingUltimate = false,
     ultimateHoldTimer = 0,
     ultimateHeld = false,
     dismissDetailsClick = false,
@@ -127,8 +126,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     name.textContent = `${nameText} · ${charge}/${journey.ultimateThreshold}`;
     const description = document.createElement('span');
     description.textContent = journey.loadout === 'qinghe'
-      ? '每打出 1 張普通牌累積 1 點。集滿後點圖案取得破曉一槍；選方向，貫穿該直線所有怪物。'
-      : '普通擊殺 +1，菁英擊殺 +2。集滿後點圖案領取絕影卡；打出後可對任意怪物造成 2 點無視格擋的傷害。';
+      ? '每打出 1 張普通牌累積 1 點。集滿後點圖案播放演出，再選方向，貫穿該直線所有怪物。'
+      : '普通擊殺 +1，菁英擊殺 +2。集滿後點圖案播放演出，再選任意怪物造成 2 點無視格擋的傷害。';
     elements.hint.replaceChildren(name, description);
   }
   function openCardDetails(id: keyof typeof data.cards) {
@@ -426,10 +425,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       chargeTestButton.setAttribute('aria-label', `蓄滿${ultimateName}`);
       chargeTestButton.title = `蓄滿${ultimateName}`;
     }
-    const claimed = room.hand.includes(journey.loadout === 'qinghe' ? 'dawnSpear' : 'absoluteShadow');
-    elements.actions.setAttribute('aria-label', claimed ? `${ultimateName}卡已在手牌` : `${ultimateName}充能 ${charge} / ${journey.ultimateThreshold}${charge >= journey.ultimateThreshold ? `，點擊領取${ultimateName}卡` : ''}`);
-    elements.actions.classList.toggle('ultimate-ready', journey.loadout !== 'basic' && charge >= journey.ultimateThreshold && !claimed);
-    elements.actions.classList.toggle('ultimate-claimed', claimed);
+    elements.actions.setAttribute('aria-label', ultimateTargeting ? `${ultimateName}，選擇目標；再點圖案取消` : `${ultimateName}充能 ${charge} / ${journey.ultimateThreshold}${charge >= journey.ultimateThreshold ? '，點擊施放' : ''}`);
+    elements.actions.setAttribute('aria-pressed', String(ultimateTargeting));
+    elements.actions.setAttribute('aria-disabled', String(busy));
+    elements.actions.classList.toggle('ultimate-ready', journey.loadout !== 'basic' && charge >= journey.ultimateThreshold);
     if (Number.isFinite(previousActions) && previousActions !== energy) {
       elements.energyCount.classList.remove('energy-gain', 'energy-spend');
       void elements.energyCount.offsetWidth;
@@ -593,7 +592,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         targetMarks.append(mark);
       }
       tile.classList.toggle('exit-tile', cleared && equal(point, journey.exit));
-      tile.disabled = busy || replacingUltimate || (room.finished && !cleared);
+      tile.disabled = busy || (room.finished && !cleared);
       const enemy = room.at(point);
       tile.setAttribute(
         'aria-label',
@@ -641,7 +640,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     renderEnergy();
     renderJourneyProgress();
     elements.game.dataset.turn = String(room.turn);
-    elements.end.disabled = busy || replacingUltimate || (room.finished && !cleared);
+    elements.end.disabled = busy || (room.finished && !cleared);
     $<HTMLButtonElement>('back-home').disabled = busy;
     $<HTMLButtonElement>('open-battle-help').disabled = busy;
     elements.game.classList.toggle('choosing', selected >= 0 && !busy);
@@ -847,7 +846,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (busy || exploring() || !ultimateTargeting || journey.loadout !== 'rogue' || journey.assassination < 3) return;
     const target = room.enemies.find(enemy => enemy.id === enemyId);
     if (!target) return;
-    if (!room.hand.includes('absoluteShadow') || !journey.spendAssassination()) return;
+    if (!journey.spendAssassination()) return;
     const action = room.assassinate(enemyId);
     if (!action) return;
     ultimateTargeting = false;
@@ -1044,8 +1043,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     hoveredTile = null;
     hoveredEnemy = -1;
     ultimateTargeting = false;
-    replacingUltimate = false;
-    if (exchange.open) exchange.close();
     clearTimeout(overflowTimer);
     elements.overflowFeedback.hidden = true;
     elements.overflowFeedback.classList.remove('active');
@@ -1092,25 +1089,19 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   makeTiles();
   const help = $<HTMLDialogElement>('battle-help');
-  const exchange = $<HTMLDialogElement>('ultimate-exchange');
-  function closeExchange() {
-    replacingUltimate = false;
-    if (exchange.open) exchange.close();
-    render();
-  }
   function renderBattleRules() {
     const characterRules = journey.loadout === 'qinghe' ? [
       '突進：走向周圍一格。槍刺：原地刺向上下左右一至二格的第一隻怪物。橫掃：點亮起的範圍，原地攻擊周圍八格。',
-      '每打出一張普通牌，大招累積一點；集滿四點後點圖案領卡。破曉一槍點金色直線施放，整條線上的怪物各受兩點無視格擋傷害。'
+      '每打出一張普通牌，大招累積一點；集滿四點後點圖案播放演出，再選方向施放；再點圖案可取消且保留充能。破曉一槍點金色直線施放，整條線上的怪物各受兩點無視格擋傷害。'
     ] : journey.loadout === 'rogue' ? [
       '飛刀：原地投擲，刀留在地上。追影：瞬移到小刀格。突進：走向周圍一格。怪物站在刀上時攻擊傷害增加一點。',
-      '撿刀會補一點行動、抽一張普通牌，並獲得本回合限定的免費小刀卡。普通擊殺充能一點，菁英兩點；集滿三點可領絕影卡。'
+      '撿刀會補一點行動、抽一張普通牌，並獲得本回合限定的免費小刀卡。普通擊殺充能一點，菁英兩點；集滿三點後點圖案播放演出，再選怪物施放；再點圖案可取消且保留充能。'
     ] : ['選牌後查看亮起的落點；躍步能越過怪物，其餘移動會受到路上怪物阻擋。'];
     const lines = [
       '選牌，再點亮起的格子；再點同一張牌可取消。滑過卡牌查看說明，觸控時長按卡牌。',
       ...characterRules,
       '每回合有兩點行動。結束回合後，怪物先攻擊再移動；滑過怪物可查看它的攻擊範圍。',
-      '起手先洗牌再抽三張。手牌上限五張，滿手抽到的牌會爆掉並進棄牌堆；領大招卡時可選一張換掉，也能取消。',
+      '起手先洗牌再抽三張。手牌上限五張，滿手抽到的牌會爆掉並進棄牌堆。大招直接施放，不佔手牌；若技能產生卡牌，超過五張的部分同樣爆掉。',
       '清場後用前進卡走到上方出口，不耗行動。進下一間恢復一點生命。'
     ];
     $('battle-rule-list').replaceChildren(...lines.map(text => {
@@ -1119,53 +1110,26 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       return item;
     }));
   }
-  async function grantUltimate(replaceIndex?: number) {
-    if (busy || journey.ultimateCharge < journey.ultimateThreshold) return;
-    busy = true;
-    selected = -1;
-    elements.hint.replaceChildren();
+  async function beginUltimate() {
+    if (busy || exploring() || journey.ultimateCharge < journey.ultimateThreshold) return;
+    lock();
+    closeCardDetails();
     render();
     elements.ultimatePortrait.src = characters[journey.loadout === 'qinghe' ? 'qinghe' : 'rogue'].portrait;
-    await elements.ultimatePortrait.decode().catch(() => {});
-    elements.ultimateReveal.hidden = false;
-    await pause(850);
-    elements.ultimateReveal.hidden = true;
-    const granted = journey.claimUltimate(replaceIndex);
-    render();
-    if (granted) {
-      const cardId = journey.loadout === 'qinghe' ? 'dawnSpear' : 'absoluteShadow';
-      const target = elements.hand.querySelector<HTMLElement>(`[data-card="${cardId}"]`)!;
-      target.classList.remove('card-entering');
-      target.style.visibility = 'hidden';
-      const destination = target.getBoundingClientRect();
-      const board = elements.board.getBoundingClientRect();
-      const startX = board.left + (board.width - destination.width) / 2;
-      const startY = board.top + (board.height - destination.height) / 2;
-      const drawCard = document.createElement('div');
-      drawCard.className = 'ultimate-draw-card';
-      drawCard.setAttribute('aria-hidden', 'true');
-      const art = document.createElement('img');
-      art.src = cardArt[cardId]!;
-      art.alt = '';
-      drawCard.append(art);
-      Object.assign(drawCard.style, { left: `${startX}px`, top: `${startY}px`, width: `${destination.width}px`, height: `${destination.height}px` });
-      document.body.append(drawCard);
-      try {
-        await animate(drawCard, [{ opacity: 0, transform: 'translateY(24px) rotateY(80deg) scale(.85)' }, { opacity: 1, transform: 'translateY(0) rotateY(0) scale(1.08)' }], 250, 'ease-out');
-        drawCard.style.transform = 'scale(1.08)';
-        await pause(90);
-        await animate(drawCard, [{ transform: 'scale(1.08)' }, { transform: `translate(${destination.left - startX}px, ${destination.top - startY}px) scale(1)` }], 340, 'cubic-bezier(.35,0,.2,1)');
-      } finally {
-        drawCard.remove();
-        target.style.visibility = '';
-      }
+    try {
+      await elements.ultimatePortrait.decode().catch(() => {});
+      elements.ultimateReveal.hidden = false;
+      await pause(850);
+    } finally {
+      elements.ultimateReveal.hidden = true;
+      busy = false;
     }
-    busy = false;
+    ultimateTargeting = true;
     render();
   }
   async function useDawnUltimate(direction: Point) {
     if (busy || exploring() || !ultimateTargeting || journey.loadout !== 'qinghe' || journey.dawnCharge < 4) return;
-    if (!room.hand.includes('dawnSpear') || !room.dawnRay(direction).length) return;
+    if (!room.dawnRay(direction).length) return;
     const action = room.strikeUltimate(direction);
     if (!action || !journey.spendDawnCharge()) return;
     lock();
@@ -1207,43 +1171,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       elements.overflowFeedback.classList.remove('active');
     }, 900);
   }
-  function openExchange() {
-    const ultimateName = journey.loadout === 'qinghe' ? '破曉一槍' : '絕影';
-    $<HTMLImageElement>('ultimate-exchange-art').src = cardArt[journey.loadout === 'qinghe' ? 'dawnSpear' : 'absoluteShadow']!;
-    $<HTMLImageElement>('ultimate-exchange-art').alt = `${ultimateName}卡牌插圖`;
-    const reward = root.querySelector<HTMLElement>('.ultimate-exchange-reward');
-    if (reward) {
-      reward.querySelector('strong')!.textContent = ultimateName;
-      reward.querySelector('span')!.textContent = `選一張手牌，換成${ultimateName}卡`;
-    }
-    const options = $('ultimate-exchange-options');
-    options.replaceChildren(...room.hand.map((id, index) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.setAttribute('aria-label', `換掉${data.cards[id].name}，取得${ultimateName}`);
-      const art = cardArt[id];
-      if (art) {
-        const image = document.createElement('img');
-        image.src = art;
-        image.alt = '';
-        button.append(image);
-      }
-      const name = document.createElement('span');
-      name.textContent = data.cards[id].name;
-      button.append(name);
-      onClick(button, () => {
-        if (!replacingUltimate) return;
-        closeExchange();
-        void grantUltimate(index);
-      });
-      return button;
-    }));
-    exchange.showModal();
-  }
-  exchange.addEventListener('close', () => {
-    if (replacingUltimate) closeExchange();
-  });
-  onClick($('ultimate-exchange-cancel'), closeExchange);
   if (import.meta.env.DEV) {
     const tools = $('battle-test-tools');
     tools.hidden = false;
@@ -1329,21 +1256,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       showUltimateHint();
       return;
     }
-    const ultimateName = journey.loadout === 'qinghe' ? '破曉一槍' : '絕影';
-    if (room.hand.includes(journey.loadout === 'qinghe' ? 'dawnSpear' : 'absoluteShadow')) {
-      elements.hint.textContent = `${ultimateName}卡已在手牌，點卡片後選擇${journey.loadout === 'qinghe' ? '方向' : '怪物'}。`;
-      return;
-    }
-    selected = -1;
-    ultimateTargeting = false;
-    if (room.hand.length >= HAND_LIMIT) {
-      replacingUltimate = true;
+    if (ultimateTargeting) {
+      ultimateTargeting = false;
+      hoveredTile = null;
+      hoveredEnemy = -1;
       render();
-      openExchange();
-    } else {
-      replacingUltimate = false;
-      void grantUltimate();
-    }
+    } else void beginUltimate();
   });
   onClick($('replay'), () => {
     if (!room.finished || elements.result.hidden) return;
@@ -1356,8 +1274,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     closeCardDetails();
     selected = -1;
     ultimateTargeting = false;
-    replacingUltimate = false;
-    if (exchange.open) exchange.close();
     hoveredTile = null;
     hoveredEnemy = -1;
     elements.hint.textContent = '';

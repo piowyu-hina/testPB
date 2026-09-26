@@ -51,8 +51,9 @@ const fs = require('node:fs');
     await page.waitForTimeout(800);
     await page.locator('[data-test-action="charge"]').click();
     await page.locator('#actions').click();
-    await shot('exchange');
-    await page.locator('#ultimate-exchange-cancel').click();
+    await idle();
+    await shot('ultimate-targeting');
+    await page.locator('#actions').click();
     await page.locator('[data-test-action="health"]').click();
     for (let turn = 0; turn < 12 && !await page.locator('#result').isVisible(); turn++) {
       await page.locator('#end-turn').click();

@@ -105,7 +105,7 @@
 .actions.ultimate-ready {
   animation: ultimate-ready 2.2s ease-in-out infinite;
 }
-.actions.ultimate-claimed { filter: brightness(.7); }
+.actions[aria-pressed='true'] { filter: drop-shadow(0 0 8px #ffd86d); animation: none; }
 .actions:focus-visible { outline: 2px solid #f5d48c; border-radius: 10px; }
 @keyframes ultimate-ready {
   0%, 100% { filter: drop-shadow(0 0 2px #f1c75b88); }
