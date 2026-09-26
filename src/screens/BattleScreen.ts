@@ -199,9 +199,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           if (busy) return;
           const point: Point = [x, y];
           if (ultimateTargeting) {
-            const direction: Point = [point[0] - room.hero[0], point[1] - room.hero[1]];
+            const direction = room.dawnDirectionTo(point);
             const target = room.at(point);
-            if (journey.loadout === 'qinghe' && room.dawnRay(direction).length) void useDawnUltimate(direction);
+            if (journey.loadout === 'qinghe' && direction && room.dawnRay(direction).length) void useDawnUltimate(direction);
             else if (journey.loadout === 'rogue' && target) void useUltimate(target.id);
             else {
               ultimateTargeting = false;
@@ -276,6 +276,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         for (let pip = 0; pip < costValue; pip++) {
           const flame = document.createElement('span');
           flame.className = 'cost-flame';
+          flame.style.zIndex = String(costValue - pip);
           cost.append(flame);
         }
         card.append(cost);
@@ -412,7 +413,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const previousActions = Number(elements.energyCount.dataset.value);
     elements.energyCount.dataset.value = String(energy);
     elements.energyCount.setAttribute('aria-label', `剩餘行動 ${energy} / ${capacity}`);
-    [...elements.energyCount.children].forEach((pip, index) => pip.classList.toggle('empty', index >= energy));
+    [...elements.energyCount.children].forEach((pip, index) => {
+      pip.classList.toggle('empty', index >= energy);
+      (pip as HTMLElement).style.zIndex = String(capacity - index);
+    });
     elements.actions.style.setProperty('--ultimate-progress', `${charge / journey.ultimateThreshold * 100}%`);
     elements.actions.hidden = journey.loadout === 'basic';
     elements.actions.style.setProperty('--ultimate-art', `url("${journey.loadout === 'qinghe' ? qingheChargeArt : rogueChargeArt}")`);
@@ -503,7 +507,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           : room.preview(selected, hoveredTile)
         : null;
     const removedId = preview?.removedId ?? -1;
-    const dawnDirection: Point | null = hoveredTile ? [hoveredTile[0] - room.hero[0], hoveredTile[1] - room.hero[1]] : null;
+    const dawnDirection = hoveredTile ? room.dawnDirectionTo(hoveredTile) : null;
     const dawnPreview = ultimateTargeting && journey.loadout === 'qinghe' && dawnDirection ? room.dawnRay(dawnDirection) : [];
     const removedIds = dawnPreview.length ? dawnPreview.filter(enemy => (enemy.health ?? 1) <= 2).map(enemy => enemy.id) : preview?.removedIds ?? [removedId];
     const focusedEnemy = room.enemies.find((e) => e.id === (hoveredEnemy >= 0 ? hoveredEnemy : inspectedEnemy));
@@ -535,9 +539,13 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       tile.classList.toggle('legal', legal);
       tile.classList.toggle('inspectable', !busy && !room.finished && selected < 0 && Boolean(room.at(point)));
       tile.classList.toggle('capture', legal && Boolean(room.at(point)));
-      const direction: Point = [point[0] - room.hero[0], point[1] - room.hero[1]];
-      const dawnTarget = ultimateTargeting && journey.loadout === 'qinghe' && room.dawnRay(direction).length > 0;
-      tile.classList.toggle('ultimate-target', ultimateTargeting && (journey.loadout === 'qinghe' ? dawnTarget : Boolean(room.at(point))));
+      const direction = room.dawnDirectionTo(point);
+      const dawnTarget = Boolean(ultimateTargeting && journey.loadout === 'qinghe' && direction && room.dawnRay(direction).length);
+      tile.classList.toggle('ultimate-target', ultimateTargeting && journey.loadout === 'rogue' && Boolean(room.at(point)));
+      tile.classList.toggle('dawn-range', dawnTarget);
+      tile.classList.toggle('dawn-active', dawnTarget && Boolean(direction && dawnDirection && equal(direction, dawnDirection)));
+      tile.classList.toggle('dawn-direction', dawnTarget && Math.abs(point[0] - room.hero[0]) + Math.abs(point[1] - room.hero[1]) === 1);
+      tile.dataset.dawnDirection = direction ? direction[0] ? direction[0] > 0 ? 'right' : 'left' : direction[1] > 0 ? 'up' : 'down' : '';
       tile.classList.toggle('blocked', legal && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
       tile.classList.toggle('landing', Boolean(preview && equal(point, chosenId === 'throw' ? hoveredTile! : preview.destination)));
       tile.classList.toggle('focus-threat', threatened);
@@ -562,6 +570,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         'aria-label',
         `${point[0] + 1},${point[1] + 1}${enemy ? ` ${enemySummary(enemy)}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? chosenId === 'sweep' ? '，點擊自己施放橫掃' : ['throw', 'knife', 'thrust'].includes(chosenId) ? '，可攻擊' : '，可移動' : ''}`
       );
+      if (dawnTarget && direction)
+        tile.setAttribute('aria-label', `${point[0] + 1},${point[1] + 1}，施放破曉一槍，直線命中 ${room.dawnRay(direction).length} 隻怪物`);
       if (cleared)
         tile.setAttribute(
           'aria-label',
@@ -634,7 +644,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.game.classList.remove('choosing');
     for (const { tile } of tiles) {
       tile.disabled = true;
-      tile.classList.remove('legal', 'landing', 'focus-threat', 'capture', 'blocked');
+      tile.classList.remove('legal', 'landing', 'focus-threat', 'capture', 'blocked', 'ultimate-target', 'dawn-range', 'dawn-active', 'dawn-direction');
     }
     for (const card of root.querySelectorAll<HTMLButtonElement>('.card')) {
       card.disabled = true;
@@ -1062,15 +1072,45 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (busy || journey.ultimateCharge < journey.ultimateThreshold) return;
     busy = true;
     selected = -1;
+    elements.hint.replaceChildren();
     render();
     elements.ultimatePortrait.src = characters[journey.loadout === 'qinghe' ? 'qinghe' : 'rogue'].portrait;
+    await elements.ultimatePortrait.decode().catch(() => {});
     elements.ultimateReveal.hidden = false;
     await pause(850);
     elements.ultimateReveal.hidden = true;
     const granted = journey.claimUltimate(replaceIndex);
+    render();
+    if (granted) {
+      const cardId = journey.loadout === 'qinghe' ? 'dawnSpear' : 'absoluteShadow';
+      const target = elements.hand.querySelector<HTMLElement>(`[data-card="${cardId}"]`)!;
+      target.classList.remove('card-entering');
+      target.style.visibility = 'hidden';
+      const destination = target.getBoundingClientRect();
+      const board = elements.board.getBoundingClientRect();
+      const startX = board.left + (board.width - destination.width) / 2;
+      const startY = board.top + (board.height - destination.height) / 2;
+      const drawCard = document.createElement('div');
+      drawCard.className = 'ultimate-draw-card';
+      drawCard.setAttribute('aria-hidden', 'true');
+      const art = document.createElement('img');
+      art.src = cardArt[cardId]!;
+      art.alt = '';
+      drawCard.append(art);
+      Object.assign(drawCard.style, { left: `${startX}px`, top: `${startY}px`, width: `${destination.width}px`, height: `${destination.height}px` });
+      document.body.append(drawCard);
+      try {
+        await animate(drawCard, [{ opacity: 0, transform: 'translateY(24px) rotateY(80deg) scale(.85)' }, { opacity: 1, transform: 'translateY(0) rotateY(0) scale(1.08)' }], 250, 'ease-out');
+        drawCard.style.transform = 'scale(1.08)';
+        await pause(90);
+        await animate(drawCard, [{ transform: 'scale(1.08)' }, { transform: `translate(${destination.left - startX}px, ${destination.top - startY}px) scale(1)` }], 340, 'cubic-bezier(.35,0,.2,1)');
+      } finally {
+        drawCard.remove();
+        target.style.visibility = '';
+      }
+    }
     busy = false;
     render();
-    if (granted) lockWhileCardsEnter(1);
   }
   async function useDawnUltimate(direction: Point) {
     if (busy || exploring() || !ultimateTargeting || journey.loadout !== 'qinghe' || journey.dawnCharge < 4) return;

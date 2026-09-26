@@ -2,8 +2,12 @@ const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 
 (async () => {
-  const browser = await chromium.launch({ channel: 'chrome', headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  const browser = process.env.TESTPB_CDP
+    ? await chromium.connectOverCDP(process.env.TESTPB_CDP)
+    : await chromium.launch({ channel: 'chrome', headless: true });
+  const page = process.env.TESTPB_CDP
+    ? browser.contexts()[0].pages()[0]
+    : await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   const errors = [];
   page.on('pageerror', error => errors.push(error.stack));
   try {
@@ -37,14 +41,20 @@ const assert = require('node:assert/strict');
     await page.waitForTimeout(280);
     await page.screenshot({ path: 'test-results/qinghe-ultimate-reveal.png' });
     await page.locator('#ultimate-reveal').waitFor({ state: 'hidden' });
+    await page.locator('.ultimate-draw-card').waitFor({ state: 'visible' });
+    await page.waitForTimeout(200);
+    await page.screenshot({ path: 'test-results/qinghe-ultimate-draw.png' });
+    await page.locator('.ultimate-draw-card').waitFor({ state: 'hidden' });
+    await page.waitForFunction(() => document.getElementById('game')?.getAttribute('aria-busy') === 'false');
     assert.equal(await page.locator('[data-card="dawnSpear"]').count(), 1);
     await page.waitForFunction(() => [...document.images].filter(image => image.getAttribute('src')).every(image => image.complete && image.naturalWidth > 0));
     await page.locator('[data-card="dawnSpear"]').click();
-    assert.equal(await page.locator('.tile.ultimate-target[data-x="2"][data-y="1"]').count(), 1);
-    await page.locator('.tile[data-x="2"][data-y="1"]').hover();
+    assert.equal(await page.locator('.tile.dawn-range').count(), 4);
+    await page.locator('.tile[data-x="2"][data-y="3"]').hover();
+    assert.equal(await page.locator('.tile.dawn-active').count(), 4);
     assert.equal(await page.locator('[data-actor="0"].victim-preview').count(), 1);
     await page.screenshot({ path: 'test-results/qinghe-dawn-preview.png' });
-    await page.locator('.tile[data-x="2"][data-y="1"]').click();
+    await page.locator('.tile[data-x="2"][data-y="2"]').click();
     await page.waitForFunction(() => document.getElementById('game')?.getAttribute('aria-busy') === 'false');
     assert.match(await page.locator('#actions').getAttribute('aria-label'), /充能 0 \/ 4/);
     assert.equal(await page.locator('[data-actor="0"]').count(), 0);
@@ -78,6 +88,15 @@ const assert = require('node:assert/strict');
     await page.screenshot({ path: 'test-results/qinghe-sweep.png' });
     await page.locator('[data-test-action="opening"]').click();
     await page.locator('[data-test-action="charge"]').click();
+    for (let index = 0; index < 3; index++) await page.locator('[data-test-action="energy"]').click();
+    const souls = await page.locator('#energy-count .action-pip').evaluateAll(nodes => nodes.map(node => ({ left: node.getBoundingClientRect().left, z: Number(getComputedStyle(node).zIndex) })));
+    assert.equal(souls.length, 5);
+    for (let index = 1; index < souls.length; index++) {
+      assert.ok(souls[index].left > souls[index - 1].left);
+      assert.ok(souls[index].z < souls[index - 1].z);
+    }
+    await page.waitForFunction(() => !document.getElementById('game')?.classList.contains('dealing-hand'));
+    await page.screenshot({ path: 'test-results/qinghe-five-souls.png' });
     await page.locator('[data-test-action="hand"]').click();
     assert.equal(await page.locator('.card').count(), 5);
     await page.locator('#actions').click();
@@ -87,6 +106,8 @@ const assert = require('node:assert/strict');
     await page.locator('#ultimate-reveal').waitFor({ state: 'visible' });
     assert.equal(await page.locator('[data-card="dawnSpear"]').count(), 0);
     await page.locator('#ultimate-reveal').waitFor({ state: 'hidden' });
+    await page.locator('.ultimate-draw-card').waitFor({ state: 'hidden' });
+    await page.waitForFunction(() => document.getElementById('game')?.getAttribute('aria-busy') === 'false');
     assert.equal(await page.locator('.card').count(), 5);
     assert.equal(await page.locator('[data-card="dawnSpear"]').count(), 1);
     assert.deepEqual(errors, []);

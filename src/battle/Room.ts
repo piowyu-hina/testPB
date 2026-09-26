@@ -312,6 +312,12 @@ export class Room {
     if (this.won) this.knives = [];
     return action;
   }
+  dawnDirectionTo(point: Point): Point | null {
+    if (!inside(point)) return null;
+    const dx = point[0] - this.hero[0], dy = point[1] - this.hero[1];
+    if ((dx === 0) === (dy === 0)) return null;
+    return [Math.sign(dx), Math.sign(dy)];
+  }
   dawnRay(direction: Point): Enemy[] {
     if (this.loadout !== 'qinghe' || !cardinal.some(point => equal(point, direction))) return [];
     const victims: Enemy[] = [];

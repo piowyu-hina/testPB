@@ -116,6 +116,18 @@ test('Qinghe ultimate stays in hand when ending a turn', () => {
   assert.equal(result.discard.includes('dawnSpear'), false);
 });
 
+test('dawn targeting accepts every in-board tile on a cardinal ray, not diagonals or self', () => {
+  const result = room();
+  result.hero = [2, 2];
+  assert.deepEqual(result.dawnDirectionTo([2, 4]), [0, 1]);
+  assert.deepEqual(result.dawnDirectionTo([4, 2]), [1, 0]);
+  assert.deepEqual(result.dawnDirectionTo([2, 0]), [0, -1]);
+  assert.deepEqual(result.dawnDirectionTo([0, 2]), [-1, 0]);
+  assert.equal(result.dawnDirectionTo([2, 2]), null);
+  assert.equal(result.dawnDirectionTo([3, 3]), null);
+  assert.equal(result.dawnDirectionTo([2, 5]), null);
+});
+
 test('Qinghe full hand requires one replacement before receiving the ultimate', () => {
   const journey = new Journey(1, 'qinghe');
   journey.room.hand = ['advance', 'thrust', 'sweep', 'advance', 'thrust'];
