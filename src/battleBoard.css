@@ -68,7 +68,7 @@
     linear-gradient(to right, #405b49 0 3px, transparent 3px),
     linear-gradient(to bottom, #405b49 0 3px, transparent 3px),
     linear-gradient(#20332729, #20332729),
-    url('../assets/tiles/ForestFloorPainted.png');
+    url('../assets/tiles/ForestFloorPainted-v2.png');
   background-size: 20% 100%, 100% 20%, cover, cover;
   background-repeat: repeat-x, repeat-y, no-repeat, no-repeat;
   background-position: left top, left top, center, center;
