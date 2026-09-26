@@ -8,4 +8,10 @@
 
 ## 生成提示
 
+### 後續局部像素整理（v9）
+
+目前引用 `Portrait-v9-flat-clothing.png`。使用者明確要求程式統一同色區域，且頭髮先不處理。由 `scripts/flatten-qinghe-clothing.py` 從 v8 產生，僅整理披風底色與白衣亮面，限制 RGB 各通道變動不超過 4；保留原始 alpha、陰影及輪廓，不改頭髮。初次全區調色盤量化造成陰影斑駁，已棄用，改為兩個明確底色的局部吸附。v8 保留，可隨時比較。這不是將全身所有平面完全重塗。
+
+### v8 原始生成提示
+
 Use case: identity-preserve. Image 1 is the edit target: Qinghe game character portrait. Create a carefully simplified version of THIS exact portrait for a game, genuinely transparent background with clean alpha, no background haze or glow. Preserve her exact face identity, cheerful open-mouth expression, eye shape and amber color, head/body proportions, full-body pose, both hands gripping the same diagonal double-ended spear, costume silhouette and green/ivory/brown palette. Preserve complete boots and spear tips with modest clear margins. Make a meaningful reduction of ornamental and rendering complexity, NOT blur: remove about 75% of repeated gold botanical motifs on cloak, leaving just a few broad simple leaf accents near two hem areas; remove the intricate green embroidery on white sleeves and tunic hem, replacing with simple clean trim. Keep flower hair clip and round cloak brooch. Consolidate hair into broad flowing locks with very few interior lines and one coherent soft highlight rather than fragmented streaks. Simplify fabric folds to large readable shadow shapes, remove tiny wrinkles, texture speckles, shiny micro-highlights and etched details on accessories. Keep dimensional anime cel shading with restrained soft transitions, not a flat vector icon. Maintain attractive clean anime linework and original face rather than redesigning her. Simplify spear ornamentation while retaining its distinctive double-ended silhouette. Visual hierarchy: face first, gesture second, costume shape third; calm uncluttered surfaces elsewhere. No new accessories, no extra limbs/fingers, no text, no watermark. Output one high-resolution vertical transparent PNG portrait.
