@@ -562,8 +562,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       tile.dataset.danger = String(Math.min(damage, 3));
       const sweepTargeting = chosenId === 'sweep';
       tile.classList.toggle('legal', legal && !sweepTargeting);
-      tile.classList.toggle('sweep-range', legal && sweepTargeting && !equal(point, room.hero));
-      tile.classList.toggle('sweep-active', legal && sweepTargeting && !equal(point, room.hero) && Boolean(preview));
+      tile.classList.toggle('sweep-range', legal && sweepTargeting);
+      tile.classList.toggle('sweep-active', legal && sweepTargeting && Boolean(preview));
       tile.classList.toggle('inspectable', !busy && !room.finished && selected < 0 && Boolean(room.at(point)));
       tile.classList.toggle('capture', legal && !sweepTargeting && Boolean(room.at(point)));
       const direction = room.dawnDirectionTo(point);
