@@ -1,5 +1,7 @@
 # testPB
 
+- For this project's art, UI, card/skill interaction, visual diagnosis, or test-preview work, read and apply `C:/Users/atats/.codex/skills/testpb-art-ui-workflow/SKILL.md` and its relevant references before acting. It records the user's repeated corrections, rejected approaches, and same-window preview verification requirements. New user instructions take precedence; update the relevant record when a new correction supersedes an old one. Do not treat an assistant proposal or a passing test as visual approval.
+
 - This is the active Tauri + TypeScript + Vite desktop prototype. Do not use Unity or change the Unity project.
 - The user authorized installing prerequisites and migrating to a standalone Tauri window. Current workflow preference: use `npm.cmd run desktop:dev` for iterative art/UI previews. Only rebuild the standalone release after the user requests a packaged update or confirms the batch is ready.
 - The installed game must run offline with embedded assets, without a Node server or console window. Source development uses Vite; double-clicking source index.html is no longer supported.
