@@ -15,15 +15,6 @@
 .quiet-button:disabled {
   opacity: 0.35;
 }
-.result-panel .quiet-button {
-  display: block;
-  margin: 16px auto 0;
-  background: none;
-  color: var(--muted);
-  font-size: 16px;
-  padding: 8px 16px;
-  box-shadow: none;
-}
 
 .village, .destination-screen {
   width: min(1440px, calc(100vw - 48px));
@@ -78,6 +69,13 @@
 .sound-toggle { min-width: 60px; padding: 8px 12px; border: 1px solid #aa9771; border-radius: 8px; background: #fff9ec; color: #343c36; }
 .sound-toggle:hover { background: #e9e0cc; }
 .settings-dialog .quiet-button { color: #475b49; }
+#village-settings { width: 600px; max-width: calc(100% - 64px); padding: 38px; }
+#village-settings .settings-heading h2 { font-size: 36px; }
+#village-settings .quiet-button { font-size: 25px; padding: 12px 16px; }
+#village-settings .settings-row { margin: 30px 0; padding-top: 28px; }
+#village-settings .settings-row strong { font-size: 27px; }
+#village-settings .settings-row p, #village-settings .settings-note { font-size: 22px; line-height: 1.6; }
+#village-settings .sound-toggle, #village-settings .theme-toggle { min-width: 58px; min-height: 58px; font-size: 25px; }
 .destination-screen { display: flex; flex-direction: column; gap: 20px; }
 .destination-header { display: flex; align-items: center; justify-content: space-between; min-height: 38px; }
 .destination-header > span { font-size: 14px; letter-spacing: .24em; }

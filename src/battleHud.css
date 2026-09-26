@@ -1,4 +1,5 @@
 .screen-root.battle-screen {
+  position: relative;
   background:
     linear-gradient(180deg, #17251bd9 0%, #15251cc4 42%, #111b17e8 100%),
     url('../assets/scenes/forest/ForestRuins.png') 60% center / cover no-repeat;
@@ -9,10 +10,10 @@
   padding: 20px 0 10px;
   position: relative;
 }
-.ultimate-reveal { position: absolute; z-index: 100; inset: 0; overflow: hidden; pointer-events: none; display: flex; align-items: center; justify-content: center; padding-bottom: 18%; box-sizing: border-box; background: radial-gradient(ellipse at 50% 43%, #a9985344, #10190edb 68%); animation: ultimate-reveal-backdrop .85s ease-out both; }
+.ultimate-reveal { position: absolute; z-index: 100; inset: 0; overflow: hidden; pointer-events: none; display: flex; align-items: center; justify-content: center; box-sizing: border-box; background: radial-gradient(ellipse at center, #a9985344, #10190edb 68%); animation: ultimate-reveal-backdrop .85s ease-out both; }
 .ultimate-reveal[hidden] { display: none; }
-.ultimate-reveal-light { position: absolute; width: 85%; aspect-ratio: 1; bottom: 26%; border-radius: 50%; background: radial-gradient(circle, #fff6bdba 0%, #e5bd5d73 25%, transparent 66%); filter: blur(12px); animation: ultimate-reveal-light .85s ease-out both; }
-.ultimate-reveal img { position: relative; z-index: 1; display: block; max-width: 94%; height: 92%; object-fit: contain; object-position: center; filter: drop-shadow(0 0 28px #ffe7a28c); animation: ultimate-reveal-portrait .85s cubic-bezier(.2,.7,.25,1) both; }
+.ultimate-reveal-light { position: absolute; width: 85%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, #fff6bdba 0%, #e5bd5d73 25%, transparent 66%); filter: blur(12px); animation: ultimate-reveal-light .85s ease-out both; }
+.ultimate-reveal img { position: relative; z-index: 1; display: block; width: 90%; height: 82%; object-fit: contain; object-position: center; filter: drop-shadow(0 0 28px #ffe7a28c); animation: ultimate-reveal-portrait .85s cubic-bezier(.2,.7,.25,1) both; }
 @keyframes ultimate-reveal-backdrop { 0% { opacity: 0; } 14%, 80% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes ultimate-reveal-light { 0% { opacity: 0; transform: scale(.5); } 35%, 75% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.25); } }
 @keyframes ultimate-reveal-portrait { 0% { opacity: 0; transform: translate(-35px, 45px) scale(.94); } 24%, 77% { opacity: 1; transform: translate(0, 0) scale(1); } 100% { opacity: 0; transform: translate(12px, -7px) scale(1.025); } }

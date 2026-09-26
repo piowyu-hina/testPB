@@ -75,10 +75,10 @@ noscript {
   --stage-height: calc(var(--stage-width) * 1.7777778);
 }
 body { height: 100svh; min-height: 0; align-items: center; overflow: hidden; }
-#stage { position: relative; display: block; flex: none; width: var(--stage-width); height: var(--stage-height); overflow: hidden; }
+#stage { position: relative; display: block; flex: none; width: var(--stage-width); height: var(--stage-height); overflow: clip; }
 .screen-curtain { position: absolute; inset: 0; z-index: 30; display: flex; overflow: hidden; pointer-events: auto; }
 .screen-curtain[hidden] { display: none; }
 .screen-curtain-panel { flex: 0 0 50%; height: 100%; }
 .screen-curtain-panel.left { background: linear-gradient(90deg, #181b1a, #353a35); border-right: 2px solid #bda77b; }
 .screen-curtain-panel.right { background: linear-gradient(270deg, #181b1a, #353a35); border-left: 2px solid #bda77b; }
-.screen-root { display: flow-root; width: 720px; height: 1280px; overflow: hidden; transform-origin: top left; }
+.screen-root { display: flow-root; width: 720px; height: 1280px; overflow: clip; transform-origin: top left; }

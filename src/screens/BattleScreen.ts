@@ -544,8 +544,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       tile.classList.toggle('ultimate-target', ultimateTargeting && journey.loadout === 'rogue' && Boolean(room.at(point)));
       tile.classList.toggle('dawn-range', dawnTarget);
       tile.classList.toggle('dawn-active', dawnTarget && Boolean(direction && dawnDirection && equal(direction, dawnDirection)));
-      tile.classList.toggle('dawn-direction', dawnTarget && Math.abs(point[0] - room.hero[0]) + Math.abs(point[1] - room.hero[1]) === 1);
-      tile.dataset.dawnDirection = direction ? direction[0] ? direction[0] > 0 ? 'right' : 'left' : direction[1] > 0 ? 'up' : 'down' : '';
       tile.classList.toggle('blocked', legal && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
       tile.classList.toggle('landing', Boolean(preview && equal(point, chosenId === 'throw' ? hoveredTile! : preview.destination)));
       tile.classList.toggle('focus-threat', threatened);
@@ -644,7 +642,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.game.classList.remove('choosing');
     for (const { tile } of tiles) {
       tile.disabled = true;
-      tile.classList.remove('legal', 'landing', 'focus-threat', 'capture', 'blocked', 'ultimate-target', 'dawn-range', 'dawn-active', 'dawn-direction');
+      tile.classList.remove('legal', 'landing', 'focus-threat', 'capture', 'blocked', 'ultimate-target', 'dawn-range', 'dawn-active');
     }
     for (const card of root.querySelectorAll<HTMLButtonElement>('.card')) {
       card.disabled = true;
@@ -1068,6 +1066,27 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (exchange.open) exchange.close();
     render();
   }
+  function renderBattleRules() {
+    const characterRules = journey.loadout === 'qinghe' ? [
+      '突進：走向周圍一格。槍刺：原地刺向上下左右一至二格的第一隻怪物。橫掃：點自己，攻擊周圍八格。',
+      '每打出一張普通牌，大招累積一點；集滿四點後點圖案領卡。破曉一槍點金色直線施放，整條線上的怪物各受兩點無視格擋傷害。'
+    ] : journey.loadout === 'rogue' ? [
+      '飛刀：原地投擲，刀留在地上。追影：瞬移到小刀格。突進：走向周圍一格。怪物站在刀上時攻擊傷害增加一點。',
+      '撿刀會補一點行動、抽一張普通牌，並獲得本回合限定的免費小刀卡。普通擊殺充能一點，菁英兩點；集滿三點可領絕影卡。'
+    ] : ['選牌後查看亮起的落點；躍步能越過怪物，其餘移動會受到路上怪物阻擋。'];
+    const lines = [
+      '選牌，再點亮起的格子；再點同一張牌可取消。滑過卡牌查看說明，觸控時長按卡牌。',
+      ...characterRules,
+      '每回合有兩點行動。結束回合後，怪物先攻擊再移動；滑過怪物可查看它的攻擊範圍。',
+      '起手先洗牌再抽三張。手牌上限五張，滿手抽到的牌會爆掉並進棄牌堆；領大招卡時可選一張換掉，也能取消。',
+      '清場後用前進卡走到上方出口，不耗行動。進下一間恢復一點生命。'
+    ];
+    $('battle-rule-list').replaceChildren(...lines.map(text => {
+      const item = document.createElement('li');
+      item.textContent = text;
+      return item;
+    }));
+  }
   async function grantUltimate(replaceIndex?: number) {
     if (busy || journey.ultimateCharge < journey.ultimateThreshold) return;
     busy = true;
@@ -1243,7 +1262,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       });
     }
   }
-  onClick($('open-battle-help'), () => { renderSoundToggle(); renderJourneyProgress(); help.showModal(); });
+  onClick($('open-battle-help'), () => { renderSoundToggle(); renderJourneyProgress(); renderBattleRules(); help.showModal(); });
   onClick($('close-battle-help'), () => help.close());
   onClick(soundToggle, () => { setSoundEnabled(!soundEnabled()); renderSoundToggle(); });
   onClick(elements.end, () => exploring() ? redrawExplorationCard() : enemyTurn());

@@ -32,7 +32,7 @@ const { chromium } = require('playwright');
       }
     }
     if (!ready) throw new Error('Native WebView unavailable');
-    const check = spawn(process.execPath, ['tests/qinghe-browser.cjs'], {
+    const check = spawn(process.execPath, [process.env.TESTPB_CHECK_SCRIPT || 'tests/qinghe-browser.cjs'], {
       stdio: 'inherit',
       env: { ...process.env, TESTPB_CDP: endpoint }
     });
