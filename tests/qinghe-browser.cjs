@@ -75,7 +75,7 @@ const assert = require('node:assert/strict');
     await page.locator('[data-card="sweep"]').click();
     assert.equal(await page.locator('[data-card="sweep"]').count(), 1);
     assert.equal(await page.locator('.tile.sweep-range').count(), 8);
-    assert.equal(await page.locator('.area-target-mark').count(), 2);
+    assert.equal(await page.locator('.area-target-mark').count(), 1);
     assert.equal(await page.locator('.tile[data-x="2"][data-y="1"].sweep-range').count(), 0);
     assert.equal(await page.locator('.target-mark').count(), 0);
     assert.equal(await page.locator('[data-actor="0"].sweep-victim-preview').count(), 0);

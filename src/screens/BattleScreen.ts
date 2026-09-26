@@ -543,7 +543,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     };
     if (chosenId === 'sweep' && !busy) {
       areaMark(tiles.filter(({ point }) => !equal(point, room.hero) && room.canMove(selected, point)).map(({ point }) => point), Boolean(preview));
-      if (room.canMove(selected, room.hero)) areaMark([room.hero], Boolean(preview));
     }
     if (ultimateTargeting && journey.loadout === 'qinghe' && !busy) {
       for (const direction of [[0, 1], [1, 0], [0, -1], [-1, 0]] as Point[]) {
