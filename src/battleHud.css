@@ -42,7 +42,7 @@
 .battle-test-tools [data-test-action='hand']::before,
 .battle-test-tools [data-test-action='card']::before { background-image: url('../assets/cards/luxue/Throw.png'); }
 .battle-test-tools [data-test-action='health']::before { background-image: url('../assets/ui/health-heart-painted-v2.png'); }
-.battle-test-tools [data-test-action='energy']::before { background-image: url('../assets/ui/action-soulflame.png'); }
+.battle-test-tools [data-test-action='energy']::before { background-image: url('../assets/ui/action-soulflame-v2.png'); }
 .battle-test-tools [data-test-action='elite']::after,
 .battle-test-tools [data-test-action='hand']::after,
 .battle-test-tools [data-test-action='energy']::after,
@@ -125,7 +125,7 @@
   display: block;
   width: 49px;
   height: 53px;
-  background: url('../assets/ui/action-soulflame.png') center / contain no-repeat;
+  background: url('../assets/ui/action-soulflame-v2.png') center / contain no-repeat;
   filter: drop-shadow(0 0 6px #5fd9ff88);
 }
 .action-pip { position: relative; }

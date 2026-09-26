@@ -114,7 +114,7 @@
   transform: translateX(-50%);
 }
 .card-cost[data-cost="0"] { display: none; }
-.cost-flame { position: relative; display: block; width: 38px; height: 43px; flex: none; background: url('../assets/ui/action-soulflame.png') center / contain no-repeat; }
+.cost-flame { position: relative; display: block; width: 38px; height: 43px; flex: none; background: url('../assets/ui/action-soulflame-v2.png') center / contain no-repeat; }
 .cost-flame + .cost-flame { margin-left: -14px; }
 .card:disabled {
   opacity: 1;
@@ -172,7 +172,7 @@
   height: 70px;
   padding: 0;
   border: 0;
-  background: url('../assets/ui/hourglass.png') center / contain no-repeat;
+  background: url('../assets/ui/hourglass-v2.png') center / contain no-repeat;
   filter: drop-shadow(0 3px 4px #09130a99);
   transform: translateY(-50%);
 }
