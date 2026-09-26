@@ -444,7 +444,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   function renderTileInfo(preview: ReturnType<Room['preview']>) {
     const panel = elements.tileInfo;
-    if (ultimateTargeting) {
+    if (ultimateTargeting || selected >= 0) {
       panel.hidden = true;
       elements.hint.hidden = false;
       return;
@@ -498,6 +498,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   function render() {
     if (!room) return;
+    const chosenId = room.availableCards[selected];
+    const targeting = !busy && (selected >= 0 || ultimateTargeting);
+    const sweepPreview = !busy && chosenId === 'sweep' ? room.preview(selected, room.hero) : null;
     const preview =
       !busy && hoveredTile
         ? exploring()
@@ -509,11 +512,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const removedId = preview?.removedId ?? -1;
     const dawnDirection = hoveredTile ? room.dawnDirectionTo(hoveredTile) : null;
     const dawnPreview = ultimateTargeting && journey.loadout === 'qinghe' && dawnDirection ? room.dawnRay(dawnDirection) : [];
-    const removedIds = dawnPreview.length ? dawnPreview.filter(enemy => (enemy.health ?? 1) <= 2).map(enemy => enemy.id) : preview?.removedIds ?? [removedId];
+    const shadowVictim = !busy && ultimateTargeting && journey.loadout === 'rogue' && hoveredTile ? room.at(hoveredTile) : undefined;
+    const removedIds = dawnPreview.length ? dawnPreview.filter(enemy => (enemy.health ?? 1) <= 2).map(enemy => enemy.id) : shadowVictim && (shadowVictim.health ?? 1) <= 2 ? [shadowVictim.id] : sweepPreview?.removedIds ?? preview?.removedIds ?? [removedId];
     const focusedEnemy = room.enemies.find((e) => e.id === (hoveredEnemy >= 0 ? hoveredEnemy : inspectedEnemy));
-    const focus = !preview ? focusedEnemy : null;
+    const focus = !targeting && !busy ? focusedEnemy : null;
     const cleared = exploring();
-    const chosenId = room.availableCards[selected];
     const chosen = chosenId ? data.cards[chosenId] : undefined;
     renderTileInfo(preview);
     if (!busy) {
@@ -527,6 +530,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     $('room-exit').toggleAttribute('hidden', !cleared);
     elements.game.classList.toggle('exploring', cleared);
+    elements.game.classList.toggle('targeting', targeting);
     const threatMarks = document.createDocumentFragment();
     const targetMarks = document.createDocumentFragment();
     for (const { tile, point } of tiles) {
@@ -547,22 +551,17 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       tile.classList.toggle('ultimate-target', ultimateTargeting && journey.loadout === 'rogue' && Boolean(room.at(point)));
       tile.classList.toggle('dawn-range', dawnTarget);
       tile.classList.toggle('dawn-active', dawnTarget && Boolean(direction && dawnDirection && equal(direction, dawnDirection)));
+      const attackRange = legal && Boolean(room.at(point)) && !sweepTargeting || dawnTarget || Boolean(!busy && ultimateTargeting && journey.loadout === 'rogue' && room.at(point)) || legal && sweepTargeting && !equal(point, room.hero);
+      tile.classList.toggle('attack-range', attackRange);
+      tile.classList.toggle('attack-active', attackRange && Boolean(hoveredTile && (sweepTargeting ? preview : dawnTarget ? direction && dawnDirection && equal(direction, dawnDirection) : equal(point, hoveredTile))));
       tile.classList.toggle('blocked', legal && !sweepTargeting && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
-      tile.classList.toggle('landing', !sweepTargeting && Boolean(preview && equal(point, chosenId === 'throw' ? hoveredTile! : preview.destination)));
+      tile.classList.toggle('landing', !['sweep', 'throw', 'knife', 'thrust'].includes(chosenId) && Boolean(preview && equal(point, preview.destination)));
       tile.classList.toggle('focus-threat', threatened);
       if (threatened) {
         const mark = document.createElement('div');
         mark.className = 'threat-mark';
         place(mark, point);
         threatMarks.append(mark);
-      }
-      if (!sweepTargeting && room.at(point) && (legal || dawnPreview.some(enemy => equal(enemy.position, point)))) {
-        const mark = document.createElement('div');
-        mark.className = 'target-mark';
-        mark.classList.toggle('hovered', Boolean(hoveredTile && equal(hoveredTile, point)));
-        mark.classList.toggle('blocked', !dawnPreview.some(enemy => equal(enemy.position, point)) && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
-        place(mark, point);
-        targetMarks.append(mark);
       }
       tile.classList.toggle('exit-tile', cleared && equal(point, journey.exit));
       tile.disabled = busy || replacingUltimate || (room.finished && !cleared);
@@ -597,7 +596,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const sprite = actor(enemy.id);
       place(sprite, enemy.position);
       sprite.classList.toggle('victim-preview', chosenId !== 'sweep' && removedIds.includes(enemy.id));
-      sprite.classList.toggle('sweep-victim-preview', chosenId === 'sweep' && Boolean(preview) && removedIds.includes(enemy.id));
+      sprite.classList.toggle('sweep-victim-preview', chosenId === 'sweep' && Boolean(sweepPreview) && removedIds.includes(enemy.id));
       sprite.classList.toggle('hovered', enemy.id === hoveredEnemy && !busy);
       const skill = enemySkill(enemy);
       sprite.dataset.skill = skill.id;
@@ -619,8 +618,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.game.classList.toggle('choosing', selected >= 0 && !busy);
     elements.game.setAttribute('aria-busy', String(busy));
     syncHand();
-    elements.touchInfo.dataset.mode = inspectedTile ? 'tile' : 'hint';
-    if (touchLayout() && !inspectedTile)
+    elements.touchInfo.dataset.mode = inspectedTile && !targeting ? 'tile' : 'hint';
+    if (touchLayout() && (!inspectedTile || targeting))
       elements.touchInfo.replaceChildren(...Array.from(elements.hint.childNodes).map(node => node.cloneNode(true)));
   }
   function lock(preserveSelection = false) {
