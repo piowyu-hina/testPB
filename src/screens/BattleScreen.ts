@@ -529,10 +529,29 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.game.classList.toggle('exploring', cleared);
     const threatMarks = document.createDocumentFragment();
     const targetMarks = document.createDocumentFragment();
-    // Outline the union of affected cells, including the hole around the hero.
-    const sweepCells = new Set(chosenId === 'sweep' && !busy
-      ? tiles.filter(({ point }) => !equal(point, room.hero) && room.canMove(selected, point)).map(({ point }) => point.join(','))
-      : []);
+    const areaMark = (points: Point[], active: boolean) => {
+      if (!points.length) return;
+      const minX = Math.min(...points.map(p => p[0])), maxX = Math.max(...points.map(p => p[0]));
+      const minY = Math.min(...points.map(p => p[1])), maxY = Math.max(...points.map(p => p[1]));
+      const mark = document.createElement('div');
+      mark.className = 'area-target-mark';
+      mark.classList.toggle('hovered', active);
+      Object.assign(mark.style, { left: `${minX * 20}%`, top: `${(4 - maxY) * 20}%`, width: `${(maxX - minX + 1) * 20}%`, height: `${(maxY - minY + 1) * 20}%` });
+      mark.style.setProperty('--arm-x', `${30 / (maxX - minX + 1)}%`);
+      mark.style.setProperty('--arm-y', `${30 / (maxY - minY + 1)}%`);
+      targetMarks.append(mark);
+    };
+    if (chosenId === 'sweep' && !busy)
+      areaMark(tiles.filter(({ point }) => !equal(point, room.hero) && room.canMove(selected, point)).map(({ point }) => point), Boolean(preview));
+    if (ultimateTargeting && journey.loadout === 'qinghe' && !busy) {
+      for (const direction of [[0, 1], [1, 0], [0, -1], [-1, 0]] as Point[]) {
+        if (!room.dawnRay(direction).length) continue;
+        areaMark(tiles.filter(({ point }) => {
+          const ray = room.dawnDirectionTo(point);
+          return ray && equal(ray, direction);
+        }).map(({ point }) => point), Boolean(dawnDirection && equal(direction, dawnDirection)));
+      }
+    }
     for (const { tile, point } of tiles) {
       const damage = room.damageAt(point, removedIds),
         legal =
@@ -543,11 +562,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const sweepTargeting = chosenId === 'sweep';
       tile.classList.toggle('legal', legal && !sweepTargeting);
       tile.classList.toggle('sweep-range', legal && sweepTargeting && !equal(point, room.hero));
-      if (sweepCells.has(point.join(','))) {
-        const [x, y] = point;
-        const edge = (nx: number, ny: number) => sweepCells.has(`${nx},${ny}`) ? '0px' : '4px';
-        tile.style.setProperty('--sweep-edges', `${edge(x, y + 1)} ${edge(x + 1, y)} ${edge(x, y - 1)} ${edge(x - 1, y)}`);
-      } else tile.style.removeProperty('--sweep-edges');
       tile.classList.toggle('sweep-active', legal && sweepTargeting && !equal(point, room.hero) && Boolean(preview));
       tile.classList.toggle('inspectable', !busy && !room.finished && selected < 0 && Boolean(room.at(point)));
       tile.classList.toggle('capture', legal && !sweepTargeting && Boolean(room.at(point)));
@@ -565,11 +579,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         place(mark, point);
         threatMarks.append(mark);
       }
-      if (!sweepTargeting && room.at(point) && (legal || dawnPreview.some(enemy => equal(enemy.position, point)))) {
+      if (!sweepTargeting && !dawnTarget && room.at(point) && (legal || ultimateTargeting && journey.loadout === 'rogue')) {
         const mark = document.createElement('div');
         mark.className = 'target-mark';
         mark.classList.toggle('hovered', Boolean(hoveredTile && equal(hoveredTile, point)));
-        mark.classList.toggle('blocked', !dawnPreview.some(enemy => equal(enemy.position, point)) && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
+        mark.classList.toggle('blocked', !ultimateTargeting && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
         place(mark, point);
         targetMarks.append(mark);
       }

@@ -129,28 +129,29 @@
   z-index: 7;
   pointer-events: none;
 }
-.target-mark {
+.target-mark, .area-target-mark {
   --target-color: #d93f37;
   position: absolute;
   width: 20%;
   height: 20%;
   transform: translate(-50%, -50%);
   background:
-    linear-gradient(var(--target-color), var(--target-color)) left top / 30% 4px,
-    linear-gradient(var(--target-color), var(--target-color)) left top / 4px 30%,
-    linear-gradient(var(--target-color), var(--target-color)) right top / 30% 4px,
-    linear-gradient(var(--target-color), var(--target-color)) right top / 4px 30%,
-    linear-gradient(var(--target-color), var(--target-color)) left bottom / 30% 4px,
-    linear-gradient(var(--target-color), var(--target-color)) left bottom / 4px 30%,
-    linear-gradient(var(--target-color), var(--target-color)) right bottom / 30% 4px,
-    linear-gradient(var(--target-color), var(--target-color)) right bottom / 4px 30%;
+    linear-gradient(var(--target-color), var(--target-color)) left top / var(--arm-x, 30%) 4px,
+    linear-gradient(var(--target-color), var(--target-color)) left top / 4px var(--arm-y, 30%),
+    linear-gradient(var(--target-color), var(--target-color)) right top / var(--arm-x, 30%) 4px,
+    linear-gradient(var(--target-color), var(--target-color)) right top / 4px var(--arm-y, 30%),
+    linear-gradient(var(--target-color), var(--target-color)) left bottom / var(--arm-x, 30%) 4px,
+    linear-gradient(var(--target-color), var(--target-color)) left bottom / 4px var(--arm-y, 30%),
+    linear-gradient(var(--target-color), var(--target-color)) right bottom / var(--arm-x, 30%) 4px,
+    linear-gradient(var(--target-color), var(--target-color)) right bottom / 4px var(--arm-y, 30%);
   background-repeat: no-repeat;
   background-origin: content-box;
   padding: 6px;
   box-sizing: border-box;
   filter: drop-shadow(0 1px 2px #4f211b) drop-shadow(0 0 3px #db413977);
 }
-.target-mark.hovered { --target-color: #ed433b; filter: drop-shadow(0 1px 2px #4f211b) drop-shadow(0 0 5px #ed433baa); }
+.area-target-mark { transform: none; }
+.target-mark.hovered, .area-target-mark.hovered { --target-color: #ed433b; filter: drop-shadow(0 1px 2px #4f211b) drop-shadow(0 0 5px #ed433baa); }
 .target-mark.blocked { --target-color: #6b9fc2; }
 .tile.legal:after {
   --target-color: #196f58;
@@ -212,23 +213,15 @@
   z-index: 3;
   pointer-events: none;
 }
-.tile.ultimate-target:after {
-  content: '';
-  position: absolute;
-  inset: 4px;
-  z-index: 2;
-  border: 4px solid #e6bc4f;
-  border-radius: 2px;
-  box-shadow: inset 0 0 0 1px #fff1a8, 0 0 12px #edc35499;
-  pointer-events: none;
-}
+.tile.ultimate-target { box-shadow: inset 0 0 0 999px #b9655633; }
+.tile.ultimate-target:hover { box-shadow: inset 0 0 0 999px #b33a3a59; }
 .tile.ultimate-target { cursor: crosshair; }
 .tile.dawn-range { cursor: crosshair; }
-.tile.dawn-range:after { content: ''; position: absolute; inset: 0; z-index: 2; background: linear-gradient(90deg, #e9bc4833, #ffdf865c, #e9bc4833); border: 2px solid #e3b54b99; box-sizing: border-box; pointer-events: none; }
-.tile.dawn-active:after { background: #f6cf686b; border-color: #fff0ac; box-shadow: inset 0 0 20px #ffe08866; }
+.tile.dawn-range:after { content: ''; position: absolute; inset: 0; z-index: 2; background: #b9655633; pointer-events: none; }
+.tile.dawn-active:after { background: #b33a3a59; }
 .tile.sweep-range { cursor: crosshair; }
-.tile.sweep-range:after { content: ''; position: absolute; inset: 0; z-index: 2; background: #e5c77938; border-style: solid; border-width: var(--sweep-edges, 0px); border-color: #d9b867c0; box-sizing: border-box; pointer-events: none; }
-.tile.sweep-active:after { background: #ecd08950; border-color: #fff0ba; }
+.tile.sweep-range:after { content: ''; position: absolute; inset: 0; z-index: 2; background: #b9655633; pointer-events: none; }
+.tile.sweep-active:after { background: #b33a3a59; }
 .actor {
   position: absolute;
   width: 18%;
