@@ -508,10 +508,14 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         : null;
     const removedId = preview?.removedId ?? -1;
     const dawnDirection = hoveredTile ? room.dawnDirectionTo(hoveredTile) : null;
-    const dawnPreview = ultimateTargeting && journey.loadout === 'qinghe' && dawnDirection ? room.dawnRay(dawnDirection) : [];
-    const removedIds = dawnPreview.length ? dawnPreview.filter(enemy => (enemy.health ?? 1) <= 2).map(enemy => enemy.id) : preview?.removedIds ?? [removedId];
+    const dawnPreview = !busy && ultimateTargeting && journey.loadout === 'qinghe' && dawnDirection ? room.dawnRay(dawnDirection) : [];
+    const shadowTarget = !busy && ultimateTargeting && journey.loadout === 'rogue' && hoveredTile ? room.at(hoveredTile) : undefined;
+    const removedIds = dawnPreview.length ? dawnPreview.filter(enemy => (enemy.health ?? 1) <= 2).map(enemy => enemy.id)
+      : shadowTarget ? (shadowTarget.health ?? 1) <= 2 ? [shadowTarget.id] : []
+      : preview?.removedIds ?? [removedId];
     const focusedEnemy = room.enemies.find((e) => e.id === (hoveredEnemy >= 0 ? hoveredEnemy : inspectedEnemy));
-    const focus = !preview ? focusedEnemy : null;
+    // Every forecast layer follows the same predicted deaths, including ultimates.
+    const focus = !busy && focusedEnemy && !removedIds.includes(focusedEnemy.id) ? focusedEnemy : null;
     const cleared = exploring();
     const chosenId = room.availableCards[selected];
     const chosen = chosenId ? data.cards[chosenId] : undefined;

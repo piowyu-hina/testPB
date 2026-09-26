@@ -43,6 +43,8 @@ const assert = require('node:assert/strict');
     await page.locator('[data-card="absoluteShadow"]').click();
     assert.equal(await page.locator('.tile.ultimate-target').count(), 3);
     await tile(1, 3).hover();
+    assert.equal(await page.locator('.victim-preview').count(), 1);
+    assert.equal(await page.locator('.threat-mark').count(), 0);
     await shot('ultimate');
     console.log('Rogue target review passed');
   } finally { await browser.close(); }
