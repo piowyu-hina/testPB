@@ -44,12 +44,15 @@ test('sweep damages all eight adjacent tiles but not distant monsters, with matc
   result.hand = ['sweep'];
   result.enemies = [enemy(0, [2, 3]), enemy(1, [3, 2]), enemy(2, [1, 1]), enemy(3, [0, 0])];
   assert.equal(result.canMove(0, [2, 2]), true);
-  assert.equal(result.canMove(0, [1, 1]), false);
+  assert.equal(result.canMove(0, [1, 1]), true);
   assert.equal(result.canMove(0, [0, 0]), false);
   const preview = result.preview(0, [2, 2]);
   assert.deepEqual(preview.removedIds.sort(), [0, 1, 2]);
   assert.deepEqual(preview.destination, [2, 2]);
-  const action = result.move(0, [2, 2]);
+  for (const point of [[1, 1], [1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2], [3, 3]])
+    assert.deepEqual(result.preview(0, point), preview);
+  const action = result.move(0, [3, 3]);
+  assert.deepEqual(action.to, [2, 2]);
   assert.deepEqual(action.hits.filter(hit => hit.removed).map(hit => hit.id).sort(), [0, 1, 2]);
   assert.deepEqual(result.enemies.map(monster => monster.id), [3]);
   assert.deepEqual(result.hero, [2, 2]);

@@ -1,0 +1,49 @@
+const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
+
+(async () => {
+  const browser = process.env.TESTPB_CDP ? await chromium.connectOverCDP(process.env.TESTPB_CDP) : await chromium.launch({ channel: 'chrome', headless: true });
+  const page = process.env.TESTPB_CDP ? browser.contexts()[0].pages()[0] : await browser.newPage({ viewport: { width: 576, height: 1024 } });
+  const idle = () => page.waitForFunction(() => document.querySelector('#game')?.getAttribute('aria-busy') === 'false');
+  const shot = name => page.screenshot({ path: `test-results/rogue-target-${name}.png` });
+  const tile = (x, y) => page.locator(`.tile[data-x="${x}"][data-y="${y}"]`);
+  try {
+    await page.addInitScript(() => { Math.random = () => 10 / 4294967296; });
+    await page.goto('http://127.0.0.1:1420');
+    await page.locator('#open-characters').click();
+    await page.locator('[data-character="rogue"]').click();
+    await page.locator('#close-characters').click();
+    await page.locator('#open-dungeons').click();
+    await page.locator('#start-game').click();
+    await page.locator('.screen-curtain').waitFor({ state: 'hidden' });
+    await idle();
+    await page.locator('[data-test-action="guard"]').click();
+    await idle();
+    await page.locator('[data-card="lunge"]').first().click();
+    await tile(1, 1).hover();
+    await shot('lunge');
+    await page.locator('[data-card="throw"]').first().click();
+    await tile(2, 2).hover();
+    assert.equal(await page.locator('.target-mark').count(), 1);
+    await shot('throw');
+    await tile(2, 2).click();
+    await idle();
+    await page.locator('[data-card="shadow"]').first().click();
+    await tile(2, 2).hover();
+    assert.equal(await page.locator('.tile.legal').count(), 1);
+    await shot('shadow');
+    await tile(2, 2).click();
+    await idle();
+    await page.locator('[data-card="knife"]').first().hover();
+    await shot('knife');
+    await page.locator('[data-test-action="charge"]').click();
+    await page.locator('#actions').click();
+    await page.locator('#ultimate-reveal').waitFor({ state: 'visible' });
+    await idle();
+    await page.locator('[data-card="absoluteShadow"]').click();
+    assert.equal(await page.locator('.tile.ultimate-target').count(), 3);
+    await tile(1, 3).hover();
+    await shot('ultimate');
+    console.log('Rogue target review passed');
+  } finally { await browser.close(); }
+})().catch(error => { console.error(error); process.exitCode = 1; });

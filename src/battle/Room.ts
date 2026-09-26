@@ -162,7 +162,7 @@ export class Room {
     const card = data.cards[this.hand[index]] as CardDefinition | undefined;
     if (!card) return false;
     if (card.effect === 'sweep')
-      return equal(destination, this.hero) && this.enemies.some(enemy =>
+      return (equal(destination, this.hero) || card.offsets.some(offset => equal(destination, [this.hero[0] + offset[0], this.hero[1] + offset[1]]))) && this.enemies.some(enemy =>
         card.offsets.some(offset => equal(enemy.position, [this.hero[0] + offset[0], this.hero[1] + offset[1]]))
       );
     if (!this.matchesCard(index, destination)) return false;
@@ -251,7 +251,7 @@ export class Room {
       this.discard.push(this.hand.splice(index, 1)[0]);
       this.actions -= cost;
       if (this.won) this.knives = [];
-      return { from: this.hero.slice() as Point, to: destination.slice() as Point, kind: 'sweep', removedId: -1, hits };
+      return { from: this.hero.slice() as Point, to: this.hero.slice() as Point, kind: 'sweep', removedId: -1, hits };
     }
     const cost = this.cardCost(index);
     const action: MoveAction = {

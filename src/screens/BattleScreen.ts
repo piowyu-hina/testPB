@@ -536,16 +536,19 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         threatened = Boolean(focus && Room.threatens(focus, point));
       tile.classList.toggle('danger', damage > 0);
       tile.dataset.danger = String(Math.min(damage, 3));
-      tile.classList.toggle('legal', legal);
+      const sweepTargeting = chosenId === 'sweep';
+      tile.classList.toggle('legal', legal && !sweepTargeting);
+      tile.classList.toggle('sweep-range', legal && sweepTargeting && !equal(point, room.hero));
+      tile.classList.toggle('sweep-active', legal && sweepTargeting && !equal(point, room.hero) && Boolean(preview));
       tile.classList.toggle('inspectable', !busy && !room.finished && selected < 0 && Boolean(room.at(point)));
-      tile.classList.toggle('capture', legal && Boolean(room.at(point)));
+      tile.classList.toggle('capture', legal && !sweepTargeting && Boolean(room.at(point)));
       const direction = room.dawnDirectionTo(point);
       const dawnTarget = Boolean(ultimateTargeting && journey.loadout === 'qinghe' && direction && room.dawnRay(direction).length);
       tile.classList.toggle('ultimate-target', ultimateTargeting && journey.loadout === 'rogue' && Boolean(room.at(point)));
       tile.classList.toggle('dawn-range', dawnTarget);
       tile.classList.toggle('dawn-active', dawnTarget && Boolean(direction && dawnDirection && equal(direction, dawnDirection)));
-      tile.classList.toggle('blocked', legal && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
-      tile.classList.toggle('landing', Boolean(preview && equal(point, chosenId === 'throw' ? hoveredTile! : preview.destination)));
+      tile.classList.toggle('blocked', legal && !sweepTargeting && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
+      tile.classList.toggle('landing', !sweepTargeting && Boolean(preview && equal(point, chosenId === 'throw' ? hoveredTile! : preview.destination)));
       tile.classList.toggle('focus-threat', threatened);
       if (threatened) {
         const mark = document.createElement('div');
@@ -553,7 +556,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         place(mark, point);
         threatMarks.append(mark);
       }
-      if (room.at(point) && (legal || dawnPreview.some(enemy => equal(enemy.position, point)))) {
+      if (!sweepTargeting && room.at(point) && (legal || dawnPreview.some(enemy => equal(enemy.position, point)))) {
         const mark = document.createElement('div');
         mark.className = 'target-mark';
         mark.classList.toggle('hovered', Boolean(hoveredTile && equal(hoveredTile, point)));
@@ -566,7 +569,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const enemy = room.at(point);
       tile.setAttribute(
         'aria-label',
-        `${point[0] + 1},${point[1] + 1}${enemy ? ` ${enemySummary(enemy)}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? chosenId === 'sweep' ? '，點擊自己施放橫掃' : ['throw', 'knife', 'thrust'].includes(chosenId) ? '，可攻擊' : '，可移動' : ''}`
+        `${point[0] + 1},${point[1] + 1}${enemy ? ` ${enemySummary(enemy)}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? chosenId === 'sweep' ? '，施放周圍一圈橫掃' : ['throw', 'knife', 'thrust'].includes(chosenId) ? '，可攻擊' : '，可移動' : ''}`
       );
       if (dawnTarget && direction)
         tile.setAttribute('aria-label', `${point[0] + 1},${point[1] + 1}，施放破曉一槍，直線命中 ${room.dawnRay(direction).length} 隻怪物`);
@@ -642,7 +645,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.game.classList.remove('choosing');
     for (const { tile } of tiles) {
       tile.disabled = true;
-      tile.classList.remove('legal', 'landing', 'focus-threat', 'capture', 'blocked', 'ultimate-target', 'dawn-range', 'dawn-active');
+      tile.classList.remove('legal', 'landing', 'focus-threat', 'capture', 'blocked', 'ultimate-target', 'dawn-range', 'dawn-active', 'sweep-range', 'sweep-active');
     }
     for (const card of root.querySelectorAll<HTMLButtonElement>('.card')) {
       card.disabled = true;
@@ -1068,7 +1071,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   function renderBattleRules() {
     const characterRules = journey.loadout === 'qinghe' ? [
-      '突進：走向周圍一格。槍刺：原地刺向上下左右一至二格的第一隻怪物。橫掃：點自己，攻擊周圍八格。',
+      '突進：走向周圍一格。槍刺：原地刺向上下左右一至二格的第一隻怪物。橫掃：點亮起的範圍，原地攻擊周圍八格。',
       '每打出一張普通牌，大招累積一點；集滿四點後點圖案領卡。破曉一槍點金色直線施放，整條線上的怪物各受兩點無視格擋傷害。'
     ] : journey.loadout === 'rogue' ? [
       '飛刀：原地投擲，刀留在地上。追影：瞬移到小刀格。突進：走向周圍一格。怪物站在刀上時攻擊傷害增加一點。',
