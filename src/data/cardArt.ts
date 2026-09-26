@@ -4,7 +4,7 @@ import knifeImage from '../../assets/cards/luxue/Knife.png';
 import forwardImage from '../../assets/cards/luxue/Forward.png';
 import lungeImage from '../../assets/cards/luxue/Lunge.png';
 import absoluteShadowImage from '../../assets/cards/luxue/AbsoluteShadow.png';
-import sweepImage from '../../assets/cards/qinghe/Sweep-v2.png';
+import sweepImage from '../../assets/cards/qinghe/Sweep-v3.png';
 import thrustImage from '../../assets/cards/qinghe/Thrust-v2.png';
 import advanceImage from '../../assets/cards/qinghe/Advance-v2.png';
 import dawnSpearImage from '../../assets/cards/qinghe/DawnSpear-v2.png';
