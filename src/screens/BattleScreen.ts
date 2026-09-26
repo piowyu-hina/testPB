@@ -1,7 +1,7 @@
-import { Room, data, equal, HAND_LIMIT } from '../battle/Room';
+import { Room, data, equal, HAND_LIMIT, type MoveAction, type UltimateAction } from '../battle/Room';
 import type { Journey } from '../battle/Journey';
 import { characters, enemyArt } from '../data/art';
-import type { Point, CardDefinition } from '../types/game';
+import type { Point, CardDefinition, MovePreview } from '../types/game';
 import type { CardId } from '../data/cards';
 import qingheChargeArt from '../../assets/characters/qinghe/UltimateCharge.png';
 import rogueChargeArt from '../../assets/ui/ultimate-charge.png';
@@ -17,6 +17,9 @@ import { approach, contactPoint, shield, impact, recoil, heartBurst } from '../u
 import { enemySkill, blocksAttack } from '../battle/EnemyRules';
 import { enemySummary } from '../ui/enemyInfo';
 import { playSound, setSoundEnabled, soundEnabled } from '../ui/sound';
+import { mountDeckViewer } from '../ui/deckViewer';
+import { engravingInfo } from '../battle/Growth';
+import { loadouts } from '../data/cards';
 import '../enemy.css';
 import '../battleBoard.css';
 import '../battleHud.css';
@@ -73,6 +76,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     dismissDetailsClick = false,
     overflowTimer = 0;
   const touchLayout = () => matchMedia('(hover: none) and (pointer: coarse)').matches;
+  const deckViewer = mountDeckViewer(root, elements.game, () => room);
+  onClick($('open-deck'), () => { if (!busy && !dealingHand) deckViewer.open(); });
   const soundToggle = $<HTMLButtonElement>('battle-sound-toggle');
   function renderSoundToggle() {
     const enabled = soundEnabled();
@@ -110,6 +115,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     name.textContent = card.name;
     const description = document.createElement('span');
     description.textContent = card.hint ?? '';
+    const id = (Object.keys(data.cards) as CardId[]).find(id => data.cards[id] === card);
+    const engraving = id && room?.build.engravings[id];
+    if (engraving) {
+      name.textContent += ` · ${engravingInfo[engraving].name}`;
+      description.textContent += ` ${room.growthReady(id!) ? engravingInfo[engraving].description : '刻印本回合已觸發。'}`;
+    }
     if (reason) {
       const warning = document.createElement('em');
       warning.className = 'hint-warning';
@@ -378,6 +389,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const reason = card.dataset.card === 'shadow' ? shadowRequirement(index) : '';
       const shadowUnavailable = Boolean(reason);
       const cost = card.dataset.card === 'forward' ? 0 : room.cardCost(index);
+      const costNode = card.querySelector<HTMLElement>('.card-cost')!;
+      if (costNode.dataset.cost !== String(cost)) {
+        costNode.dataset.cost = String(cost);
+        costNode.innerHTML = Array.from({ length: cost }, (_, i) => `<span class="cost-flame" style="z-index:${cost - i}"></span>`).join('');
+      }
+      card.classList.toggle('engraved', Boolean(room.build.engravings[room.availableCards[index]]));
       card.classList.toggle('shadow-unavailable', shadowUnavailable);
       card.classList.toggle('energy-unavailable', !isUltimate && !exploring() && room.actions < cost);
       card.setAttribute('aria-label', reason ? `追影，${reason}` : `${data.cards[room.availableCards[index]].name}，消耗 ${cost} 行動`);
@@ -497,7 +514,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   function render() {
     if (!room) return;
-    const preview =
+    const preview: MovePreview | null =
       !busy && hoveredTile
         ? exploring()
           ? room.canExplore(selected, hoveredTile)
@@ -514,10 +531,30 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       : preview?.removedIds ?? [removedId];
     const focusedEnemy = room.enemies.find((e) => e.id === (hoveredEnemy >= 0 ? hoveredEnemy : inspectedEnemy));
     // Every forecast layer follows the same predicted deaths, including ultimates.
-    const focus = !busy && focusedEnemy && !removedIds.includes(focusedEnemy.id) ? focusedEnemy : null;
+    const focus = !busy && focusedEnemy && !removedIds.includes(focusedEnemy.id)
+      ? preview?.pushed?.id === focusedEnemy.id ? { ...focusedEnemy, position: preview.pushed.to } : focusedEnemy : null;
     const cleared = exploring();
     const chosenId = room.availableCards[selected];
     const chosen = chosenId ? data.cards[chosenId] : undefined;
+    const hits = dawnPreview.length ? dawnPreview : shadowTarget ? [shadowTarget]
+      : preview && chosenId === 'sweep' ? room.enemies.filter(enemy => data.cards.sweep.offsets.some(([x, y]) => equal(enemy.position, [room.hero[0] + x, room.hero[1] + y])))
+      : preview?.hitId !== undefined ? room.enemies.filter(enemy => enemy.id === preview.hitId) : [];
+    const outcome = $('target-outcome');
+    outcome.hidden = !hits.length;
+    outcome.replaceChildren(...hits.map(enemy => {
+      const row = document.createElement('span'); row.className = 'target-health';
+      const image = document.createElement('img'); image.src = enemyArt[enemy.kind]; image.alt = data.enemies[enemy.kind].name;
+      const life = document.createElement('span'); life.className = 'enemy-life';
+      const blocked = !ultimateTargeting && blocksAttack(enemy, room.hero);
+      const remaining = Math.max(0, (enemy.health ?? 1) - (blocked ? 0 : ultimateTargeting ? 2 : 1));
+      const current = enemy.health ?? 1, maximum = enemy.maxHealth ?? current;
+      life.innerHTML = healthSegment.repeat(maximum);
+      [...life.children].forEach((node, index) => { node.classList.toggle('empty', index >= current); node.classList.toggle('forecast', index >= remaining && index < current); });
+      row.setAttribute('aria-label', `${data.enemies[enemy.kind].name}，生命 ${current} → ${remaining}${blocked ? '，格擋' : preview?.pushBlocked ? '，無法推動' : ''}`);
+      row.append(image, life);
+      if (blocked) { const shieldMark = document.createElement('span'); shieldMark.className = 'forecast-shield'; shieldMark.innerHTML = '<svg viewBox="0 0 64 64"><path d="M32 5 53 14v17c0 14-21 26-21 26S11 45 11 31V14Z"/></svg>'; row.append(shieldMark); }
+      return row;
+    }));
     renderTileInfo(preview);
     if (!busy) {
       if (ultimateTargeting) showCardHint(data.cards[journey.loadout === 'qinghe' ? 'dawnSpear' : 'absoluteShadow']);
@@ -557,7 +594,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       }
     }
     for (const { tile, point } of tiles) {
-      const damage = room.damageAt(point, removedIds),
+      const damage = room.damageAt(point, removedIds, chosenId === 'throw' && preview ? hoveredTile! : undefined, preview?.pushed),
         legal =
           !busy && (cleared ? room.canExplore(selected, point) : room.canMove(selected, point)),
         threatened = Boolean(focus && Room.threatens(focus, point));
@@ -575,7 +612,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       tile.classList.toggle('dawn-range', dawnTarget);
       tile.classList.toggle('dawn-active', dawnTarget && Boolean(direction && dawnDirection && equal(direction, dawnDirection)));
       tile.classList.toggle('blocked', legal && !sweepTargeting && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
-      tile.classList.toggle('landing', !sweepTargeting && Boolean(preview && equal(point, chosenId === 'throw' ? hoveredTile! : preview.destination)));
+      tile.classList.toggle('landing', !sweepTargeting && Boolean(preview && equal(point, ['throw', 'knife', 'thrust', 'repel', 'recall'].includes(chosenId) ? hoveredTile! : preview.destination)));
       tile.classList.toggle('focus-threat', threatened);
       if (threatened) {
         const mark = document.createElement('div');
@@ -596,7 +633,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const enemy = room.at(point);
       tile.setAttribute(
         'aria-label',
-        `${point[0] + 1},${point[1] + 1}${enemy ? ` ${enemySummary(enemy)}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? chosenId === 'sweep' ? '，施放周圍一圈橫掃' : ['throw', 'knife', 'thrust'].includes(chosenId) ? '，可攻擊' : '，可移動' : ''}`
+        `${point[0] + 1},${point[1] + 1}${enemy ? ` ${enemySummary(enemy)}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? chosenId === 'sweep' ? '，施放周圍一圈橫掃' : chosenId === 'recall' ? '，回收飛刀' : ['throw', 'knife', 'thrust', 'repel'].includes(chosenId) ? '，可攻擊' : '，可移動' : ''}`
       );
       if (dawnTarget && direction)
         tile.setAttribute('aria-label', `${point[0] + 1},${point[1] + 1}，施放破曉一槍，直線命中 ${room.dawnRay(direction).length} 隻怪物`);
@@ -630,19 +667,27 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       sprite.dataset.skill = skill.id;
       sprite.dataset.facing = enemy.facing ?? 'south';
       sprite.classList.toggle('guarding', Boolean(skill.guardsFront));
+      sprite.classList.toggle('block-preview', hits.some(hit => hit.id === enemy.id) && !ultimateTargeting && blocksAttack(enemy, room.hero));
+      sprite.classList.toggle('push-origin', preview?.pushed?.id === enemy.id);
+      sprite.classList.toggle('push-resistant', preview?.hitId === enemy.id && Boolean(preview.pushBlocked) && !preview.blocked);
     }
     place(actor('hero'), room.hero);
-    const stationaryPreview = chosenId === 'throw' || chosenId === 'knife' || chosenId === 'thrust' || chosenId === 'sweep';
-    actor('hero').classList.toggle('origin-preview', Boolean(preview && !stationaryPreview));
-    elements.ghost.hidden = !preview || stationaryPreview;
-    if (preview) place(elements.ghost, preview.destination);
-    renderHealth(room.finished || busy ? 0 : dawnPreview.length ? room.damageAt(room.hero, removedIds) : preview ? preview.damage : room.damageAt(room.hero));
+    const landing = shadowTarget && removedIds.includes(shadowTarget.id) ? shadowTarget.position : preview?.destination;
+    const changesPosition = Boolean(landing && !equal(landing, room.hero));
+    actor('hero').classList.toggle('origin-preview', changesPosition);
+    elements.ghost.hidden = !changesPosition;
+    if (landing) place(elements.ghost, landing);
+    const pushed = preview?.pushed;
+    $('push-ghost').hidden = !pushed;
+    if (pushed) { $('push-ghost').querySelector<HTMLImageElement>('img')!.src = enemyArt[room.enemies.find(e => e.id === pushed.id)!.kind]; place($('push-ghost'), pushed.to); }
+    renderHealth(room.finished || busy ? 0 : ultimateTargeting ? room.damageAt(landing ?? room.hero, removedIds) : preview ? preview.damage : room.damageAt(room.hero));
     renderEnergy();
     renderJourneyProgress();
     elements.game.dataset.turn = String(room.turn);
     elements.end.disabled = busy || (room.finished && !cleared);
     $<HTMLButtonElement>('back-home').disabled = busy;
     $<HTMLButtonElement>('open-battle-help').disabled = busy;
+    $<HTMLButtonElement>('open-deck').disabled = busy || dealingHand;
     elements.game.classList.toggle('choosing', selected >= 0 && !busy);
     elements.game.setAttribute('aria-busy', String(busy));
     syncHand();
@@ -660,16 +705,19 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     inspectedEnemy = -1;
     elements.hint.textContent = '';
     elements.ghost.hidden = true;
+    $('push-ghost').hidden = true;
+    $('target-outcome').hidden = true;
     elements.threatMarks.replaceChildren();
     elements.targetMarks.replaceChildren();
     elements.tileInfo.hidden = true;
     inspectedTile = null;
     closeCardDetails();
     for (const actor of actors.values())
-      actor.classList.remove('origin-preview', 'victim-preview', 'sweep-victim-preview', 'hovered');
+      actor.classList.remove('origin-preview', 'victim-preview', 'sweep-victim-preview', 'hovered', 'block-preview', 'push-origin', 'push-resistant');
     elements.end.disabled = true;
     $<HTMLButtonElement>('back-home').disabled = true;
     $<HTMLButtonElement>('open-battle-help').disabled = true;
+    $<HTMLButtonElement>('open-deck').disabled = true;
     elements.game.classList.remove('choosing');
     for (const { tile } of tiles) {
       tile.disabled = true;
@@ -711,6 +759,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     renderedHand = [];
   }
   async function revealClearedRoom() {
+    journey.claimClearReward();
     const exitPosition = room.hero.slice() as Point;
     const pushedTo = journey.clearOccupiedExit();
     if (pushedTo) await travel(actor('hero'), exitPosition, pushedTo, 0);
@@ -729,7 +778,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const blocked = room.preview(selected, destination)?.blocked ?? false;
     const action = room.move(selected, destination);
     if (!action) return;
-    if (journey.loadout === 'qinghe' && ['advance', 'thrust', 'sweep'].includes(action.kind)) journey.gainDawnCharge();
+    // Remove the played copy so drawing the same kind still gets a deal animation.
+    elements.hand.children[selected]?.remove();
+    renderedHand.splice(selected, 1);
+    handSignature = '';
+    if (journey.loadout === 'qinghe' && ['advance', 'thrust', 'sweep', 'sidestep', 'repel'].includes(action.kind)) journey.gainDawnCharge();
     lock();
     renderEnergy(paidEnergy);
     if (action.hits) {
@@ -737,6 +790,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       playSound(action.hits.some(hit => hit.removed) ? 'kill' : 'hit');
       await Promise.all(action.hits.map(async hit => {
         if (hit.blocked) {
+          playSound('block');
           await shield(actor(hit.id));
           return;
         }
@@ -754,6 +808,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         journey.gainAssassination(hit.elite);
       }
       renderEnergy();
+      await rewardFeedback(action);
       if (room.won && !journey.finished) {
         await revealClearedRoom();
         return;
@@ -767,7 +822,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       $('ground-knives').querySelector(`[data-point="${action.to.join(',')}"]`)?.remove();
     // Keep the visible board stable until the movement and impact complete.
     const thrown = action.kind === 'throw';
-    const stationary = thrown || action.kind === 'knife' || action.kind === 'thrust';
+    const stationary = ['throw', 'knife', 'thrust', 'repel', 'recall'].includes(action.kind);
     if (!stationary)
       playSound(action.kind === 'shadow' ? 'blink' : ['rush', 'leap', 'lunge'].includes(action.kind) ? 'dash' : 'step');
     const resisted = !stationary && action.hitId !== undefined && action.removedId < 0;
@@ -777,21 +832,21 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         : await approach(actor('hero'), action.from, action.to, action.kind === 'leap')
       : action.to;
     if (resisted && action.kind === 'shadow') await teleport(actor('hero'), contact);
-    if (thrown) {
+    if (thrown || action.kind === 'recall') {
       playSound('throw');
       const projectile = document.createElement('div');
       projectile.className = 'knife-projectile';
       projectile.innerHTML = daggerIcon;
       elements.board.append(projectile);
-      try { await travel(projectile, action.from, action.to, 0); }
+      try { await travel(projectile, action.kind === 'recall' ? action.to : action.from, action.kind === 'recall' ? action.from : action.to, 0); }
       finally { projectile.remove(); }
     } else if (!resisted && !stationary) {
       if (action.kind === 'shadow') await teleport(actor('hero'), action.to);
       else await travel(actor('hero'), action.from, action.to, action.kind === 'leap' ? 30 : 9);
     }
     if (action.hitId !== undefined) {
-      elements.hint.textContent = blocked ? '正面格擋 · 這次攻擊沒有造成傷害' : action.removedId >= 0 ? '' : '命中 · 怪物生命 −1';
-      if (blocked) await shield(actor(action.hitId!));
+      elements.hint.textContent = '';
+      if (blocked) { playSound('block'); await shield(actor(action.hitId!)); }
       else {
         playSound(action.removedId >= 0 ? 'kill' : 'hit');
         await Promise.all([
@@ -801,6 +856,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         ]);
       }
     }
+    if (action.pushed) await travel(actor(action.pushed.id), action.pushed.from, action.pushed.to, 0);
     if (action.hitId !== undefined && action.removedId < 0) {
       if (!stationary) {
         if (action.kind === 'shadow') await teleport(actor('hero'), action.from);
@@ -824,6 +880,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       journey.gainAssassination(targetWasElite);
       renderEnergy();
     }
+    await rewardFeedback(action);
     if (room.won && !journey.finished) {
       await revealClearedRoom();
       return;
@@ -836,11 +893,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     busy = false;
     render();
-    if (action.pickedKnife) {
-      lockWhileCardsEnter(1 + Number(Boolean(action.drawn)));
-      elements.hint.textContent = `撿回小刀 · 行動 +1${action.drawn ? ` · 抽到${data.cards[action.drawn].name}` : ''}`;
-      if (action.overflowed) showOverflowFeedback(action.overflowed);
-    }
   }
   async function useUltimate(enemyId: number) {
     if (busy || exploring() || !ultimateTargeting || journey.loadout !== 'rogue' || journey.assassination < 3) return;
@@ -877,6 +929,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       { opacity: 1, scale: 1 }
     ], 150, 'ease-out');
     hero.style.opacity = '';
+    await rewardFeedback(action);
     if (room.won && !journey.finished) {
       await revealClearedRoom();
       return;
@@ -889,10 +942,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     busy = false;
     render();
-    if (action.pickedKnife) {
-      lockWhileCardsEnter(1 + Number(Boolean(action.drawn)));
-      if (action.overflowed) showOverflowFeedback(action.overflowed);
-    }
   }
   async function walk(destination: Point) {
     if (busy || !exploring()) return;
@@ -1024,6 +1073,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     lockWhileCardsEnter(1);
   }
   function showResult() {
+    journey.claimClearReward();
     if (exploring()) return;
     elements.resultTitle.textContent = room.lost ? '再試一次' : '旅途完成！';
     $('replay').textContent = '再來一局';
@@ -1091,10 +1141,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   const help = $<HTMLDialogElement>('battle-help');
   function renderBattleRules() {
     const characterRules = journey.loadout === 'qinghe' ? [
-      '突進：走向周圍一格。槍刺：原地刺向上下左右一至二格的第一隻怪物。橫掃：點亮起的範圍，原地攻擊周圍八格。',
+      '突進：走向周圍一格。槍刺：原地刺向上下左右一至二格的第一隻怪物。橫掃：點亮起的範圍，原地攻擊周圍八格。側步：免費換到鄰近空地。槍柄推擊：近身攻擊並推開存活怪物，菁英、扎根與後方受阻不能推動。',
       '每打出一張普通牌，大招累積一點；集滿四點後點圖案播放演出，再選方向施放；再點圖案可取消且保留充能。破曉一槍點金色直線施放，整條線上的怪物各受兩點無視格擋傷害。'
     ] : journey.loadout === 'rogue' ? [
-      '飛刀：原地投擲，刀留在地上。追影：瞬移到小刀格。突進：走向周圍一格。怪物站在刀上時攻擊傷害增加一點。',
+      '飛刀：原地投擲，刀留在地上。追影：瞬移到小刀格。突進：走向周圍一格。收刃：免費原地回收任意空地飛刀，不能拿走怪物腳下的刀。怪物站在刀上時攻擊傷害增加一點。',
       '撿刀會補一點行動、抽一張普通牌，並獲得本回合限定的免費小刀卡。普通擊殺充能一點，菁英兩點；集滿三點後點圖案播放演出，再選怪物施放；再點圖案可取消且保留充能。'
     ] : ['選牌後查看亮起的落點；躍步能越過怪物，其餘移動會受到路上怪物阻擋。'];
     const lines = [
@@ -1102,7 +1152,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       ...characterRules,
       '每回合有兩點行動。結束回合後，怪物先攻擊再移動；滑過怪物可查看它的攻擊範圍。',
       '起手先洗牌再抽三張。手牌上限五張，滿手抽到的牌會爆掉並進棄牌堆。大招直接施放，不佔手牌；若技能產生卡牌，超過五張的部分同樣爆掉。',
-      '清場後用前進卡走到上方出口，不耗行動。進下一間恢復一點生命。'
+      '清場後用前進卡走到上方出口，不耗行動。進下一間恢復一點生命。',
+      '村莊工坊強化同名卡與角色遺物，不增加普通牌種類；清場獲得旅途金幣。上方牌組圖示可查看各牌堆與已裝刻印。'
     ];
     $('battle-rule-list').replaceChildren(...lines.map(text => {
       const item = document.createElement('li');
@@ -1171,6 +1222,13 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       elements.overflowFeedback.classList.remove('active');
     }, 900);
   }
+  async function rewardFeedback(action: MoveAction | UltimateAction) {
+    const count = (action.drawnCards?.length ?? Number(Boolean(action.drawn))) + Number(Boolean(action.pickedKnife));
+    if (count && !room.finished) { render(); await pause(360 + Math.max(0, count - 1) * 70); }
+    for (const card of action.overflowedCards ?? (action.overflowed ? [action.overflowed] : [])) {
+      showOverflowFeedback(card); await pause(900);
+    }
+  }
   if (import.meta.env.DEV) {
     const tools = $('battle-test-tools');
     tools.hidden = false;
@@ -1178,7 +1236,23 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       onClick(button, () => {
         if (busy) return;
         const action = button.dataset.testAction;
-        if (action === 'opening' || action === 'guard' || action === 'elite') {
+        if (action === 'cycle') {
+          room = new Room(1, journey.definition, 5, journey.loadout, journey.build);
+          journey.room = room;
+          room.hero = [2, 1]; room.health = 5; room.actions = 5;
+          room.enemies = [
+            { id: 0, kind: 'sprout', position: [2, 2], health: 3, maxHealth: 3 },
+            { id: 1, kind: 'stump', position: [3, 2], health: 2, maxHealth: 2, facing: 'south' },
+            { id: 2, kind: 'stump', position: [1, 2], health: 2, maxHealth: 2, facing: 'south', skillIndex: 1 },
+            { id: 3, kind: 'stump', position: [4, 4], health: 3, maxHealth: 3, facing: 'south', elite: true }
+          ];
+          room.hand = [...loadouts[room.loadout]];
+          if (room.loadout === 'rogue') room.hand.push('knife');
+          room.deck = loadouts[room.loadout].flatMap(id => Array<CardId>(data.cards[id].copies - 1).fill(id));
+          room.shuffle(room.deck); room.discard = [];
+          room.knives = room.loadout === 'rogue' ? [[0, 1], [2, 2]] : [];
+          loadRoom();
+        } else if (action === 'opening' || action === 'guard' || action === 'elite') {
           journey = session.startNewJourney();
           const stage = action === 'opening' ? 0 : action === 'guard' ? 1 : 2;
           for (let index = 0; index < stage; index++) {
@@ -1195,22 +1269,14 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           }
           render();
         } else if (action === 'hand' && !room.finished) {
-          while (room.hand.length < HAND_LIMIT) {
-            const card = room.deck.pop() ?? room.discard.pop();
-            if (!card) break;
-            room.hand.push(card);
-          }
+          const result = room.drawCards(Math.max(0, HAND_LIMIT - room.hand.length));
           render();
+          if (result.drawn.length) lockWhileCardsEnter(result.drawn.length);
         } else if (action === 'card' && !room.finished) {
-          if (room.hand.length >= HAND_LIMIT) {
-            const overflowed = room.drawOverflow();
-            elements.hint.textContent = overflowed ? '' : '牌堆已空';
-            if (overflowed) showOverflowFeedback(overflowed);
-            return;
-          }
-          const card = room.deck.pop() ?? room.discard.pop();
-          if (card) room.hand.push(card);
+          const result = room.drawCards(1);
           render();
+          if (result.overflowed[0]) showOverflowFeedback(result.overflowed[0]);
+          if (result.drawn.length) lockWhileCardsEnter(1);
         } else if (action === 'energy' && !room.finished) {
           room.actions = Math.min(5, room.actions + 1);
           render();
@@ -1268,6 +1334,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     reset();
   });
   function leave() {
+    deckViewer.close();
     help.close();
     inspectedEnemy = -1;
     inspectedTile = null;

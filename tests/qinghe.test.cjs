@@ -16,8 +16,8 @@ test('Qinghe starts with three cards drawn from a shuffled full deck and no rogu
   const result = new Room(1, undefined, 5, 'qinghe');
   assert.equal(result.hand.length, 3);
   assert.equal(result.deck.length, 15);
-  for (const id of ['advance', 'thrust', 'sweep'])
-    assert.equal([...result.hand, ...result.deck].filter(card => card === id).length, 6);
+  for (const [id, copies] of Object.entries({ advance: 3, thrust: 5, sweep: 4, sidestep: 4, repel: 2 }))
+    assert.equal([...result.hand, ...result.deck].filter(card => card === id).length, copies);
   assert.notDeepEqual(result.hand, ['advance', 'thrust', 'sweep']);
   assert.deepEqual(new Room(1, undefined, 5, 'qinghe').hand, result.hand);
   assert.notDeepEqual(new Room(2, undefined, 5, 'qinghe').hand, result.hand);

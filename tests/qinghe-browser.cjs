@@ -11,7 +11,7 @@ const assert = require('node:assert/strict');
   const errors = [];
   page.on('pageerror', error => errors.push(error.stack));
   try {
-    await page.addInitScript(() => { Math.random = () => 1 / 4294967296; });
+    await page.addInitScript(() => { Math.random = () => 7 / 4294967296; });
     await page.goto('http://127.0.0.1:1420');
     await page.locator('#home-portrait').waitFor();
     assert.match(await page.locator('#home-portrait').getAttribute('src'), /qinghe/);
@@ -31,7 +31,7 @@ const assert = require('node:assert/strict');
     await page.waitForFunction(() => [...document.images].filter(image => image.getAttribute('src')).every(image => image.complete && image.naturalWidth > 0));
     const openingHand = await page.locator('.card').evaluateAll(cards => cards.map(card => card.dataset.card));
     assert.equal(openingHand.length, 3);
-    assert.ok(openingHand.every(id => ['advance', 'thrust', 'sweep'].includes(id)));
+    assert.ok(openingHand.every(id => ['advance', 'thrust', 'sweep', 'sidestep', 'repel'].includes(id)));
     assert.match(await page.locator('#actions').getAttribute('aria-label'), /破曉一槍/);
     await page.screenshot({ path: 'test-results/qinghe-opening.png' });
     await page.locator('[data-test-action="charge"]').click();

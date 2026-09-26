@@ -270,3 +270,7 @@
   to { opacity: 1; }
 }
 .board-shell { padding: 12px; }
+.actor.block-preview .guard-shield { opacity: 1; filter: brightness(1.4) drop-shadow(0 0 5px #c7edff); }
+.actor.push-origin { opacity: .55; }
+.actor.push-ghost { pointer-events: none; z-index: 25; opacity: .6; filter: drop-shadow(0 0 7px #efc575); }
+.actor.push-resistant::after { content: ''; position: absolute; left: 27%; right: 27%; bottom: 13%; border-bottom: 6px solid #e3cba1; border-left: 5px solid #e3cba1; border-right: 5px solid #e3cba1; height: 14px; filter: drop-shadow(0 2px 2px #132116); }

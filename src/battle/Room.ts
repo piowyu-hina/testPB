@@ -4,6 +4,7 @@ import { enemies } from '../data/enemies.ts';
 import { forestRuins } from '../data/dungeons/forest.ts';
 import type { Point, Enemy, MovePreview, EnemyMotion, TurnOutcome, CardDefinition, RoomDefinition } from '../types/game.ts';
 import { attackOffsets, blocksAttack, enemySkill, faceToward } from './EnemyRules.ts';
+import { freshBuild, type Build } from './Growth.ts';
 export const data = { cards, enemies };
 export const HAND_LIMIT = 5;
 export interface MoveAction {
@@ -12,6 +13,9 @@ export interface MoveAction {
   pickedKnife?: boolean;
   drawn?: CardId;
   overflowed?: CardId;
+  drawnCards?: CardId[];
+  overflowedCards?: CardId[];
+  pushed?: { id: number; from: Point; to: Point };
   from: Point;
   to: Point;
   kind: CardId;
@@ -25,6 +29,8 @@ export interface UltimateAction {
   pickedKnife?: boolean;
   drawn?: CardId;
   overflowed?: CardId;
+  drawnCards?: CardId[];
+  overflowedCards?: CardId[];
 }
 
 const cardinal: Point[] = [
@@ -59,9 +65,12 @@ export class Room {
   discard: CardId[];
   knives: Point[] = [];
   loadout: Loadout;
+  build: Build;
+  private usedGrowth = new Set<string>();
   private random: () => number;
-  constructor(seed = 1, definition: RoomDefinition = forestRuins.rooms[0], health = 5, loadout: Loadout = 'basic') {
+  constructor(seed = 1, definition: RoomDefinition = forestRuins.rooms[0], health = 5, loadout: Loadout = 'basic', build = freshBuild()) {
     this.loadout = loadout;
+    this.build = build;
     this.hero = [...definition.hero];
     this.health = Math.max(0, Math.min(5, health));
     this.actions = 2;
@@ -76,7 +85,7 @@ export class Room {
       for (let i = 0; i < card.copies; i++) this.deck.push(id as CardId);
     }
     this.shuffle(this.deck);
-    for (let i = 0; i < 3; i++) this.draw();
+    for (let i = 0; i < (build.opening ? 4 : 3); i++) this.draw();
   }
   get won() {
     return this.enemies.length === 0;
@@ -131,7 +140,48 @@ export class Room {
       [cards[i], cards[j]] = [cards[j], cards[i]];
     }
   }
-  cardCost(index: number) { return (data.cards[this.availableCards[index]] as CardDefinition | undefined)?.cost ?? 1; }
+  cardCost(index: number) {
+    const id = this.availableCards[index];
+    const base = (data.cards[id] as CardDefinition | undefined)?.cost ?? 1;
+    return Math.max(0, base - Number(this.build.engravings[id] === 'discount' && !this.usedGrowth.has(`card:${id}`)));
+  }
+  growthReady(id: CardId) { return !this.usedGrowth.has(`card:${id}`); }
+  drawCards(count: number): { drawn: CardId[]; overflowed: CardId[] } {
+    const result: { drawn: CardId[]; overflowed: CardId[] } = { drawn: [], overflowed: [] };
+    for (let i = 0; i < count && this.deck.length + this.discard.length > 0; i++) {
+      if (this.hand.length < HAND_LIMIT) result.drawn.push(this.draw());
+      else { const card = this.drawOverflow(); if (card) result.overflowed.push(card); }
+    }
+    return result;
+  }
+  private rewardDraw(action: MoveAction | UltimateAction, count: number) {
+    const result = this.drawCards(count);
+    (action.drawnCards ??= []).push(...result.drawn);
+    (action.overflowedCards ??= []).push(...result.overflowed);
+    action.drawn ??= result.drawn[0]; action.overflowed ??= result.overflowed[0];
+  }
+  private pickup(action: MoveAction | UltimateAction, point: Point) {
+    this.knives = this.knives.filter(p => !equal(p, point));
+    action.pickedKnife = true;
+    if (this.hand.length < HAND_LIMIT) this.hand.push('knife');
+    else { (action.overflowedCards ??= []).push('knife'); action.overflowed ??= 'knife'; }
+    this.actions = Math.min(9, this.actions + 1);
+    this.rewardDraw(action, 1);
+    if (this.build.relic && this.loadout === 'rogue' && !this.usedGrowth.has('relic')) {
+      this.usedGrowth.add('relic'); this.rewardDraw(action, 1);
+    }
+  }
+  private applyGrowth(action: MoveAction, paid: number) {
+    const key = `card:${action.kind}`, effect = this.build.engravings[action.kind];
+    if (effect && !this.usedGrowth.has(key) && (effect !== 'refund' || paid > 0)) {
+      this.usedGrowth.add(key);
+      if (effect === 'draw') this.rewardDraw(action, 1);
+      if (effect === 'refund') this.actions = Math.min(9, this.actions + 1);
+    }
+    if (this.build.relic && this.loadout === 'qinghe' && !equal(action.from, this.hero) && !this.usedGrowth.has('relic')) {
+      this.usedGrowth.add('relic'); this.rewardDraw(action, 1);
+    }
+  }
   hasKnife(point: Point) { return this.knives.some(p => equal(p, point)); }
   canUseCard(index: number) {
     for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) if (this.canMove(index, [x, y])) return true;
@@ -140,10 +190,13 @@ export class Room {
   hasPlayableCard() { return this.hand.some((id, i) => id === 'absoluteShadow' || id === 'dawnSpear' || this.canUseCard(i)); }
   setLoadout(next: Loadout) {
     if (next === this.loadout) return;
-    const previous = loadouts[this.loadout], target = loadouts[next];
-    const convert = (pile: CardId[]) => pile.filter(id => id !== 'knife' && id !== 'absoluteShadow' && id !== 'dawnSpear').map(id => target[Math.max(0, previous.indexOf(id)) % target.length]);
-    this.hand = convert(this.hand); this.deck = convert(this.deck); this.discard = convert(this.discard);
+    const count = Math.min(HAND_LIMIT, this.hand.filter(id => id !== 'knife').length);
+    this.deck = loadouts[next].flatMap(id => Array<CardId>(data.cards[id].copies).fill(id));
+    this.shuffle(this.deck);
+    this.hand = []; this.discard = [];
+    for (let index = 0; index < count; index++) this.draw();
     this.knives = []; this.loadout = next;
+    this.usedGrowth.clear();
   }
   canMove(index: number, destination: Point) {
     if (this.finished || this.actions < this.cardCost(index) || !inside(destination)) return false;
@@ -158,6 +211,9 @@ export class Room {
     if (card.effect === 'thrust') return Boolean(this.at(destination));
     if (card.effect === 'shadow' && !this.hasKnife(destination)) return false;
     if (card.effect === 'knife') return Boolean(this.at(destination));
+    if (card.effect === 'repel') return Boolean(this.at(destination));
+    if (card.effect === 'sidestep') return !this.at(destination);
+    if (card.effect === 'recall') return this.hasKnife(destination) && !this.at(destination);
     return true;
   }
   private matchesCard(index: number, destination: Point) {
@@ -180,12 +236,12 @@ export class Room {
       (o) => enemy.position[0] + o[0] === tile[0] && enemy.position[1] + o[1] === tile[1]
     );
   }
-  damageAt(tile: Point, removedId: number | number[] = -1, addedKnife?: Point) {
+  damageAt(tile: Point, removedId: number | number[] = -1, addedKnife?: Point, pushed?: MovePreview['pushed']) {
     const removed = Array.isArray(removedId) ? removedId : [removedId];
     return this.enemies.reduce(
       (damage, enemy) =>
         damage +
-        (!removed.includes(enemy.id) && Room.threatens(enemy, tile) ? (enemy.elite ? 2 : 1) + Number(this.hasKnife(enemy.position) || Boolean(addedKnife && equal(enemy.position, addedKnife))) : 0),
+        (!removed.includes(enemy.id) && Room.threatens(pushed?.id === enemy.id ? { ...enemy, position: pushed.to } : enemy, tile) ? (enemy.elite ? 2 : 1) + Number(this.hasKnife(pushed?.id === enemy.id ? pushed.to : enemy.position) || Boolean(addedKnife && equal(enemy.position, addedKnife))) : 0),
       0
     );
   }
@@ -205,14 +261,22 @@ export class Room {
     const victim = this.at(destination);
     const blocked = victim ? blocksAttack(victim, this.hero) : false;
     const survives = victim && (blocked || (victim.health ?? 1) > 1);
-    const stationary = this.hand[index] === 'throw' || this.hand[index] === 'knife' || this.hand[index] === 'thrust';
+    const stationary = ['throw', 'knife', 'thrust', 'repel', 'recall'].includes(this.hand[index]);
     const landing = survives || stationary ? this.hero : destination;
+    let pushed: MovePreview['pushed'];
+    let pushBlocked = false;
+    if (this.hand[index] === 'repel' && victim && survives) {
+      const to: Point = [destination[0] + Math.sign(destination[0] - this.hero[0]), destination[1] + Math.sign(destination[1] - this.hero[1])];
+      pushBlocked = blocked || Boolean(victim.elite) || enemySkill(victim).id === 'roots' || !inside(to) || Boolean(this.at(to));
+      if (!pushBlocked) pushed = { id: victim.id, from: [...destination], to };
+    }
     return {
       blocked,
       destination: landing.slice() as Point,
       hitId: victim?.id,
       removedId: victim && !survives ? victim.id : -1,
-      damage: this.damageAt(landing, victim && !survives ? victim.id : -1, this.hand[index] === 'throw' ? destination : undefined)
+      pushed, pushBlocked,
+      damage: this.damageAt(landing, victim && !survives ? victim.id : -1, this.hand[index] === 'throw' ? destination : undefined, pushed)
     };
   }
   move(index: number, destination: Point): MoveAction | null {
@@ -239,7 +303,9 @@ export class Room {
       this.discard.push(this.hand.splice(index, 1)[0]);
       this.actions -= cost;
       if (this.won) this.knives = [];
-      return { from: this.hero.slice() as Point, to: this.hero.slice() as Point, kind: 'sweep', removedId: -1, hits };
+      const action: MoveAction = { from: this.hero.slice() as Point, to: this.hero.slice() as Point, kind: 'sweep', removedId: -1, hits };
+      this.applyGrowth(action, cost);
+      return action;
     }
     const cost = this.cardCost(index);
     const action: MoveAction = {
@@ -252,22 +318,15 @@ export class Room {
     const victim = this.at(destination);
     if (victim && !preview.blocked) victim.health = (victim.health ?? 1) - 1;
     this.enemies = this.enemies.filter((e) => e.id !== preview.removedId);
+    if (preview.pushed && victim) { victim.position = [...preview.pushed.to]; action.pushed = preview.pushed; }
     this.hero = preview.destination.slice() as Point;
     const used = this.hand.splice(index, 1)[0];
     if (used !== 'knife') this.discard.push(used);
     this.actions -= cost;
     if (used === 'throw') {
       if (!this.hasKnife(destination)) this.knives.push([...destination]);
-    } else if (equal(this.hero, destination) && this.hasKnife(destination)) {
-      this.knives = this.knives.filter(point => !equal(point, destination));
-      action.pickedKnife = true;
-      this.hand.push('knife');
-      this.actions = Math.min(2, this.actions + 1);
-      if (this.deck.length || this.discard.length) {
-        if (this.hand.length < HAND_LIMIT) action.drawn = this.draw();
-        else action.overflowed = this.drawOverflow();
-      }
-    }
+    } else if ((used === 'recall' || equal(this.hero, destination)) && this.hasKnife(destination)) this.pickup(action, destination);
+    this.applyGrowth(action, cost);
     if (this.won) this.knives = [];
     return action;
   }
@@ -286,16 +345,7 @@ export class Room {
       action.removedId = victim.id;
       this.enemies = this.enemies.filter(enemy => enemy.id !== victim.id);
       this.hero = action.to.slice() as Point;
-      if (this.hasKnife(action.to)) {
-        this.knives = this.knives.filter(point => !equal(point, action.to));
-        action.pickedKnife = true;
-        this.hand.push('knife');
-        this.actions = Math.min(2, this.actions + 1);
-        if (this.deck.length || this.discard.length) {
-          if (this.hand.length < HAND_LIMIT) action.drawn = this.draw();
-          else action.overflowed = this.drawOverflow();
-        }
-      }
+      if (this.hasKnife(action.to)) this.pickup(action, action.to);
     }
     if (this.won) this.knives = [];
     return action;
@@ -375,6 +425,7 @@ export class Room {
       this.hand = this.hand.filter(id => id === 'absoluteShadow' || id === 'dawnSpear');
       for (let i = 0; i < 3 && this.hand.length < HAND_LIMIT; i++) this.draw();
       this.actions = 2;
+      this.usedGrowth.clear();
       this.turn++;
     }
     return { attacks, damage, motions };

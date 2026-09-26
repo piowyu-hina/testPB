@@ -7,7 +7,7 @@ import '../hub.css';
 import villageImage from '../../assets/scenes/village/Village.png';
 import { setSoundEnabled, soundEnabled } from '../ui/sound';
 
-export function mountHome(host: HTMLElement, session: GameSession, onStart: () => void): Screen {
+export function mountHome(host: HTMLElement, session: GameSession, onStart: () => void, onShop: () => void): Screen {
   const root = mountScreenRoot(host, template);
   const $ = <T extends HTMLElement = HTMLElement>(id: string) => element<T>(id, root);
   const portrait = $<HTMLImageElement>('home-portrait');
@@ -28,6 +28,7 @@ export function mountHome(host: HTMLElement, session: GameSession, onStart: () =
   renderCharacter();
   $<HTMLImageElement>('village-art').src = villageImage;
   onClick($('open-dungeons'), onStart);
+  onClick($('open-shop'), onShop);
   const picker = $<HTMLDialogElement>('character-picker');
   const choices = $('character-picker-options');
   const choiceButtons = (['qinghe', 'rogue'] as const).map((id) => {

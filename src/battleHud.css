@@ -134,3 +134,18 @@
   filter: grayscale(1) brightness(.55);
   opacity: .5;
 }
+.battle-info .target-outcome { align-self: end; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; padding: 6px 10px; }
+.battle-info { height: 175px; }
+.battle-info .hint { font-size: 24px; }
+.battle-info .hint strong { font-size: 28px; }
+.battle-info:has(.target-outcome:not([hidden])) .hint,
+.battle-info:has(.target-outcome:not([hidden])) .touch-info { max-height: 122px; overflow-y: auto; }
+.battle-test-tools [data-test-action='cycle']::before { background-image: url('../assets/cards/qinghe/Sidestep.png'); }
+.target-health { display: inline-flex; align-items: center; gap: 4px; }
+.target-health > img { width: 42px; height: 42px; object-fit: contain; }
+.target-health .enemy-life { display: flex; }
+.target-health .health-segment { width: 34px; height: 34px; }
+.target-health .health-segment.forecast { opacity: .45; filter: grayscale(.8) drop-shadow(0 0 3px #ffca8a); }
+.forecast-shield { display: inline-flex; width: 32px; height: 32px; }
+.forecast-shield svg { fill: #345d73; stroke: #d9f0f2; stroke-width: 5px; }
+#open-deck { width: 48px; height: 48px; color: #e1d5b6; }

@@ -8,7 +8,7 @@
 - `src/screens/`：各自的 HTML 模板、DOM 查詢及互動。不得直接操作其他 Screen 的 DOM，也不匯入其他 Screen。
 - `src/battle/`、`src/data/`：戰鬥規則及資料，不依賴 Screen 或 DOM。
 
-目前狀態只保留在記憶體，沒有新增磁碟存檔。角色選擇、貨幣等功能確定後再加入相應資料模型。
+目前狀態只保留在記憶體，沒有新增磁碟存檔。角色選擇屬 GameSession；旅途金幣、各角色 Build 與房間獎勵記錄屬 Journey。
 
 ## 新增畫面
 
@@ -35,3 +35,6 @@ DungeonScreen 顯示森林遺跡、出戰角色及目前進度；出發進入 Ba
 
 `npm test` 包含三畫面導航、切換阻擋、重複進入與冒險狀態保留測試。
 `npm run test:browser` 和 `npm run desktop:check` 驗證實際操作、回首頁再續玩、清場出口、勝敗及重新開始。
+# 林畔工坊與牌組查看（2026-09-27）
+
+新增 `ShopScreen`，由 `main.ts` 接村莊入口／返回村莊。購買只修改 `GameSession.journey` 的成長狀態，不重建戰鬥。角色各有 Build，金幣屬本趟 Journey。詳細規則見 [CharacterCycles.md](CharacterCycles.md)。戰鬥中的全頁牌組由 `ui/deckViewer.ts` 管理，是 BattleScreen 局部覆蓋層，不建立另一份牌堆狀態。

@@ -4,6 +4,7 @@ import { mountTheme } from './ui/theme';
 import { mountBattle } from './screens/BattleScreen';
 import { mountHome } from './screens/HomeScreen';
 import { mountDungeon } from './screens/DungeonScreen';
+import { mountShop } from './screens/ShopScreen';
 import { element } from './ui/dom';
 import { GameSession } from './app/GameSession';
 import { ScreenManager } from './app/ScreenManager';
@@ -60,7 +61,8 @@ new ResizeObserver(fitStage).observe(stage);
 window.addEventListener('resize', fitStage);
 fitStage();
 const screens = {
-  home: mountHome(host, session, () => navigation.go('dungeon')),
+  home: mountHome(host, session, () => navigation.go('dungeon'), () => navigation.go('shop')),
+  shop: mountShop(host, session, () => navigation.go('home')),
   dungeon: mountDungeon(host, session, () => navigation.go('home'), () => navigation.go('battle')),
   battle: mountBattle(host, session, () => navigation.go('home'))
 };

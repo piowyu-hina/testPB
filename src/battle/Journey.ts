@@ -3,6 +3,8 @@ import { Room, equal } from './Room.ts';
 import type { Point, RoomDefinition } from '../types/game.ts';
 import { dungeons } from '../data/dungeons/index.ts';
 import type { DungeonId } from '../data/dungeons/index.ts';
+import type { CardId } from '../data/cards.ts';
+import { freshBuild, canEngrave, engravingInfo, relicInfo, type Engraving } from './Growth.ts';
 
 export class Journey {
   readonly exit: Point = [2, 4];
@@ -14,13 +16,35 @@ export class Journey {
   private seed: number;
   private activeRooms: RoomDefinition[];
   loadout: Loadout;
+  coins = 4;
+  readonly builds = { basic: freshBuild(), qinghe: freshBuild(), rogue: freshBuild() };
+  private rewardedStages = new Set<number>();
+  get build() { return this.builds[this.loadout]; }
+  claimClearReward() {
+    if (!this.room.won || this.room.lost || this.rewardedStages.has(this.stage)) return 0;
+    const amount = this.stage === this.total - 1 ? 5 : 3;
+    this.rewardedStages.add(this.stage); this.coins += amount; return amount;
+  }
+  buyEngraving(id: CardId, kind: Engraving) {
+    if (this.finished || !canEngrave(this.loadout, id, kind) || this.build.engravings[id] || this.coins < engravingInfo[kind].price) return false;
+    this.coins -= engravingInfo[kind].price; this.build.engravings[id] = kind; return true;
+  }
+  buyRelic() {
+    const price = relicInfo(this.loadout).price;
+    if (this.finished || this.loadout === 'basic' || this.build.relic || this.coins < price) return false;
+    this.coins -= price; this.build.relic = true; return true;
+  }
+  buyOpening() {
+    if (this.finished || this.build.opening || this.coins < 3) return false;
+    this.coins -= 3; this.build.opening = true; return true;
+  }
   constructor(seed = 1, loadout: Loadout = 'basic', dungeonId: DungeonId = 'forest') {
     this.loadout = loadout;
     this.seed = seed;
     this.dungeonId = dungeonId;
     const dungeon = dungeons[dungeonId];
     this.activeRooms = dungeon.rooms.slice(dungeon.startIndex ?? 0);
-    this.room = new Room(seed, this.activeRooms[0], 5, loadout);
+    this.room = new Room(seed, this.activeRooms[0], 5, loadout, this.build);
   }
   setLoadout(next: Loadout) {
     if (next !== this.loadout) {
@@ -29,6 +53,7 @@ export class Journey {
     }
     this.loadout = next;
     this.room.setLoadout(next);
+    this.room.build = this.build;
   }
   gainAssassination(elite = false) {
     if (this.loadout !== 'rogue') return this.assassination;
@@ -75,8 +100,9 @@ export class Journey {
   advance() {
     if (!this.room.won || this.finished || !equal(this.room.hero, this.exit)) return false;
     const health = this.room.health + this.recovery;
+    this.claimClearReward();
     this.stage++;
-    this.room = new Room(this.seed + this.stage * 1009, this.activeRooms[this.stage], health, this.loadout);
+    this.room = new Room(this.seed + this.stage * 1009, this.activeRooms[this.stage], health, this.loadout, this.build);
     return true;
   }
 }

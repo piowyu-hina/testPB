@@ -9,9 +9,15 @@ import thrustImage from '../../assets/cards/qinghe/Thrust-v2.png';
 import advanceImage from '../../assets/cards/qinghe/Advance-v2.png';
 import dawnSpearImage from '../../assets/cards/qinghe/DawnSpear-v2.png';
 import qingheForwardImage from '../../assets/cards/qinghe/Forward-v2.png';
+import sidestepImage from '../../assets/cards/qinghe/Sidestep.png';
+import repelImage from '../../assets/cards/qinghe/Repel.png';
+import recallImage from '../../assets/cards/luxue/Recall.png';
 import type { CardId } from './cards';
 
 export const cardArt: Partial<Record<CardId, string>> = {
+  sidestep: sidestepImage,
+  repel: repelImage,
+  recall: recallImage,
   throw: throwImage,
   shadow: shadowImage,
   knife: knifeImage,

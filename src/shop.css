@@ -1,0 +1,31 @@
+.shop { height: 100%; padding: 42px 38px 34px; display: flex; flex-direction: column; font-family: 'Microsoft JhengHei UI', 'Microsoft JhengHei', system-ui, sans-serif; color: #f4ebd8; background: radial-gradient(ellipse at 20% 0, #394b38, #18271f 70%); }
+.shop-heading { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.shop-heading p { margin: 0 0 10px; color: #cbbf9f; font-size: 24px; }
+.shop-heading h1 { font-size: 36px; }
+.shop-back { border: 0; border-bottom: 2px solid #ac9e7a; padding: 16px 6px; background: transparent; color: #f4ebd8; font-size: 26px; }
+.shop-wallet { display: flex; align-items: center; gap: 18px; font-size: 25px; margin: 30px 0; }
+.shop-wallet strong { font-size: 38px; color: #f2c96d; }
+.shop-tabs { display: flex; gap: 30px; border-bottom: 1px solid #b6a68150; }
+.shop-tabs button { color: #c4c9b9; border: 0; border-bottom: 4px solid transparent; padding: 14px 8px; background: transparent; font-size: 28px; }
+.shop-tabs button[aria-pressed='true'] { color: #f5d184; border-bottom-color: #e8bd65; }
+.shop-note, .shop-card-description { font-size: 24px; line-height: 1.55; color: #e2dfd0; }
+.shop-note { margin: 24px 0 18px; }
+.shop-card-choices { display: flex; gap: 6px; }
+.shop-card-choice { flex: 1; min-width: 0; color: #e9e7da; background: transparent; border: 0; border-bottom: 3px solid transparent; padding: 8px 0 14px; font-size: 23px; }
+.shop-card-choice img { display: block; width: 100%; height: 112px; object-fit: contain; margin-bottom: 8px; }
+.shop-card-choice[aria-pressed='true'] { border-color: #ebc271; background: linear-gradient(transparent, #d2ad4924); color: #ffda8c; }
+.shop-card-choice span { display: block; line-height: 1.3; min-height: 60px; }
+.shop-card-description { margin: 18px 0 16px; min-height: 84px; }
+.shop-offers { display: flex; flex-direction: column; gap: 0; }
+.shop-offer { display: flex; align-items: center; gap: 24px; padding: 22px 0; border-bottom: 1px solid #b6a68145; }
+.shop-offer > div { flex: 1; }
+.shop-offer strong { font-size: 29px; font-weight: 600; }
+.shop-offer p { font-size: 24px; line-height: 1.5; color: #d8dbc9; margin: 8px 0 0; }
+.shop-buy { flex: none; min-width: 125px; padding: 20px 12px; border: 1px solid #dcc17b; border-radius: 8px; background: #d9bb73; color: #243022; font-size: 25px; }
+.shop-buy:disabled { background: transparent; color: #b1baa8; border-color: #9cab8260; }
+#shop-gear { padding-top: 30px; }
+#shop-gear .shop-offer { min-height: 230px; }
+.shop-message { font-size: 25px; min-height: 38px; color: #f3d483; margin: 20px 0 0; }
+.shop-footnote { margin-top: auto; padding-top: 18px; font-size: 22px; line-height: 1.5; color: #c4c7b8; }
+#shop-cards, #shop-gear { overflow-y: auto; min-height: 0; scrollbar-color: #9d9d79 transparent; }
+.village-shop-button { position: absolute; left: 38px; bottom: 220px; z-index: 4; padding: 18px 26px; font-size: 29px; }

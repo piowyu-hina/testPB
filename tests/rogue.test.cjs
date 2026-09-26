@@ -117,7 +117,7 @@ test('unused knife cards expire on end turn while ground knives remain; next roo
   assert.equal(j.advance(), true); assert.deepEqual(j.room.knives, []);
   assert.equal(j.room.hand.includes('knife'), false);
   assert.equal(j.room.hand.length, 3);
-  assert.ok(j.room.hand.every(id => ['throw', 'shadow', 'lunge'].includes(id)));
+  assert.ok(j.room.hand.every(id => ['throw', 'shadow', 'lunge', 'recall'].includes(id)));
 });
 test('knife attacks one cardinal tile without moving or collecting a ground knife', () => {
   const r = room(); r.hand = ['throw']; r.enemies = [enemy(0, [3, 2])];

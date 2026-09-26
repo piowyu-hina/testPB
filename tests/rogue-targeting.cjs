@@ -8,7 +8,7 @@ const assert = require('node:assert/strict');
   const shot = name => page.screenshot({ path: `test-results/rogue-target-${name}.png` });
   const tile = (x, y) => page.locator(`.tile[data-x="${x}"][data-y="${y}"]`);
   try {
-    await page.addInitScript(() => { Math.random = () => 10 / 4294967296; });
+    await page.addInitScript(() => { Math.random = () => 14 / 4294967296; });
     await page.goto('http://127.0.0.1:1420');
     await page.locator('#open-characters').click();
     await page.locator('[data-character="rogue"]').click();

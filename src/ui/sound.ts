@@ -1,4 +1,4 @@
-export type SoundCue = 'step' | 'dash' | 'blink' | 'throw' | 'hit' | 'kill';
+export type SoundCue = 'step' | 'dash' | 'blink' | 'throw' | 'hit' | 'kill' | 'block';
 
 const storageKey = 'testpb.sound';
 let enabled = true;
@@ -95,6 +95,10 @@ export function playSound(cue: SoundCue): void {
   } else if (cue === 'throw') {
     burst(audio, at, 0.1, 2200, 650, 0.065);
     tone(audio, at, 0.12, 540, 220, 0.025, 'triangle');
+  } else if (cue === 'block') {
+    burst(audio, at, 0.08, 3200, 1700, 0.04);
+    tone(audio, at, 0.19, 630, 410, 0.075, 'triangle');
+    tone(audio, at + 0.018, 0.14, 990, 740, 0.035, 'sine');
   } else if (cue === 'hit') {
     burst(audio, at, 0.12, 1350, 340, 0.08);
     tone(audio, at, 0.17, 175, 75, 0.09, 'sine');

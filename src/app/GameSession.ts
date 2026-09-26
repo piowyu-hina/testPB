@@ -7,10 +7,10 @@ export class GameSession {
   private selectedCharacter: CharacterId = 'qinghe';
   get characterId() { return this.selectedCharacter; }
   set characterId(id: CharacterId) {
+    if (id === this.selectedCharacter) return;
     this.selectedCharacter = id;
     const loadout = id === 'rogue' ? 'rogue' : id === 'qinghe' ? 'qinghe' : 'basic';
-    if (!this.started) this.current = new Journey(this.seed - 1, loadout, this.selectedDungeon);
-    else this.current.setLoadout(loadout);
+    this.current.setLoadout(loadout);
   }
   // Only one dungeon exists today; this is where a future dungeon-select screen would set it.
   private selectedDungeon: DungeonId = 'forest';
