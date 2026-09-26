@@ -545,7 +545,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       tile.classList.toggle('sweep-range', legal && sweepTargeting && !equal(point, room.hero));
       if (sweepCells.has(point.join(','))) {
         const [x, y] = point;
-        const edge = (nx: number, ny: number) => sweepCells.has(`${nx},${ny}`) ? '0px' : '2px';
+        const edge = (nx: number, ny: number) => sweepCells.has(`${nx},${ny}`) ? '0px' : '4px';
         tile.style.setProperty('--sweep-edges', `${edge(x, y + 1)} ${edge(x + 1, y)} ${edge(x, y - 1)} ${edge(x - 1, y)}`);
       } else tile.style.removeProperty('--sweep-edges');
       tile.classList.toggle('sweep-active', legal && sweepTargeting && !equal(point, room.hero) && Boolean(preview));

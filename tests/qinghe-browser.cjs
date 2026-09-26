@@ -77,9 +77,9 @@ const assert = require('node:assert/strict');
     assert.equal(await page.locator('.tile.sweep-range').count(), 8);
     // Adjacent affected cells share no bright seams; outer and hero-hole edges remain.
     const sweepEdges = (x, y) => page.locator(`.tile[data-x="${x}"][data-y="${y}"]`).evaluate(tile => tile.style.getPropertyValue('--sweep-edges'));
-    assert.equal(await sweepEdges(1, 2), '2px 0px 0px 2px');
-    assert.equal(await sweepEdges(2, 2), '2px 0px 2px 0px');
-    assert.equal(await sweepEdges(1, 1), '0px 2px 0px 2px');
+    assert.equal(await sweepEdges(1, 2), '4px 0px 0px 4px');
+    assert.equal(await sweepEdges(2, 2), '4px 0px 4px 0px');
+    assert.equal(await sweepEdges(1, 1), '0px 4px 0px 4px');
     assert.equal(await sweepEdges(2, 1), '');
     assert.equal(await page.locator('.target-mark').count(), 0);
     assert.equal(await page.locator('[data-actor="0"].sweep-victim-preview').count(), 0);
