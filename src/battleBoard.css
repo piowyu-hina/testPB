@@ -59,10 +59,10 @@
     0 18px 32px #101b1740;
 }
 .board {
-  --attack-color: #da922d;
-  --attack-hover: #ffbd50;
-  --attack-fill: #ce8a3033;
-  --attack-active-fill: #dd993b59;
+  --attack-color: #bd7d20;
+  --attack-hover: #e5a333;
+  --attack-fill: #b77a2933;
+  --attack-active-fill: #c4873059;
   --tile-gap: 0px;
   position: relative;
   width: 100%;
@@ -152,10 +152,10 @@
   background-origin: content-box;
   padding: 6px;
   box-sizing: border-box;
-  filter: drop-shadow(0 1px 2px #4c3015) drop-shadow(0 0 3px #da922d77);
+  filter: drop-shadow(0 1px 2px #4c3015) drop-shadow(0 0 3px #bd7d2077);
 }
 .area-target-mark { transform: none; }
-.target-mark.hovered, .area-target-mark.hovered { --target-color: var(--attack-hover); filter: drop-shadow(0 1px 2px #4c3015) drop-shadow(0 0 5px #ffbd50aa); }
+.target-mark.hovered, .area-target-mark.hovered { --target-color: var(--attack-hover); filter: drop-shadow(0 1px 2px #4c3015) drop-shadow(0 0 5px #e5a33388); }
 .target-mark.blocked { --target-color: #6b9fc2; }
 .tile.legal:after {
   --target-color: #196f58;
