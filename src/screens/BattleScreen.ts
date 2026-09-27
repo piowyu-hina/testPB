@@ -156,9 +156,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     card.append(face);
     card.classList.add('confirming');
     const press = face.animate([
-      { transform: 'translateY(0) scale(1)', boxShadow: shadow },
-      { transform: 'translateY(7px) scale(.97)', boxShadow: 'inset 0 0 0 3px #e7ac43, inset 0 0 0 5px #fff3d4, 0 1px 0 #825019, 0 3px 6px #171c1644', offset: .3 },
-      { transform: 'translateY(0) scale(1)', boxShadow: shadow }
+      { transform: 'translateY(0)', boxShadow: shadow },
+      { transform: 'translateY(7px)', boxShadow: 'inset 0 0 0 3px #e7ac43, inset 0 0 0 5px #fff3d4, 0 1px 0 #825019, 0 3px 6px #171c1644', offset: .3 },
+      { transform: 'translateY(0)', boxShadow: shadow }
     ], { duration: 220, easing: 'ease-out' });
     press.id = 'card-confirmed';
     void press.finished.catch(() => {}).finally(() => { face.remove(); card.classList.remove('confirming'); });
