@@ -406,6 +406,18 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     elements.hand.style.width = `${handWidth}px`;
     elements.hand.style.setProperty('--hand-card-width', `${cardWidth}px`);
     elements.hand.style.setProperty('--card-overlap', `${Math.max(0, Math.ceil((naturalWidth - handWidth) / Math.max(1, handCount - 1)))}px`);
+    // Open only the seams next to the clicked card; compress the other seams
+    // within the same hand width. Hover never changes horizontal positions.
+    const active = selected >= 0 && selected < handCount ? selected : -1;
+    const openSeams = active < 0 ? 0 : Number(active > 0) + Number(active < handCount - 1);
+    const closedSeams = Math.max(0, handCount - 1 - openSeams);
+    const openGap = 18;
+    const closedGap = Math.min(8, (handWidth - handCount * cardWidth - openSeams * openGap) / Math.max(1, closedSeams));
+    [...elements.hand.children].forEach((node, index) => {
+      const card = node as HTMLElement;
+      const gap = active >= 0 && (index === active || index === active + 1) ? openGap : closedGap;
+      card.style.marginLeft = index ? `${gap - 8}px` : '0px';
+    });
     [...root.querySelectorAll<HTMLButtonElement>('.card')].forEach((card) => {
       const index = Number(card.dataset.index);
       const isUltimate = card.dataset.card === 'absoluteShadow' || card.dataset.card === 'dawnSpear';

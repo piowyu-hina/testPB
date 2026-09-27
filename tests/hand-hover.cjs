@@ -28,8 +28,8 @@ const assert = require('node:assert/strict');
       await page.mouse.move(base.x + base.width * .45, base.y + 70); await page.waitForTimeout(180);
       const lifted = await snapshot();
       assert.equal(lifted[index].hovered, true);
-      assert.ok(lifted[index].y < base.y - 15);
-      assert.ok(lifted[index].width > base.width && lifted[index].width < base.width * 1.04);
+      assert.ok(lifted[index].y < base.y - 5);
+      assert.ok(Math.abs(lifted[index].width - base.width) < 1);
       for (let n = 0; n < 5; n++) if (n !== index) {
         assert.ok(Math.abs(lifted[n].y - baseline[n].y) < 1, 'Neighbour must not move');
         assert.ok(lifted[index].z > lifted[n].z);
@@ -45,19 +45,36 @@ const assert = require('node:assert/strict');
     // Selected cards cannot cover a different hovered card. Clicking the raised
     // portion must still select that card, and leaving restores its selected pose.
     await page.locator('#hand .card').first().click();
-    const middle = baseline[2]; await page.mouse.move(middle.x + 18, middle.y + 60); await page.waitForTimeout(180);
+    await page.waitForTimeout(220);
+    const middle = (await snapshot())[2]; await page.mouse.move(middle.x + 18, middle.y + 60); await page.waitForTimeout(180);
     const raised = (await snapshot())[2];
     assert.ok(raised.z > (await snapshot())[0].z);
     await page.mouse.click(raised.x + raised.width / 2, raised.y + 6);
     assert.equal(await page.locator('#hand .card').nth(2).getAttribute('aria-pressed'), 'true');
     await page.mouse.move(10, 100); await page.waitForTimeout(180);
-    const selected = (await snapshot())[2]; assert.ok(selected.y < raised.y - 8);
+    const selected = (await snapshot())[2]; assert.ok(Math.abs(selected.y - raised.y) < 1, 'Click and pointer leave preserve hover height');
+    const arranged = await snapshot();
+    assert.ok(arranged[1].x + arranged[1].width < selected.x, 'Left cards leave selected face clear');
+    assert.ok(selected.x + selected.width < arranged[3].x, 'Right cards leave selected face clear');
     for (const [index, neighbour] of (await snapshot()).entries()) if (index !== 2) assert.ok(selected.z > neighbour.z);
     const persistentY = selected.y;
     await page.mouse.move(250, 300); await page.waitForTimeout(180);
     assert.ok(Math.abs((await snapshot())[2].y - persistentY) < 1, 'Selection stays raised over the board');
     await page.locator('#hand .card').nth(2).click(); // Deselect and leave a hover preview.
     await page.waitForTimeout(180);
+    for (const index of [0, 4, 1, 3, 2]) {
+      await page.mouse.move(10, 100); await page.waitForTimeout(220);
+      const target = (await snapshot())[index];
+      await page.mouse.move(target.x + 12, target.y + 65); await page.waitForTimeout(180);
+      const hovered = (await snapshot())[index];
+      await page.mouse.click(hovered.x + 12, hovered.y + 65);
+      await page.mouse.move(10, 100); await page.waitForTimeout(220);
+      assert.equal(await page.locator('#hand .card').nth(index).getAttribute('aria-pressed'), 'true');
+      const fan = await snapshot();
+      if (index) assert.ok(fan[index - 1].x + fan[index - 1].width < fan[index].x);
+      if (index < 4) assert.ok(fan[index].x + fan[index].width < fan[index + 1].x);
+      assert.ok(fan[0].x >= 0 && fan[4].x + fan[4].width <= page.viewportSize()?.width || native);
+    }
     await page.screenshot({ path: `test-results/hand-hover-${native ? 'native' : 'browser'}.png` });
     assert.deepEqual(errors, []);
     console.log('Five-card hover: lift, fixed neighbours, layer priority, stable old-edge hit area and raised click passed');
