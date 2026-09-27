@@ -51,7 +51,11 @@ const assert = require('node:assert/strict');
     await page.mouse.click(raised.x + raised.width / 2, raised.y + 6);
     assert.equal(await page.locator('#hand .card').nth(2).getAttribute('aria-pressed'), 'true');
     await page.mouse.move(10, 100); await page.waitForTimeout(180);
-    const selected = (await snapshot())[2]; assert.ok(selected.y > raised.y + 5);
+    const selected = (await snapshot())[2]; assert.ok(selected.y < raised.y - 8);
+    for (const [index, neighbour] of (await snapshot()).entries()) if (index !== 2) assert.ok(selected.z > neighbour.z);
+    const persistentY = selected.y;
+    await page.mouse.move(250, 300); await page.waitForTimeout(180);
+    assert.ok(Math.abs((await snapshot())[2].y - persistentY) < 1, 'Selection stays raised over the board');
     await page.locator('#hand .card').nth(2).click(); // Deselect and leave a hover preview.
     await page.waitForTimeout(180);
     await page.screenshot({ path: `test-results/hand-hover-${native ? 'native' : 'browser'}.png` });
