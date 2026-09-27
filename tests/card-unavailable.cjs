@@ -31,6 +31,18 @@ const assert=require('node:assert/strict');
     assert.ok(await card.evaluate(el=>new DOMMatrix(getComputedStyle(el).transform).m42 < -20));
     const before=await page.evaluate(()=>JSON.stringify(window.unavailableRoom));
     const box=await card.boundingBox();await page.mouse.click(box.x+box.width/2,box.y+box.height/2);
+    assert.equal(await card.evaluate(el=>el.getAnimations().filter(a=>a.id==='card-rejected').length),1);
+    await page.mouse.click(box.x+box.width/2,box.y+box.height/2);
+    assert.equal(await card.evaluate(el=>el.getAnimations().filter(a=>a.id==='card-rejected').length),1);
+    const samples=await card.evaluate(el=>new Promise(resolve=>{
+      const frames=[],start=performance.now();
+      const sample=()=>{frames.push({x:el.getBoundingClientRect().x,y:el.getBoundingClientRect().y,other:el.nextElementSibling.getBoundingClientRect().x});
+        if(performance.now()-start<280)requestAnimationFrame(sample);else resolve(frames);};sample();
+    }));
+    assert.ok(Math.max(...samples.map(f=>f.x))-Math.min(...samples.map(f=>f.x))>2);
+    assert.ok(Math.max(...samples.map(f=>f.y))-Math.min(...samples.map(f=>f.y))<1);
+    assert.equal(new Set(samples.map(f=>f.other)).size,1);
+    assert.equal(await card.evaluate(el=>getComputedStyle(el).translate),'none');
     assert.equal(await card.getAttribute('aria-pressed'),'false');
     assert.equal(await page.evaluate(()=>JSON.stringify(window.unavailableRoom)),before);
     await hand.locator('[data-card="repel"]').hover();await page.waitForTimeout(180);
@@ -40,6 +52,7 @@ const assert=require('node:assert/strict');
     assert.doesNotMatch(await hint.textContent(),/魂火不足/);
     await hand.locator('[data-card="sidestep"]').click();
     assert.equal(await hand.locator('[data-card="sidestep"]').getAttribute('aria-pressed'),'true');
+    assert.equal(await hand.locator('[data-card="sidestep"]').evaluate(el=>el.getAnimations().filter(a=>a.id==='card-rejected').length),0);
     // Refilling energy changes the same attack card's explanation to missing target.
     await page.locator('.battle-screen:not([hidden]) [data-test-action="energy"]').click();
     await card.hover();assert.match(await hint.textContent(),/範圍內沒有怪物/);

@@ -130,6 +130,17 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     }
     elements.hint.replaceChildren(name, description);
   }
+  function rejectCard(card: HTMLButtonElement) {
+    // Independent translate leaves the hover lift/scale intact. Ignore rapid
+    // repeat clicks until this one short response has finished; never stack it.
+    if (card.getAnimations().some(animation => animation.id === 'card-rejected' && animation.playState === 'running')) return;
+    const distance = matchMedia('(prefers-reduced-motion: reduce)').matches ? 2 : 6;
+    const animation = card.animate(
+      [0, -distance, distance * .8, -distance * .5, 0].map(x => ({ translate: `${x}px 0` })),
+      { duration: 240, easing: 'ease-out' }
+    );
+    animation.id = 'card-rejected';
+  }
   function closeCardDetails() { elements.cardDetails.hidden = true; }
   function showUltimateHint() {
     const charge = journey.ultimateCharge;
@@ -371,6 +382,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
             elements.tileInfo.hidden = true;
             elements.hint.hidden = false;
             showCardHint(definition, cardRequirement(index), ref);
+            rejectCard(card);
             if (touchLayout()) elements.touchInfo.replaceChildren(...Array.from(elements.hint.childNodes).map(node => node.cloneNode(true)));
             return;
           }
