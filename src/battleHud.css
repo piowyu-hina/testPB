@@ -136,7 +136,8 @@
   opacity: .5;
 }
 .battle-info .target-outcome { align-self: end; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; padding: 6px 10px; }
-.battle-info { height: 175px; }
+.game .battle-info { height: 150px; min-height: 150px; }
+.game .character-status { margin-top: 3px; }
 .battle-info .hint { font-size: 24px; }
 .battle-info .hint strong { font-size: 28px; }
 .battle-info .hint-engraving { display: block; color: #efce83; }
