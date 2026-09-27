@@ -91,7 +91,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const title = document.createElement('h2'); title.textContent = '強化一張牌';
     rewardPage.append(title);
     const choices = document.createElement('div'); choices.className = 'battle-reward-choices';
-    const confirm = document.createElement('button'); confirm.className = 'battle-reward-confirm'; confirm.textContent = '強化這張'; confirm.disabled = true;
+    const confirm = document.createElement('button'); confirm.className = 'battle-reward-confirm'; confirm.textContent = '強化'; confirm.disabled = true;
     confirm.hidden = true;
     let chosen: (typeof journey.battleRewardOptions)[number] | undefined;
     const rewardCopy = {
@@ -115,7 +115,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       onClick(button, () => {
         chosen = id; confirm.disabled = false;
         confirm.hidden = false;
-        confirm.textContent = `強化・${reward.name}`;
         for (const other of choices.querySelectorAll('button')) other.setAttribute('aria-pressed', String(other === button));
         confirm.setAttribute('aria-label', `強化一張${data.cards[reward.card].name}為${reward.name}${data.cards[reward.card].name}`);
       });
