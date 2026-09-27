@@ -14,3 +14,6 @@
 .actor[data-skill='recover'] .enemy-intent::before { inset: 6px; width: auto; height: auto; border-radius: 12px 2px; background: #c3d58f; }
 .actor[data-skill='recover'] .enemy-intent::after { display: none; }
 .actor[data-kind='mossstag']:not([data-skill='recover']) .enemy-intent { display: none; }
+.falling-rock { position: absolute; left: 30%; top: 25%; width: 40%; height: 45%; background: linear-gradient(135deg,#c9bda6 0 38%,#796d5e 39% 70%,#494438 71%); clip-path: polygon(20% 0,75% 5%,100% 50%,70% 100%,15% 85%,0 35%); animation: rock-impact 260ms ease-in both; }
+@keyframes rock-impact { from { translate: 0 -90px; opacity: 0; } 65% { translate: 0 0; opacity: 1; } to { translate: 0 4px; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .falling-rock { animation: none; } }

@@ -4,6 +4,7 @@ import { enemies } from '../data/enemies.ts';
 import { forestRuins } from '../data/dungeons/forest.ts';
 import type { Point, Enemy, MovePreview, EnemyMotion, TurnOutcome, CardDefinition, RoomDefinition } from '../types/game.ts';
 import { attackOffsets, blocksAttack, enemySkill, enemyDamage, faceToward, chargeLanding } from './EnemyRules.ts';
+import { stagSteps, rockWarnings } from './StagRules.ts';
 import { freshBuild, cardKind, deckForBuild, type Build, type CardRef, type Engraving } from './Growth.ts';
 export const data = { cards, enemies };
 export const HAND_LIMIT = 5;
@@ -410,6 +411,7 @@ export class Room {
     const damage = this.damageAt(this.hero);
     this.health = Math.max(0, this.health - damage);
     const motions: EnemyMotion[] = [];
+    const pendingRocks: Enemy[] = [];
     if (!this.lost) {
       const ordered = this.enemies
         .slice()
@@ -420,28 +422,25 @@ export class Room {
           : distanceSquared(position, this.hero);
       for (const enemy of ordered) {
         if (enemy.kind === 'mossstag') {
-          const from = enemy.position.slice() as Point;
+          const occupied = () => this.enemies.filter(e => e.id !== enemy.id).map(e => e.position);
           if (enemySkill(enemy).id === 'charge') {
-            enemy.position = chargeLanding(enemy, [this.hero, ...this.enemies.filter(e => e.id !== enemy.id).map(e => e.position)]);
+            const from = enemy.position.slice() as Point;
+            enemy.position = chargeLanding(enemy, [this.hero, ...occupied()]);
             if (!equal(from, enemy.position)) motions.push({ id: enemy.id, from, to: [...enemy.position] });
-          }
-          if (enemySkill(enemy).id === 'charge') {
             enemy.skillIndex = 1;
+            enemy.enraged ||= (enemy.health ?? 8) <= (enemy.maxHealth ?? 8) / 2;
+            pendingRocks.push(enemy);
+          } else if (enemySkill(enemy).id === 'rocks') {
+            enemy.skillIndex = 2;
+            enemy.warningTiles = [];
           } else {
-            const dx = this.hero[0] - enemy.position[0], dy = this.hero[1] - enemy.position[1];
-            if (Math.max(Math.abs(dx), Math.abs(dy)) > 1 && dx !== 0 && dy !== 0) {
-              // Reposition before announcing the next attack, never during player input.
-              const candidates: Point[] = Math.abs(dx) <= Math.abs(dy)
-                ? [[this.hero[0], enemy.position[1]], [enemy.position[0], this.hero[1]]]
-                : [[enemy.position[0], this.hero[1]], [this.hero[0], enemy.position[1]]];
-              const aligned = candidates.find(p => !this.at(p));
-              if (aligned) {
-                const start = enemy.position.slice() as Point;
-                enemy.position = aligned;
-                motions.push({ id: enemy.id, from: start, to: [...aligned] });
-              }
+            for (const to of stagSteps(enemy.position, this.hero, occupied())) {
+              const from = enemy.position.slice() as Point;
+              enemy.position = [...to];
+              motions.push({ id: enemy.id, from, to: [...to] });
             }
-            enemy.skillIndex = Math.max(Math.abs(this.hero[0] - enemy.position[0]), Math.abs(this.hero[1] - enemy.position[1])) <= 1 ? 2 : 0;
+            enemy.skillIndex = 0;
+            enemy.warningTiles = [];
           }
           // Lock the next intent now; never retarget during the player's actions.
           enemy.facing = faceToward(enemy, this.hero);
@@ -467,6 +466,9 @@ export class Room {
         enemy.position = best.slice() as Point;
         if (enemy.kind === 'stump') enemy.facing = faceToward(enemy, this.hero);
         if (!equal(from, best)) motions.push({ id: enemy.id, from, to: best.slice() as Point });
+      }
+      for (const enemy of pendingRocks) {
+        enemy.warningTiles = rockWarnings(enemy.position, this.hero, this.enemies.filter(e => e.id !== enemy.id).map(e => e.position), Boolean(enemy.enraged));
       }
       this.discard.push(...this.hand.filter(id => id !== 'knife' && id !== 'absoluteShadow' && id !== 'dawnSpear'));
       this.hand = this.hand.filter(id => id === 'absoluteShadow' || id === 'dawnSpear');

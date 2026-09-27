@@ -1084,21 +1084,24 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) {
       if (!room.enemies.some(enemy => Room.threatens(enemy, [x, y]))) continue;
       const mark = document.createElement('div'); mark.className = 'threat-mark'; place(mark, [x, y]); cast.append(mark);
+      if (room.enemies.some(enemy => enemySkill(enemy).id === 'rocks' && Room.threatens(enemy, [x, y]))) {
+        const stone = document.createElement('span'); stone.className = 'falling-rock'; mark.append(stone);
+      }
     }
     elements.board.append(cast);
     try { if (cast.childElementCount) await animate(cast, [{ opacity: 0 }, { opacity: .9, offset: .35 }, { opacity: 0 }], 260); }
     finally { cast.remove(); }
     const charging = new Set(room.enemies.filter(e => enemySkill(e).id === 'charge').map(e => e.id));
+    const fallingRocks = new Set(room.enemies.filter(e => enemySkill(e).id === 'rocks').map(e => e.id));
     const outcome = room.endTurn();
     if (!outcome) {
       busy = false;
       render();
       return;
     }
-    await Promise.all(outcome.motions.filter(m => charging.has(m.id)).map(m => travel(actor(m.id), m.from, m.to, 0)));
     const cellPixels = elements.board.clientWidth / 5;
     await Promise.all(
-      outcome.attacks.filter(attack => !charging.has(attack.id)).map((attack) => {
+      outcome.attacks.filter(attack => !charging.has(attack.id) && !fallingRocks.has(attack.id)).map((attack) => {
         const dx = room.hero[0] - attack.from[0],
           dy = room.hero[1] - attack.from[1];
         const magnitude = Math.hypot(dx, dy),
@@ -1125,9 +1128,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       ], 380)]);
     }
     if (!room.lost) {
-      await Promise.all(
-        outcome.motions.filter(motion => !charging.has(motion.id)).map((motion) => travel(actor(motion.id), motion.from, motion.to, 12))
-      );
+      for (const motion of outcome.motions) {
+        await travel(actor(motion.id), motion.from, motion.to, charging.has(motion.id) ? 0 : 12);
+      }
       dealWholeHand = true;
     }
     busy = false;
@@ -1197,7 +1200,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       );
       sprite.dataset.kind = enemy.kind;
       sprite.classList.toggle('boss', Boolean(data.enemies[enemy.kind].boss));
-      if (enemy.kind === 'sporecap' || data.enemies[enemy.kind].boss) {
+      if (enemy.kind === 'sporecap' || enemy.kind === 'rootwarden') {
         const intent = document.createElement('span'); intent.className = 'enemy-intent'; intent.setAttribute('aria-hidden', 'true'); sprite.append(intent);
       }
       sprite.insertAdjacentHTML('beforeend', '<svg class="guard-shield" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 5 53 14v17c0 14-21 26-21 26S11 45 11 31V14Z"/></svg>');

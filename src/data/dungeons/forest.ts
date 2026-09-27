@@ -68,7 +68,9 @@ export const forestRuins: DungeonDefinition = {
       name: '苔角聖所',
       hero: [2, 0],
       enemies: [
-        { id: 0, kind: 'mossstag', position: [1, 4], health: 8, facing: 'south', skillIndex: 0 }
+        { id: 0, kind: 'mossstag', position: [1, 4], health: 8, facing: 'south', skillIndex: 2 },
+        { id: 1, kind: 'sprout', position: [0, 2] },
+        { id: 2, kind: 'sprout', position: [4, 3] }
       ]
     }
   ]

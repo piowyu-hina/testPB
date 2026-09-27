@@ -8,11 +8,15 @@ const adjacent: Point[] = [[0, 1], [1, 0], [0, -1], [-1, 0]];
 const diagonal: Point[] = [[1, 1], [1, -1], [-1, -1], [-1, 1]];
 
 export function enemySkill(enemy: Enemy) {
-  return enemies[enemy.kind].skills[enemy.skillIndex ?? 0];
+  const skill = enemies[enemy.kind].skills[enemy.skillIndex ?? 0];
+  return enemy.kind === 'mossstag' && enemy.enraged && skill.id === 'rocks'
+    ? { ...skill, name: '暴走落石', hint: '紅格將落石，造成 1 傷害；暴走增加落石格，鹿靈原地不動。' }
+    : skill;
 }
 export function attackOffsets(enemy: Enemy): Point[] {
   const pattern = enemySkill(enemy).pattern;
   if (pattern === 'none') return [];
+  if (pattern === 'marked') return (enemy.warningTiles ?? []).map(([x, y]) => [x - enemy.position[0], y - enemy.position[1]]);
   if (pattern === 'charge-ray') {
     const [x, y] = facingOffsets[enemy.facing ?? 'south'];
     return Array.from({ length: 4 }, (_, i): Point => [x * (i + 1), y * (i + 1)]);
@@ -30,11 +34,15 @@ export function attackOffsets(enemy: Enemy): Point[] {
   return pattern === 'front' ? [facingOffsets[enemy.facing ?? 'south']] : pattern === 'diagonal' ? diagonal : adjacent;
 }
 export function enemyDamage(enemy: Enemy) { return enemySkill(enemy).damage ?? (enemy.elite ? 2 : 1); }
-/** Charge crosses its announced lane, landing on its farthest unoccupied tile. */
+/** Never pass through an occupied tile, even if a farther tile is empty. */
 export function chargeLanding(enemy: Enemy, occupied: Point[]): Point {
-  return attackOffsets(enemy).map(([x, y]): Point => [enemy.position[0] + x, enemy.position[1] + y])
-    .filter(p => p.every(v => v >= 0 && v < 5) && !occupied.some(q => q[0] === p[0] && q[1] === p[1]))
-    .at(-1) ?? [...enemy.position];
+  let landing: Point = [...enemy.position];
+  for (const [x, y] of attackOffsets(enemy)) {
+    const p: Point = [enemy.position[0] + x, enemy.position[1] + y];
+    if (p.some(v => v < 0 || v >= 5) || occupied.some(q => q[0] === p[0] && q[1] === p[1])) break;
+    landing = p;
+  }
+  return landing;
 }
 export function blocksAttack(enemy: Enemy, from: Point): boolean {
   if (!enemySkill(enemy).guardsFront) return false;

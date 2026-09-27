@@ -54,9 +54,7 @@ const {planJourney}=require('./forest-planner.cjs');
     await page.locator('#replay').click();await idle();assert.equal(await page.locator('#journey-progress-label').textContent(),'1 / 6');
     await page.locator('[data-test-action="boss"]').click();await idle();
     await page.locator('[data-test-action="health"]').click();
-    await page.locator('#end-turn').click();await idle(); // Charge -> rest.
-    await page.locator('#end-turn').click();await idle(); // Rest -> antler.
-    await page.locator('#end-turn').click();await idle();
+    for(let n=0;n<8&&!await page.locator('#result').isVisible();n++){await page.locator('#end-turn').click();await idle();}
     assert.match(await page.locator('#result-title').textContent(),/再試一次/);await screenshot('defeat');
     await page.locator('#replay').click();await idle();assert.equal(await page.locator('#journey-progress-label').textContent(),'1 / 6');
     assert.deepEqual(errors,[]);console.log('Forest six-room pointer playthrough, all boss phases, victory/death/restart passed');

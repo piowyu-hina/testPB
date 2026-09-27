@@ -25,10 +25,10 @@ export interface CardDefinition {
 export type EnemyKind = 'sprout' | 'stump' | 'sporecap' | 'moth' | 'rootwarden' | 'mossstag';
 export type Facing = 'north' | 'east' | 'south' | 'west';
 export interface EnemySkill {
-  id: 'thorns' | 'sweep' | 'roots' | 'spores' | 'flutter' | 'root-cross' | 'root-diagonal' | 'recover' | 'charge' | 'antler';
+  id: 'thorns' | 'sweep' | 'roots' | 'spores' | 'flutter' | 'root-cross' | 'root-diagonal' | 'recover' | 'charge' | 'antler' | 'rocks' | 'prepare';
   name: string;
   hint: string;
-  pattern: 'adjacent' | 'front' | 'diagonal' | 'ring' | 'diagonal-ray' | 'cross-ray' | 'none' | 'charge-ray' | 'front-fan';
+  pattern: 'adjacent' | 'front' | 'diagonal' | 'ring' | 'diagonal-ray' | 'cross-ray' | 'none' | 'charge-ray' | 'front-fan' | 'marked';
   damage?: number;
   guardsFront: boolean;
   holdAfter: boolean;
@@ -49,6 +49,8 @@ export interface Enemy {
   maxHealth?: number;
   skillIndex?: number;
   facing?: Facing;
+  warningTiles?: Point[];
+  enraged?: boolean;
 }
 export interface MovePreview {
   blocked: boolean;

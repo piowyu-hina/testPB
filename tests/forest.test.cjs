@@ -27,15 +27,16 @@ test('Qinghe forecasts stay equal to resolution for each new enemy and phase',()
     room.move(0,[x,y]);assert.deepEqual(room.hero,p.destination);assert.equal(room.damageAt(room.hero),p.damage);
   }
 });
-test('stag locks charge, travels on a miss, rests, then sweeps with a rear opening',()=>{
+test('stag locks charge, travels on a miss, marks rocks then remains still during impact',()=>{
   const room=setup('mossstag',0,[1,0]),e=room.enemies[0];e.facing='south';
   room.hand=['sidestep'];room.move(0,[0,0]);assert.equal(e.facing,'south');
   const out=room.endTurn();assert.equal(out.damage,0);assert.deepEqual(e.position,[2,0]);
-  assert.deepEqual(out.motions,[{id:0,from:[2,2],to:[2,0]}]);assert.equal(enemySkill(e).id,'recover');
-  assert.equal(room.damageAt([1,0]),0);room.hero=[1,0];room.endTurn();assert.equal(enemySkill(e).id,'antler');
-  assert.equal(e.facing,'west');assert.equal(room.damageAt([1,0]),1);assert.equal(room.damageAt([3,0]),0);
-  const facing=e.facing;room.hero=[3,0];assert.equal(e.facing,facing);
-  room.endTurn();assert.equal(enemySkill(e).id,'antler');assert.equal(e.facing,'east');
+  assert.deepEqual(out.motions,[{id:0,from:[2,2],to:[2,0]}]);assert.equal(enemySkill(e).id,'rocks');
+  assert.equal(e.warningTiles.length,8);const marks=JSON.stringify(e.warningTiles);
+  const expected=room.damageAt(room.hero),pos=e.position.slice();
+  e.health=4;assert.equal(JSON.stringify(e.warningTiles),marks);
+  const impact=room.endTurn();assert.equal(impact.damage,expected);assert.deepEqual(e.position,pos);
+  assert.equal(impact.motions.length,0);assert.equal(enemySkill(e).id,'prepare');
 });
 test('stag charge crosses its locked lane without overlapping player or monsters; boss resists push',()=>{
   const room=setup('mossstag',0,[2,0]),e=room.enemies[0];e.facing='south';
@@ -71,19 +72,33 @@ test('no stationary safe tile survives stag targeting in any position, facing or
   }
   console.log(`Stationary exploit checks: ${cases} positions/phases/facings`);
 });
-test('camping the same adjacent side cannot farm recurring free rests',()=>{
+test('camping the same adjacent side still eventually takes a forecast attack',()=>{
   for(const offset of [[0,1],[0,-1],[1,0],[-1,0],[1,1],[-1,1],[1,-1],[-1,-1]]){
     const r=setup('mossstag',1,[2+offset[0],2+offset[1]]),e=r.enemies[0];
-    r.endTurn();assert.equal(enemySkill(e).id,'antler');
-    for(let n=0;n<3;n++){
-      r.health=5;assert.equal(r.endTurn().damage,1);assert.equal(enemySkill(e).id,'antler');
-      assert.deepEqual(e.position,[2,2]);
-    }
+    let damage=0;for(let n=0;n<6&&!damage;n++)damage+=r.endTurn().damage;
+    assert.ok(damage>0);
   }
 });
-test('distant diagonal player causes alignment before the next locked charge, without surprise damage',()=>{
-  const r=setup('mossstag',1,[4,4]),e=r.enemies[0];e.position=[0,0];
+test('preparation uses at most two one-cell steps and never jumps through occupants',()=>{
+  const r=setup('mossstag',2,[4,4]),e=r.enemies[0];e.position=[0,0];
+  r.enemies.push({id:1,kind:'sporecap',position:[0,1],health:2,skillIndex:1});
   const out=r.endTurn();assert.equal(out.damage,0);assert.equal(enemySkill(e).id,'charge');
-  assert.equal(r.damageAt(r.hero),2);assert.equal(out.motions.length,1);
+  const moves=out.motions.filter(m=>m.id===0);assert.ok(moves.length<=2);
+  for(const m of moves){assert.equal(Math.abs(m.from[0]-m.to[0])+Math.abs(m.from[1]-m.to[1]),1);assert.notDeepEqual(m.to,[0,1]);}
   const face=e.facing;r.hero=[3,3];assert.equal(e.facing,face);assert.equal(r.damageAt(r.hero),0);
+});
+test('half-health increases the next rock warning, with a connected unoccupied safe region',()=>{
+  for(const health of [8,4]){
+    const r=setup('mossstag',0,[4,0]),e=r.enemies[0];e.health=health;
+    r.endTurn();assert.equal(e.warningTiles.length,health===4?12:8);
+    const key=p=>p.join(','),blocked=new Set(e.warningTiles.map(key));blocked.add(key(e.position));
+    const safe=Array.from({length:25},(_,i)=>[i%5,Math.floor(i/5)]).filter(p=>!blocked.has(key(p)));
+    const seen=[safe[0]];for(let i=0;i<seen.length;i++)for(const p of safe)if(Math.abs(p[0]-seen[i][0])+Math.abs(p[1]-seen[i][1])===1&&!seen.some(q=>key(q)===key(p)))seen.push(p);
+    assert.equal(seen.length,safe.length);
+  }
+});
+test('sequential movements can enter a vacated cell but cannot pass an occupied one',()=>{
+  const r=new Room(1,{name:'queue',hero:[2,0],enemies:[{id:0,kind:'sprout',position:[2,2]},{id:1,kind:'sprout',position:[2,3]}]},5,'qinghe');
+  const initial=new Map(r.enemies.map(e=>[e.id,e.position.slice()]));const out=r.endTurn();
+  for(const m of out.motions){assert.deepEqual(initial.get(m.id),m.from);assert.ok(![...initial].some(([id,p])=>id!==m.id&&p[0]===m.to[0]&&p[1]===m.to[1]));initial.set(m.id,m.to);}
 });

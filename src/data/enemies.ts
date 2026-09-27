@@ -3,11 +3,11 @@ import type { EnemyDefinition, EnemyKind } from '../types/game.ts';
 export const enemies: Record<EnemyKind, EnemyDefinition> = {
   mossstag: {
     name: '苔角鹿靈', boss: true,
-    behavior: '近身角掃，遠處對齊後衝撞；衝撞後才喘息。方向在回合開始鎖定。',
+    behavior: '逐格走位後預告衝撞，撞完預告落石；落石時原地不動，半血增加落石格。',
     skills: [
-      { id: 'charge', name: '衝撞', hint: '沿亮起直線衝至遠端，造成 2 傷害；方向已鎖定，下一回合喘息。', pattern: 'charge-ray', damage: 2, guardsFront: false, holdAfter: true },
-      { id: 'recover', name: '喘息', hint: '本回合不攻擊；之後近身角掃，遠處會移位對齊，預告衝撞。', pattern: 'none', guardsFront: false, holdAfter: true },
-      { id: 'antler', name: '角掃', hint: '橫掃前方與兩側相鄰五格，造成 1 傷害；背後三格安全。', pattern: 'front-fan', damage: 1, guardsFront: false, holdAfter: true }
+      { id: 'charge', name: '衝撞', hint: '直線衝擊造成 2 傷害，身體遇阻停下；撞完預告落石。', pattern: 'charge-ray', damage: 2, guardsFront: false, holdAfter: true },
+      { id: 'rocks', name: '落石', hint: '紅格將落石，造成 1 傷害；鹿靈原地不動。半血後落石更多。', pattern: 'marked', damage: 1, guardsFront: false, holdAfter: true },
+      { id: 'prepare', name: '走位', hint: '本回合不攻擊；接著最多移動兩次，每次一格，再預告衝撞。', pattern: 'none', guardsFront: false, holdAfter: true }
     ]
   },
   sprout: {
