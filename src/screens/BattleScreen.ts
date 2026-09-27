@@ -1089,7 +1089,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       }
     }
     elements.board.append(cast);
-    try { if (cast.childElementCount) await animate(cast, [{ opacity: 0 }, { opacity: .9, offset: .35 }, { opacity: 0 }], 260); }
+    const castDuration = cast.querySelector('.falling-rock') ? 600 : 260;
+    cast.style.setProperty('--cast-duration', `${castDuration}ms`);
+    const castFrames = castDuration === 600
+      ? [{ opacity: 0 }, { opacity: .9, offset: .15 }, { opacity: .9, offset: .8 }, { opacity: 0 }]
+      : [{ opacity: 0 }, { opacity: .9, offset: .35 }, { opacity: 0 }];
+    try { if (cast.childElementCount) await animate(cast, castFrames, castDuration); }
     finally { cast.remove(); }
     const charging = new Set(room.enemies.filter(e => enemySkill(e).id === 'charge').map(e => e.id));
     const fallingRocks = new Set(room.enemies.filter(e => enemySkill(e).id === 'rocks').map(e => e.id));
