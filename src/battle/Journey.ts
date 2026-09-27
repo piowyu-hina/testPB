@@ -5,7 +5,7 @@ import { dungeons } from '../data/dungeons/index.ts';
 import type { DungeonId } from '../data/dungeons/index.ts';
 import type { CardId } from '../data/cards.ts';
 import { freshBuild, canEngrave, engravingInfo, relicInfo, type Engraving, type CardRef } from './Growth.ts';
-import { rewardOptions, type BattleReward } from './BattleRewards.ts';
+import { battleRewards, rewardOptions, type BattleReward } from './BattleRewards.ts';
 
 export class Journey {
   readonly exit: Point = [2, 4];
@@ -21,16 +21,29 @@ export class Journey {
   readonly builds = { basic: freshBuild(), qinghe: freshBuild(), rogue: freshBuild() };
   private rewardedStages = new Set<number>();
   private offeredRewards?: BattleReward[];
+  private get ordinaryRewardCards() {
+    return [...this.room.hand, ...this.room.deck, ...this.room.discard].filter(ref => !ref.includes('#'));
+  }
   get pendingBattleReward() {
-    return this.loadout === 'qinghe' && this.stage === 1 && this.room.won && !this.build.battleReward;
+    return this.loadout === 'qinghe' && this.stage === 1 && this.room.won && !this.build.rewardClaimed && rewardOptions(this.seed, this.ordinaryRewardCards).length > 0;
   }
   get battleRewardOptions(): readonly BattleReward[] {
     if (!this.pendingBattleReward) return [];
-    return this.offeredRewards ??= rewardOptions(this.seed);
+    const available = rewardOptions(this.seed, this.ordinaryRewardCards);
+    if (!this.offeredRewards?.some(id => available.includes(id))) this.offeredRewards = available;
+    return this.offeredRewards!.filter(id => available.includes(id));
   }
   chooseBattleReward(reward: BattleReward) {
     if (!this.pendingBattleReward || !this.battleRewardOptions.includes(reward)) return false;
-    this.build.battleReward = reward;
+    const id = battleRewards[reward].card;
+    const pile = [this.room.hand, this.room.deck, this.room.discard].find(pile => pile.includes(id));
+    if (!pile) return false;
+    let index = 0;
+    while (this.build.engravings[`${id}#${index}`] || this.build.rewards[`${id}#${index}`]) index++;
+    const ref: CardRef = `${id}#${index}`;
+    pile[pile.indexOf(id)] = ref;
+    this.build.rewards[ref] = reward;
+    this.build.rewardClaimed = true;
     return true;
   }
   get build() { return this.builds[this.loadout]; }
@@ -44,7 +57,7 @@ export class Journey {
     const pile = [this.room.hand, this.room.deck, this.room.discard].find(pile => pile.includes(id));
     if (!pile) return false;
     let index = 0;
-    while (this.build.engravings[`${id}#${index}`]) index++;
+    while (this.build.engravings[`${id}#${index}`] || this.build.rewards[`${id}#${index}`]) index++;
     const ref: CardRef = `${id}#${index}`;
     pile[pile.indexOf(id)] = ref;
     this.build.engravings[ref] = kind;

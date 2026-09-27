@@ -1,0 +1,9 @@
+[data-reward-face] {
+  background: linear-gradient(145deg, #fff5d6 0%, #f4d28e 65%, #cd9546 100%) !important;
+  border-color: #a36b29 !important;
+}
+.reward-face-trim {
+  position: absolute; inset: 7px; border: 2px solid #9c662a;
+  border-radius: 7px; pointer-events: none;
+  clip-path: polygon(0 0, 32% 0, 32% 5%, 4% 5%, 4% 95%, 96% 95%, 96% 5%, 68% 5%, 68% 0, 100% 0, 100% 100%, 0 100%);
+}

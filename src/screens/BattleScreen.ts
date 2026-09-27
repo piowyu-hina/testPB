@@ -22,6 +22,7 @@ import { loadouts } from '../data/cards';
 import { characterInfo } from '../data/characterInfo';
 import { cardKind, deckForBuild, type CardRef, type Engraving } from '../battle/Growth';
 import { battleRewards } from '../battle/BattleRewards';
+import { rewardFace } from '../ui/rewardFace';
 import '../enemy.css';
 import '../battleBoard.css';
 import '../battleHud.css';
@@ -86,22 +87,48 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   function showBattleReward() {
     if (!journey.pendingBattleReward) return;
     rewardPage.replaceChildren();
-    const title = document.createElement('h2'); title.textContent = '選擇本趟強化';
-    const subtitle = document.createElement('p'); subtitle.textContent = '選一項，這趟所有同名牌都生效';
+    const title = document.createElement('h2'); title.textContent = '強化一張牌';
+    const subtitle = document.createElement('p'); subtitle.textContent = '只改變一張，其餘同名牌保留';
     rewardPage.append(title, subtitle);
+    const choices = document.createElement('div'); choices.className = 'battle-reward-choices';
+    const detail = document.createElement('section'); detail.className = 'battle-reward-detail';
+    const confirm = document.createElement('button'); confirm.className = 'battle-reward-confirm'; confirm.textContent = '強化這張'; confirm.disabled = true;
+    let chosen: (typeof journey.battleRewardOptions)[number] | undefined;
     for (const id of journey.battleRewardOptions) {
       const reward = battleRewards[id], button = document.createElement('button');
       button.type = 'button'; button.className = 'battle-reward-choice'; button.dataset.reward = id;
+      button.setAttribute('aria-pressed', 'false');
+      const face = document.createElement('span'); face.className = 'battle-reward-card'; rewardFace(face, id);
       const art = document.createElement('img'); art.src = cardArt[reward.card]!; art.alt = '';
-      const text = document.createElement('span'), name = document.createElement('strong'), desc = document.createElement('span');
-      name.textContent = reward.name; desc.textContent = reward.description;
-      text.append(name, desc); button.append(art, text);
+      const name = document.createElement('strong'); name.textContent = `${data.cards[reward.card].name}・${reward.name}`;
+      face.append(art); button.append(face, name);
       onClick(button, () => {
-        if (!journey.chooseBattleReward(id)) return;
-        rewardPage.hidden = true; elements.game.inert = false; render();
+        chosen = id; confirm.disabled = false;
+        for (const other of choices.querySelectorAll('button')) other.setAttribute('aria-pressed', String(other === button));
+        const heading = document.createElement('h3'); heading.textContent = `${data.cards[reward.card].name} → ${reward.name}${data.cards[reward.card].name}`;
+        const desc = document.createElement('p'); desc.textContent = reward.description;
+        detail.replaceChildren(heading, desc);
       });
-      rewardPage.append(button);
+      choices.append(button);
     }
+    detail.textContent = '選一張，查看強化效果';
+    rewardPage.append(choices, detail, confirm);
+    onClick(confirm, async () => {
+      if (!chosen || !journey.chooseBattleReward(chosen)) return;
+      for (const button of rewardPage.querySelectorAll('button')) button.disabled = true;
+      const reward = battleRewards[chosen];
+      const reveal = document.createElement('div'); reveal.className = 'battle-reward-reveal';
+      const face = document.createElement('div'); face.className = 'battle-reward-card';
+      const art = document.createElement('img'); art.src = cardArt[reward.card]!; art.alt = '';
+      face.append(art);
+      const name = document.createElement('h3'); name.textContent = data.cards[reward.card].name;
+      reveal.append(face, name); rewardPage.append(reveal);
+      await pause(250);
+      rewardFace(face, chosen); name.textContent = `${reward.name}${data.cards[reward.card].name}`;
+      await animate(face, [{ boxShadow: '0 0 0 0 #f8d17b00' }, { boxShadow: '0 0 60px 20px #f8d17b99', offset: .35 }, { boxShadow: '0 0 22px 4px #f8d17b44' }], 650);
+      await pause(350);
+      rewardPage.hidden = true; elements.game.inert = false; render();
+    });
     const home = document.createElement('button'); home.type = 'button'; home.className = 'quiet-button'; home.textContent = '返回村莊';
     onClick(home, () => { rewardPage.hidden = true; elements.game.inert = false; onHome(); });
     rewardPage.append(home); rewardPage.hidden = false; elements.game.inert = true;
@@ -144,7 +171,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     name.textContent = card.name;
     const description = document.createElement('span');
     description.textContent = card.hint ?? '';
-    const reward = room?.build.battleReward && battleRewards[room.build.battleReward];
+    const rewardId = ref && room?.build.rewards[ref];
+    const reward = rewardId ? battleRewards[rewardId] : undefined;
     if (journey?.loadout === 'qinghe' && reward && data.cards[reward.card] === card) {
       name.textContent += ` · ${reward.name}`;
       description.textContent += ` ${reward.description}`;
@@ -215,6 +243,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     name.textContent = definition.name;
     const effect = document.createElement('p');
     effect.textContent = definition.hint ?? '';
+    const rewardId = ref && room.build.rewards[ref];
+    if (rewardId) {
+      name.textContent = `${battleRewards[rewardId].name}${definition.name}`;
+      effect.textContent += ` ${battleRewards[rewardId].description}`;
+    }
     const cost = document.createElement('small');
     cost.textContent = id === 'forward' ? '清場後使用 · 不消耗行動' : `${(definition as CardDefinition).cost ?? 1} 行動${id === 'knife' ? ' · 使用後消失' : ''}`;
     elements.cardDetails.append(name, effect, cost);
@@ -473,6 +506,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         costNode.innerHTML = Array.from({ length: cost }, (_, i) => `<span class="cost-flame" style="z-index:${cost - i}"></span>`).join('');
       }
       card.classList.toggle('engraved', Boolean(room.build.engravings[room.availableCardRefs[index]]));
+      rewardFace(card, room.build.rewards[room.availableCardRefs[index]]);
       card.querySelector('.engraving-badge')?.remove();
       const engraving = room.build.engravings[room.availableCardRefs[index]];
       if (engraving) card.append(engravingBadge(engraving, !room.growthReady(room.availableCardRefs[index])));
@@ -1339,6 +1373,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   function showOverflowFeedback(ref: CardRef) {
     const card = cardKind(ref);
     const face = elements.overflowFeedback.querySelector('.overflow-card')!;
+    rewardFace(face as HTMLElement, room.build.rewards[ref]);
     face.querySelector('.engraving-badge')?.remove();
     const engraving = room.build.engravings[ref];
     if (engraving) face.append(engravingBadge(engraving));
@@ -1409,7 +1444,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           ];
           const pool = deckForBuild(room.loadout, room.build);
           room.hand = loadouts[room.loadout].map(id => {
-            let index = pool.findIndex(ref => cardKind(ref) === id && Boolean(room.build.engravings[ref]));
+            let index = pool.findIndex(ref => cardKind(ref) === id && Boolean(room.build.engravings[ref] || room.build.rewards[ref]));
             if (index < 0) index = pool.indexOf(id);
             return pool.splice(index, 1)[0];
           });

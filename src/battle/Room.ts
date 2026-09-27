@@ -281,8 +281,8 @@ export class Room {
     const kind = cardKind(this.hand[index]);
     let attackDamage = 1;
     if (this.loadout === 'qinghe' && victim && !blocked) {
-      if (this.build.battleReward === 'reach' && kind === 'thrust' && Math.abs(destination[0]-this.hero[0])+Math.abs(destination[1]-this.hero[1]) === 2) attackDamage++;
-      if (this.build.battleReward === 'collision' && kind === 'repel' && !victim.elite && !enemies[victim.kind].boss && !enemies[victim.kind].rooted && enemySkill(victim).id !== 'roots') {
+      if (this.build.rewards[this.hand[index]] === 'reach' && kind === 'thrust' && Math.abs(destination[0]-this.hero[0])+Math.abs(destination[1]-this.hero[1]) === 2) attackDamage++;
+      if (this.build.rewards[this.hand[index]] === 'collision' && kind === 'repel' && !victim.elite && !enemies[victim.kind].boss && !enemies[victim.kind].rooted && enemySkill(victim).id !== 'roots') {
         const beyond: Point = [destination[0]+Math.sign(destination[0]-this.hero[0]), destination[1]+Math.sign(destination[1]-this.hero[1])];
         if (!inside(beyond) || this.at(beyond)) attackDamage++;
       }
@@ -333,8 +333,8 @@ export class Room {
       this.actions -= cost;
       if (this.won) this.knives = [];
       const action: MoveAction = { from: this.hero.slice() as Point, to: this.hero.slice() as Point, kind: 'sweep', removedId: -1, hits };
-      if (this.loadout === 'qinghe' && this.build.battleReward === 'whirlwind' && hits.filter(h=>!h.blocked).length >= 2 && !this.usedGrowth.has('battle-whirlwind')) {
-        this.usedGrowth.add('battle-whirlwind'); this.actions++;
+      if (this.loadout === 'qinghe' && this.build.rewards[ref] === 'whirlwind' && hits.filter(h=>!h.blocked).length >= 2 && !this.usedGrowth.has(`reward:${ref}`)) {
+        this.usedGrowth.add(`reward:${ref}`); this.actions = Math.min(9, this.actions + 1);
         action.growth = ['refund'];
       }
       this.applyGrowth(action, cost, ref);
@@ -360,7 +360,7 @@ export class Room {
       if (!this.hasKnife(destination)) this.knives.push([...destination]);
     } else if ((cardKind(used) === 'recall' || equal(this.hero, destination)) && this.hasKnife(destination)) this.pickup(action, destination);
     if (cardKind(used) === 'repel' && !victim) this.rewardDraw(action, 1);
-    if (this.loadout === 'qinghe' && this.build.battleReward === 'pursuit' && cardKind(used) === 'thrust' && preview.removedId >= 0 && !this.won) this.rewardDraw(action, 1);
+    if (this.loadout === 'qinghe' && this.build.rewards[used] === 'pursuit' && cardKind(used) === 'thrust' && preview.removedId >= 0 && !this.won) this.rewardDraw(action, 1);
     this.applyGrowth(action, cost, ref);
     if (this.won) this.knives = [];
     return action;

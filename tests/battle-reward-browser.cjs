@@ -16,10 +16,19 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
   await p.locator('.battle-reward-page > .quiet-button').click();await p.locator('.screen-curtain').waitFor({state:'hidden'});
   await enter();await idle();
   assert.deepEqual(await p.locator('.battle-reward-choice').evaluateAll(es=>es.map(e=>e.dataset.reward)),before);
-  await p.locator('.battle-reward-choice').first().click();assert.equal(await p.locator('.battle-reward-page').isVisible(),false);
+  await p.locator('.battle-reward-choice').first().click();
+  assert.equal(await p.locator('.battle-reward-confirm').isEnabled(),true);
+  await p.locator('.battle-reward-confirm').click();
+  await p.locator('.battle-reward-reveal [data-reward-face]').waitFor({state:'visible'});
+  await p.screenshot({path:'test-results/battle-reward-transform.png'});
+  await p.locator('.battle-reward-page').waitFor({state:'hidden'});
   for(let i=0;i<4;i++){await idle();if(!await p.locator('#hand .selected').count())await p.locator('#hand .card').click();await p.locator('.tile[data-x="2"][data-y="'+(i+1)+'"]').click();}
   await idle();assert.equal(await p.locator('#journey-progress-label').textContent(),'3 / 6');
-  await p.locator('#open-deck').click();assert.ok((await p.locator('.deck-growth').textContent()).length>0);
+  await p.locator('#open-deck').click();assert.equal(await p.locator('.deck-list [data-reward-face]').count(),1);
+  assert.equal(await p.locator('.deck-list [data-reward-face] .deck-quantity').textContent(),'×1');
+  await p.locator('.deck-list [data-reward-face]').click();
+  await p.screenshot({path:'test-results/battle-reward-deck.png'});
+  assert.equal(await p.locator('.deck-viewer').evaluate(e=>e.scrollHeight>e.clientHeight||e.scrollWidth>e.clientWidth),false);
   assert.deepEqual(errors,[]);console.log('Reward choice, no scroll, home/resume stable offers and third-room carry passed');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -8,12 +8,13 @@ export type Engraving = 'draw' | 'refund' | 'discount';
 export type CardRef = CardId | `${CardId}#${number}`;
 export function cardKind(ref: CardRef): CardId { return ref?.split('#')[0] as CardId; }
 export interface Build {
-  battleReward?: BattleReward;
+  rewardClaimed?: boolean;
+  rewards: Partial<Record<CardRef, BattleReward>>;
   engravings: Partial<Record<CardRef, Engraving>>;
   relic: boolean;
   opening: boolean;
 }
-export const freshBuild = (): Build => ({ engravings: {}, relic: false, opening: false });
+export const freshBuild = (): Build => ({ engravings: {}, rewards: {}, relic: false, opening: false });
 export const engravingInfo: Record<Engraving, { name: string; description: string; price: number }> = {
   draw: { name: '流轉', description: '每回合首次使用這張牌，抽一張牌。', price: 3 },
   refund: { name: '回響', description: '每回合首次花費魂火使用這張牌，返還一點魂火。', price: 3 },
@@ -30,6 +31,6 @@ export function canEngrave(loadout: Loadout, id: CardId, kind: Engraving) {
 export function deckForBuild(loadout: Loadout, build: Build): CardRef[] {
   return loadouts[loadout].flatMap(id => Array.from({ length: cards[id].copies }, (_, index): CardRef => {
     const ref: CardRef = `${id}#${index}`;
-    return build.engravings[ref] ? ref : id;
+    return build.engravings[ref] || build.rewards[ref] ? ref : id;
   }));
 }

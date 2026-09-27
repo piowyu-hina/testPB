@@ -41,7 +41,7 @@ const {planJourney}=require('./forest-planner.cjs');
         await idle();
       }
       console.log(`Pointer clear: ${stage+1} ${plan.rooms[stage].name}`);
-      if(stage===1)await page.locator('.battle-reward-choice').first().click();
+      if(stage===1){await page.locator('.battle-reward-choice').first().click();await page.locator('.battle-reward-confirm').click();await page.locator('.battle-reward-page').waitFor({state:'hidden'});}
       if(stage===5){assert.equal(seenPhases.size,3);break;}
       for(let move=0;move<8;move++){
         if(await page.locator('#journey-progress-label').textContent()!==`${stage+1} / 6`)break;

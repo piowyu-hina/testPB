@@ -5,7 +5,7 @@ export const battleRewards = {
   reach: { name: '長鋒', card: 'thrust', description: '槍刺在相隔兩格時，額外造成一點傷害。' }
 } as const;
 export type BattleReward = keyof typeof battleRewards;
-export function rewardOptions(seed: number): BattleReward[] {
+export function rewardOptions(seed: number, available?: readonly string[]): BattleReward[] {
   const options = Object.keys(battleRewards) as BattleReward[];
   let n = seed >>> 0;
   for (let i = options.length - 1; i > 0; i--) {
@@ -13,5 +13,5 @@ export function rewardOptions(seed: number): BattleReward[] {
     const j = Math.floor(n / 4294967296 * (i + 1));
     [options[i], options[j]] = [options[j], options[i]];
   }
-  return options.slice(0, 3);
+  return options.filter(id => !available || available.includes(battleRewards[id].card)).slice(0, 3);
 }
