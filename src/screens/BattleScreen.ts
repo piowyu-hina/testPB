@@ -19,6 +19,7 @@ import { playSound, setSoundEnabled, soundEnabled } from '../ui/sound';
 import { mountDeckViewer } from '../ui/deckViewer';
 import { engravingBadge, engravingLabel, engravingShort } from '../ui/engravingBadge';
 import { loadouts } from '../data/cards';
+import { characterInfo } from '../data/characterInfo';
 import { cardKind, deckForBuild, type CardRef, type Engraving } from '../battle/Growth';
 import '../enemy.css';
 import '../battleBoard.css';
@@ -517,18 +518,20 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       return;
     }
     const point = touchLayout() ? inspectedTile : hoveredTile;
+    const isHero = Boolean(point && equal(point, room.hero));
     const enemy = point ? room.at(point) : undefined;
     const hasKnife = point ? room.hasKnife(point) : false;
     const isExit = Boolean(point && exploring() && equal(point, journey.exit));
     const danger = point && !exploring() ? room.damageAt(point, preview?.removedIds ?? preview?.removedId ?? -1) : 0;
-    panel.hidden = !point || busy || (room.finished && !exploring()) || (!enemy && !hasKnife && !isExit && !danger);
+    panel.hidden = !point || busy || (room.finished && !exploring()) || (!isHero && !enemy && !hasKnife && !isExit && !danger);
     elements.hint.hidden = !panel.hidden;
     if (panel.hidden || !point) {
       if (touchLayout() && inspectedTile) elements.touchInfo.replaceChildren();
       return;
     }
-    const title = enemy ? `${enemy.elite ? '精英・' : ''}${data.enemies[enemy.kind].name}` : isExit ? '出口' : hasKnife ? '地上小刀' : '危險地格';
+    const title = isHero ? characterInfo[room.loadout].name : enemy ? `${enemy.elite ? '精英・' : ''}${data.enemies[enemy.kind].name}` : isExit ? '出口' : hasKnife ? '地上小刀' : '危險地格';
     const lines: string[] = [];
+    if (isHero) lines.push(characterInfo[room.loadout].introduction);
     if (enemy) {
       const skill = enemySkill(enemy);
       lines.push(`${skill.name}：${skill.hint}`);
