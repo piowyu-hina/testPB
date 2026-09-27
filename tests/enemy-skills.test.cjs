@@ -1,7 +1,47 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { Room } = require('../src/battle/Room.ts');
-const { enemySkill, blocksAttack, facingOffsets } = require('../src/battle/EnemyRules.ts');
+const { enemySkill, blocksAttack, facingOffsets, attackOffsets } = require('../src/battle/EnemyRules.ts');
+
+test('crowned sweep covers five front/side cells, leaves three rear cells, and does not widen armor', () => {
+  for (const [facing, [fx, fy]] of Object.entries(facingOffsets)) {
+    const elite = { id: 0, kind: 'stump', position: [2, 2], elite: true, facing };
+    assert.equal(attackOffsets(elite).length, 5);
+    assert.equal(attackOffsets({ ...elite, elite: false }).length, 1);
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+      if (!dx && !dy) continue;
+      const point = [2 + dx, 2 + dy];
+      assert.equal(Room.threatens(elite, point), dx * fx + dy * fy >= 0);
+      assert.equal(blocksAttack(elite, point), dx === fx && dy === fy);
+    }
+    assert.equal(Room.threatens(elite, [2 + fx * 2, 2 + fy * 2]), false);
+    assert.equal(enemySkill({ ...elite, skillIndex: 1 }).guardsFront, false);
+    assert.equal(attackOffsets({ ...elite, skillIndex: 1 }).length, 4);
+  }
+});
+
+test('Qinghe movement, push, sweep and lethal forecasts match the crowned fan', () => {
+  for (const facing of Object.keys(facingOffsets)) for (const health of [1, 3]) {
+    for (let hx = 0; hx < 5; hx++) for (let hy = 0; hy < 5; hy++) {
+      if (hx === 2 && hy === 2) continue;
+      for (const card of ['advance', 'sidestep', 'thrust', 'repel', 'sweep']) {
+        for (let x = 0; x < 5; x++) for (let y = 0; y < 5; y++) {
+          const room = new Room(1, { name: 'fan', hero: [hx, hy], enemies: [
+            { id: 0, kind: 'stump', position: [2, 2], elite: true, health, facing }
+          ] }, 5, 'qinghe');
+          room.hand = [card];
+          const before = JSON.stringify(room.enemies), preview = room.preview(0, [x, y]);
+          assert.equal(JSON.stringify(room.enemies), before);
+          if (!preview) continue;
+          room.move(0, [x, y]);
+          assert.deepEqual(room.hero, preview.destination);
+          assert.equal(room.damageAt(room.hero), preview.damage);
+          if (!room.won) assert.equal(room.endTurn().damage, preview.damage);
+        }
+      }
+    }
+  }
+});
 
 function guardRoom(hero = [2, 1], extra = {}) {
   const room = new Room(1, { name: 'Guard test', hero, enemies: [

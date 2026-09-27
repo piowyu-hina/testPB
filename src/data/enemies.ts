@@ -1,4 +1,11 @@
-import type { EnemyDefinition, EnemyKind } from '../types/game.ts';
+import type { EnemyDefinition, EnemyKind, EnemySkill } from '../types/game.ts';
+
+// Crowned guards cover their flanks; ordinary guards retain the one-tile lesson.
+export const eliteStumpSweep: EnemySkill = {
+  id: 'sweep', name: '橫枝掃擊',
+  hint: '掃前方與兩側五格；背後安全，正面格擋。',
+  pattern: 'front-fan', guardsFront: true, holdAfter: true
+};
 
 export const enemies: Record<EnemyKind, EnemyDefinition> = {
   mossstag: {
