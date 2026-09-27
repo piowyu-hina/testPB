@@ -54,7 +54,8 @@
   pointer-events: none;
 }
 .card.card-entering {
-  animation: card-enter .34s calc(var(--entry-order, 0) * 70ms) cubic-bezier(.2,.72,.35,1) both;
+  /* Keep the starting pose during the delay, but release transform afterwards. */
+  animation: card-enter .34s calc(var(--entry-order, 0) * 70ms) cubic-bezier(.2,.72,.35,1) backwards;
 }
 @keyframes card-enter {
   from { opacity: 0; transform: translateX(52px); }
@@ -96,6 +97,23 @@
   animation: ultimate-card-glow 2.6s ease-in-out infinite alternate;
 }
 .card.ultimate-card.selected { border-color: #f3d47e; transform: translateY(-11px); }
+@media (hover: hover) and (pointer: fine) {
+  .game .hand .card:not(:disabled):hover {
+    transform: translateY(-34px) scale(1.025);
+    z-index: 20 !important;
+  }
+  /* Bridge the lifted card back to its original bottom edge. The cursor can
+     remain there without alternating pointerleave / pointerenter. */
+  .game .hand .card:not(:disabled):hover::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 36px;
+    background: transparent;
+  }
+}
 @keyframes ultimate-card-glow {
   to { box-shadow: inset 0 0 0 4px #fff9e9, 0 4px 0 #9b783e, 0 0 32px #ffd66bcc; }
 }
