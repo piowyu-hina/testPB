@@ -9,6 +9,7 @@ import { freshBuild, cardKind, deckForBuild, type Build, type CardRef, type Engr
 export const data = { cards, enemies };
 export const HAND_LIMIT = 5;
 export interface MoveAction {
+  dealtDamage?: boolean;
   growth?: Engraving[];
   hitId?: number;
   hits?: { id: number; position: Point; blocked: boolean; removed: boolean; elite: boolean }[];
@@ -281,11 +282,8 @@ export class Room {
     const kind = cardKind(this.hand[index]);
     let attackDamage = 1;
     if (this.loadout === 'qinghe' && victim && !blocked) {
-      if (this.build.rewards[this.hand[index]] === 'reach' && kind === 'thrust' && Math.abs(destination[0]-this.hero[0])+Math.abs(destination[1]-this.hero[1]) === 2) attackDamage++;
-      if (this.build.rewards[this.hand[index]] === 'collision' && kind === 'repel' && !victim.elite && !enemies[victim.kind].boss && !enemies[victim.kind].rooted && enemySkill(victim).id !== 'roots') {
-        const beyond: Point = [destination[0]+Math.sign(destination[0]-this.hero[0]), destination[1]+Math.sign(destination[1]-this.hero[1])];
-        if (!inside(beyond) || this.at(beyond)) attackDamage++;
-      }
+      if (this.build.rewards[this.hand[index]] === 'reach' && kind === 'thrust') attackDamage++;
+      if (this.build.rewards[this.hand[index]] === 'collision' && kind === 'repel') attackDamage++;
     }
     const survives = victim && (blocked || (victim.health ?? 1) > attackDamage);
     const stationary = ['throw', 'knife', 'recall'].includes(cardKind(this.hand[index])) || ['thrust', 'repel'].includes(cardKind(this.hand[index])) && Boolean(victim);
@@ -332,8 +330,8 @@ export class Room {
       this.discard.push(this.hand.splice(index, 1)[0]);
       this.actions -= cost;
       if (this.won) this.knives = [];
-      const action: MoveAction = { from: this.hero.slice() as Point, to: this.hero.slice() as Point, kind: 'sweep', removedId: -1, hits };
-      if (this.loadout === 'qinghe' && this.build.rewards[ref] === 'whirlwind' && hits.filter(h=>!h.blocked).length >= 2 && !this.usedGrowth.has(`reward:${ref}`)) {
+      const action: MoveAction = { from: this.hero.slice() as Point, to: this.hero.slice() as Point, kind: 'sweep', removedId: -1, hits, dealtDamage: hits.some(hit => !hit.blocked) };
+      if (this.loadout === 'qinghe' && this.build.rewards[ref] === 'whirlwind' && action.dealtDamage && !this.usedGrowth.has(`reward:${ref}`)) {
         this.usedGrowth.add(`reward:${ref}`); this.actions = Math.min(9, this.actions + 1);
         action.growth = ['refund'];
       }
@@ -349,6 +347,7 @@ export class Room {
       hitId: preview.hitId
     };
     const victim = this.at(destination);
+    action.dealtDamage = Boolean(victim && !preview.blocked);
     if (victim && !preview.blocked) victim.health = (victim.health ?? 1) - (preview.attackDamage ?? 1);
     this.enemies = this.enemies.filter((e) => e.id !== preview.removedId);
     if (preview.pushed && victim) { victim.position = [...preview.pushed.to]; action.pushed = preview.pushed; }
@@ -360,7 +359,10 @@ export class Room {
       if (!this.hasKnife(destination)) this.knives.push([...destination]);
     } else if ((cardKind(used) === 'recall' || equal(this.hero, destination)) && this.hasKnife(destination)) this.pickup(action, destination);
     if (cardKind(used) === 'repel' && !victim) this.rewardDraw(action, 1);
-    if (this.loadout === 'qinghe' && this.build.rewards[used] === 'pursuit' && cardKind(used) === 'thrust' && preview.removedId >= 0 && !this.won) this.rewardDraw(action, 1);
+    if (this.loadout === 'qinghe' && this.build.rewards[used] === 'pursuit' && !this.usedGrowth.has(`reward:${used}`)) {
+      this.usedGrowth.add(`reward:${used}`);
+      if (!this.won) this.rewardDraw(action, 1);
+    }
     this.applyGrowth(action, cost, ref);
     if (this.won) this.knives = [];
     return action;

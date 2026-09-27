@@ -27,7 +27,7 @@ function planJourney(seed=1) {
       const next=choose(room,journey);steps.push(next);
       if(next.ultimate){journey.spendDawnCharge();room.strikeUltimate(next.ultimate);}
       else if(next.end)room.endTurn();
-      else {room.move(next.card,next.point);journey.gainDawnCharge();}
+      else {journey.gainDawnCharge(room.move(next.card,next.point));}
     }
     rooms.push({name:journey.definition.name,won:room.won,health:room.health,turns:room.turn,steps});
     if(!room.won)break;

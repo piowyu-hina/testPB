@@ -29,7 +29,7 @@ function run(seed){
    else{
     const before={hp:hp(r),danger:r.damageAt(r.hero),distance:dist(r),hero:r.hero.slice()};
     const action=r.move(next.card,next.point);if(!action)throw new Error('Illegal planner action');
-    j.gainDawnCharge();m.cards++;played++;
+    j.gainDawnCharge(action);m.cards++;played++;
     if(before.hero[0]!==r.hero[0]||before.hero[1]!==r.hero[1]){
      m.moves++;
      if(hp(r)>=before.hp&&r.damageAt(r.hero)>=before.danger&&dist(r)>=before.distance)m.lowImpact++;

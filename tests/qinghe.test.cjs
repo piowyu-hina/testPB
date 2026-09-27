@@ -112,7 +112,7 @@ test('Qinghe ultimate pierces a straight ray without moving or respecting front 
   journey.room.hero = [2, 1];
   journey.room.enemies = [enemy(0, [2, 2], { health: 2, maxHealth: 2, kind: 'stump', facing: 'south' }), enemy(1, [2, 4]), enemy(2, [3, 3])];
   assert.equal(journey.gainAssassination(true), 0);
-  for (let index = 0; index < 4; index++) journey.gainDawnCharge();
+  journey.dawnCharge = 4;
   assert.equal(journey.dawnCharge, 4);
   assert.equal(journey.room.hand.includes('dawnSpear'), false);
   assert.equal(journey.room.strikeUltimate([1, 1]), null);
@@ -127,10 +127,23 @@ test('Qinghe ultimate pierces a straight ray without moving or respecting front 
 
 test('Qinghe charge persists across turns without taking a hand slot', () => {
   const journey = new Journey(1, 'qinghe');
-  for (let i = 0; i < 4; i++) journey.gainDawnCharge();
+  journey.dawnCharge = 4;
   journey.room.endTurn();
   assert.equal(journey.dawnCharge, 4);
   assert.equal(journey.room.hand.includes('dawnSpear'), false);
+});
+
+test('dawn charges actual normal attacks, not movement loops, blocks or ultimate damage',()=>{
+ const j=new Journey(1,'qinghe'),r=j.room;r.hero=[2,1];r.actions=9;
+ r.enemies=[enemy(0,[2,2],{health:20,maxHealth:20,kind:'stump',facing:'south'}),enemy(1,[4,4])];
+ r.hand=['sidestep','sidestep'];j.gainDawnCharge(r.move(0,[1,1]));j.gainDawnCharge(r.move(0,[2,1]));assert.equal(j.dawnCharge,0);
+ r.hand=['thrust'];j.gainDawnCharge(r.move(0,[2,2]));assert.equal(j.dawnCharge,0);
+ r.enemies[0].facing='north';r.hand=['thrust'];j.gainDawnCharge(r.move(0,[2,2]));assert.equal(j.dawnCharge,1);
+ r.enemies.push(enemy(2,[1,1],{health:10,maxHealth:10}));r.hand=['sweep'];j.gainDawnCharge(r.move(0,r.hero));assert.equal(j.dawnCharge,2);
+ j.gainDawnCharge(r.strikeUltimate([0,1]));assert.equal(j.dawnCharge,2);
+ r.hand=['thrust','thrust','thrust'];for(let n=0;n<3;n++)j.gainDawnCharge(r.move(0,[2,2]));assert.equal(j.dawnCharge,4);
+ r.enemies=[];r.hero=[2,4];j.advance();assert.equal(j.dawnCharge,4);
+ j.setLoadout('rogue');assert.equal(j.dawnCharge,0);
 });
 
 test('dawn targeting accepts every in-board tile on a cardinal ray, not diagonals or self', () => {
@@ -149,7 +162,7 @@ test('Qinghe ultimate works at full hand without replacing or spending cards', (
   const journey = new Journey(1, 'qinghe');
   journey.room.hand = ['advance', 'thrust', 'sweep', 'advance', 'thrust'];
   const hand = [...journey.room.hand];
-  for (let i = 0; i < 4; i++) journey.gainDawnCharge();
+  journey.dawnCharge = 4;
   assert.ok(journey.room.strikeUltimate([0, 1]));
   assert.equal(journey.spendDawnCharge(), true);
   assert.deepEqual(journey.room.hand, hand);

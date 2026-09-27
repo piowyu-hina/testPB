@@ -94,12 +94,6 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const confirm = document.createElement('button'); confirm.className = 'battle-reward-confirm'; confirm.textContent = '強化'; confirm.disabled = true;
     confirm.hidden = true;
     let chosen: (typeof journey.battleRewardOptions)[number] | undefined;
-    const rewardCopy = {
-      pursuit: '槍刺擊殺後，抽 1 張牌。',
-      collision: '可推動的怪物撞牆或撞怪，額外造成 1 點傷害。',
-      whirlwind: '命中至少兩隻怪物，回 1 點魂火。每回合一次。',
-      reach: '槍刺相隔兩格命中，額外造成 1 點傷害。'
-    };
     for (const id of journey.battleRewardOptions) {
       const reward = battleRewards[id], button = document.createElement('button');
       button.type = 'button'; button.className = 'battle-reward-choice'; button.dataset.reward = id;
@@ -108,7 +102,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const art = document.createElement('img'); art.src = cardArt[reward.card]!; art.alt = '';
       const name = document.createElement('strong'); name.textContent = reward.name;
       const copy = document.createElement('span'); copy.className = 'battle-reward-copy';
-      const description = document.createElement('span'); description.className = 'battle-reward-description'; description.textContent = rewardCopy[id];
+      const description = document.createElement('span'); description.className = 'battle-reward-description'; description.textContent = reward.description;
       copy.append(name, description);
       button.setAttribute('aria-label', `${reward.name}${data.cards[reward.card].name}：${reward.description}`);
       face.append(art, copy); button.append(face);
@@ -132,7 +126,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const copy = document.createElement('span'); copy.className = 'battle-reward-copy';
       const name = document.createElement('h3'); name.textContent = data.cards[reward.card].name;
       const description = document.createElement('span'); description.className = 'battle-reward-description';
-      description.textContent = rewardCopy[chosen]; description.hidden = true;
+      description.textContent = reward.description; description.hidden = true;
       copy.append(name, description); face.append(art, copy);
       reveal.append(face); rewardPage.append(reveal);
       await pause(250);
@@ -244,7 +238,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     name.textContent = `${nameText} · ${charge}/${journey.ultimateThreshold}`;
     const description = document.createElement('span');
     description.textContent = journey.loadout === 'qinghe'
-      ? '每打出 1 張普通牌累積 1 點。集滿後點圖案播放演出，再選方向，貫穿該直線所有怪物。'
+      ? '普通攻擊造成傷害，累積 1 點；一張牌最多 1 點。移動、格擋、大招不充能。集滿後點圖案，再選直線施放。'
       : '普通擊殺 +1，菁英擊殺 +2。集滿後點圖案播放演出，再選任意怪物造成 2 點無視格擋的傷害。';
     elements.hint.replaceChildren(name, description);
   }
@@ -919,7 +913,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     played?.remove();
     renderedHand.splice(selected, 1);
     handSignature = '';
-    if (journey.loadout === 'qinghe' && ['advance', 'thrust', 'sweep', 'sidestep', 'repel'].includes(action.kind)) journey.gainDawnCharge();
+    journey.gainDawnCharge(action);
     lock();
     renderEnergy(paidEnergy);
     if (action.growth?.includes('discount')) await growthFeedback('discount', playedBounds);
@@ -1312,7 +1306,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   function renderBattleRules() {
     const characterRules = journey.loadout === 'qinghe' ? [
       '突進：走向周圍一格。槍刺：原地刺向上下左右一至二格的第一隻怪物。橫掃：點亮起的範圍，原地攻擊周圍八格。側步：免費換到鄰近空地。槍柄推擊：近身攻擊並推開存活怪物，菁英、扎根與後方受阻不能推動。',
-      '每打出一張普通牌，大招累積一點；集滿四點後點圖案播放演出，再選方向施放；再點圖案可取消且保留充能。破曉一槍點金色直線施放，整條線上的怪物各受兩點無視格擋傷害。'
+      '普通攻擊造成傷害，大招累積一點；同一張牌命中多隻也只算一次。純移動、格擋、大招不充能。集滿四點後點圖案演出，再點金色直線施放：整條線各受兩點無視格擋傷害。再點圖案可取消且保留充能。'
     ] : journey.loadout === 'rogue' ? [
       '飛刀：原地投擲，刀留在地上。追影：瞬移到小刀格。突進：走向周圍一格。收刃：免費原地回收任意空地飛刀，不能拿走怪物腳下的刀。怪物站在刀上時攻擊傷害增加一點。',
       '撿刀會補一點行動、抽一張普通牌，並獲得本回合限定的免費小刀卡。普通擊殺充能一點，菁英兩點；集滿三點後點圖案播放演出，再選怪物施放；再點圖案可取消且保留充能。'
@@ -1476,7 +1470,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           }
           loadRoom();
         } else if (action === 'charge' && journey.loadout !== 'basic') {
-          if (journey.loadout === 'qinghe') for (let index = 0; index < 4; index++) journey.gainDawnCharge();
+          if (journey.loadout === 'qinghe') journey.dawnCharge = journey.ultimateThreshold;
           else {
             journey.gainAssassination(true);
             journey.gainAssassination(true);

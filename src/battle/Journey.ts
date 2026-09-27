@@ -1,5 +1,5 @@
 import type { Loadout } from '../data/cards.ts';
-import { Room, equal } from './Room.ts';
+import { Room, equal, type MoveAction } from './Room.ts';
 import type { Point, RoomDefinition } from '../types/game.ts';
 import { dungeons } from '../data/dungeons/index.ts';
 import type { DungeonId } from '../data/dungeons/index.ts';
@@ -102,8 +102,8 @@ export class Journey {
   }
   get ultimateCharge() { return this.loadout === 'qinghe' ? this.dawnCharge : this.assassination; }
   get ultimateThreshold() { return this.loadout === 'qinghe' ? 4 : 3; }
-  gainDawnCharge() {
-    if (this.loadout === 'qinghe') this.dawnCharge = Math.min(4, this.dawnCharge + 1);
+  gainDawnCharge(action?: MoveAction | null) {
+    if (this.loadout === 'qinghe' && action?.dealtDamage && ['advance', 'thrust', 'sweep', 'repel'].includes(action.kind)) this.dawnCharge = Math.min(4, this.dawnCharge + 1);
     return this.dawnCharge;
   }
   spendDawnCharge() {

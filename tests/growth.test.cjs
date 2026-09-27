@@ -17,25 +17,40 @@ test('battle reward is stable, single-choice, journey-local and blocks the secon
  assert.deepEqual(new Journey(987654,'qinghe').build.rewards,{});
  assert.ok(new Set(Array.from({length:30},(_,i)=>rewardOptions(i*145678901).slice().sort().join(','))).size>1);
 });
-test('pursuit draws on thrust kills only and respects five-card cap',()=>{
- const r=setup();r.build.rewards['thrust#0']='pursuit';r.enemies[0].health=1;r.hand=['thrust#0','sweep','sweep','sweep','sweep'];r.deck=['repel'];
+test('pursuit draws on use without needing a kill and respects five-card cap',()=>{
+ const r=setup();r.build.rewards['thrust#0']='pursuit';r.hand=['thrust#0','sweep','sweep','sweep','sweep'];r.deck=['repel'];
  const a=r.move(0,[2,2]);assert.deepEqual(a.drawnCards,['repel']);assert.equal(r.hand.length,5);
  const other=setup();other.build.rewards['thrust#0']='pursuit';other.hand=['thrust'];other.enemies[0].health=1;assert.equal(other.move(0,[2,2]).drawnCards,undefined);
 });
-test('reach and collision share committed and forecast damage, and never bypass guards or boss immunity',()=>{
+test('reach and heavy strike share forecast damage without requiring distance or collision',()=>{
  for(const reward of ['reach','collision']){
   const r=setup();const ref=reward==='reach'?'thrust#0':'repel#0';r.build.rewards[ref]=reward;r.hand=[ref];
-  r.hero=reward==='reach'?[2,0]:[2,3];r.enemies[0].position=reward==='reach'?[2,2]:[2,4];r.enemies[0].health=2;
+  r.hero=[2,1];r.enemies[0].position=[2,2];r.enemies[0].health=2;
   const p=r.preview(0,r.enemies[0].position);assert.equal(p.attackDamage,2);assert.equal(p.removedId,0);
   r.move(0,r.enemies[0].position);assert.ok(!r.enemies.some(e=>e.id===0));assert.equal(r.damageAt(r.hero),p.damage);
  }
- const r=setup();r.build.rewards['repel#0']='collision';r.hero=[2,3];r.hand=['repel#0'];r.enemies[0]={id:0,kind:'mossstag',position:[2,4],health:6};assert.equal(r.preview(0,[2,4]).attackDamage,1);
+ const r=setup();r.build.rewards['repel#0']='collision';r.hero=[2,3];r.hand=['repel#0'];r.enemies[0]={id:0,kind:'mossstag',position:[2,4],health:6};assert.equal(r.preview(0,[2,4]).attackDamage,2);assert.equal(r.preview(0,[2,4]).pushed,undefined);
  r.enemies[0]={id:0,kind:'stump',position:[2,4],health:2,facing:'south'};assert.equal(r.preview(0,[2,4]).attackDamage,0);
 });
-test('whirlwind refunds only for two actual hits, once per turn',()=>{
- const r=setup();r.build.rewards['sweep#0']='whirlwind';r.enemies=[target({health:10}),target({id:1,position:[1,1],health:10})];r.hand=['sweep#0','sweep'];
+test('whirlwind refunds for one actual hit, once per physical copy per turn',()=>{
+ const r=setup();r.build.rewards['sweep#0']='whirlwind';r.enemies=[target({health:10})];r.hand=['sweep#0','sweep'];
  r.move(0,[2,1]);assert.equal(r.actions,2);r.hand=['sweep#0'];r.move(0,[2,1]);assert.equal(r.actions,1);
  r.endTurn();r.hand=['sweep#0'];r.move(0,[2,1]);assert.equal(r.actions,2);
+});
+test('pursuit works on movement; replaying the same copy cannot redraw until next turn',()=>{
+ const r=setup();r.build.rewards['thrust#0']='pursuit';r.hand=['thrust#0'];r.deck=['repel','repel'];
+ assert.deepEqual(r.move(0,[1,1]).drawnCards,['repel']);
+ r.hand=['thrust#0'];assert.equal(r.move(0,[2,1]).drawnCards,undefined);
+ r.endTurn();r.hand=['thrust#0'];r.deck=['repel'];assert.deepEqual(r.move(0,[1,1]).drawnCards,['repel']);
+});
+test('whirlwind does not refund blocks or ordinary copies; upgraded copies trigger independently',()=>{
+ const r=setup();r.build.rewards={'sweep#0':'whirlwind','sweep#1':'whirlwind'};
+ r.enemies=[target({kind:'stump',health:10,facing:'south'})];r.hand=['sweep#0'];
+ assert.equal(r.move(0,r.hero).growth,undefined);assert.equal(r.actions,1);
+ r.enemies[0].facing='north';r.hand=['sweep#0','sweep#1','sweep'];
+ assert.deepEqual(r.move(0,r.hero).growth,['refund']);assert.equal(r.actions,1);
+ assert.deepEqual(r.move(0,r.hero).growth,['refund']);assert.equal(r.actions,1);
+ assert.equal(r.move(0,r.hero).growth,undefined);assert.equal(r.actions,0);
 });
 test('reward replaces one physical copy, never an engraving; identity survives all piles and rooms',()=>{
  const j=new Journey(987654,'qinghe');j.coins=100;

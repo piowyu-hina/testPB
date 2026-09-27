@@ -1,8 +1,8 @@
 export const battleRewards = {
-  pursuit: { name: '追擊', card: 'thrust', description: '槍刺擊殺後，抽一張牌。' },
-  collision: { name: '撞擊', card: 'repel', description: '推得動的怪物撞牆或撞怪時，額外受到一點傷害。' },
-  whirlwind: { name: '迴旋', card: 'sweep', description: '橫掃實際命中兩隻以上，每回合首次返還一點魂火。' },
-  reach: { name: '長鋒', card: 'thrust', description: '槍刺在相隔兩格時，額外造成一點傷害。' }
+  pursuit: { name: '追擊', card: 'thrust', description: '每回合首次使用這張槍刺，抽 1 張牌。' },
+  collision: { name: '重擊', card: 'repel', description: '推擊傷害 +1。不改變格擋與不可推規則。' },
+  whirlwind: { name: '迴旋', card: 'sweep', description: '橫掃造成傷害，回 1 點魂火。每回合一次。' },
+  reach: { name: '長鋒', card: 'thrust', description: '槍刺傷害 +1，相鄰或兩格命中皆有效。' }
 } as const;
 export type BattleReward = keyof typeof battleRewards;
 export function rewardOptions(seed: number, available?: readonly string[]): BattleReward[] {
