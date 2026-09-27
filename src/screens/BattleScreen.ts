@@ -143,15 +143,25 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   function closeCardDetails() { elements.cardDetails.hidden = true; }
   function confirmCard(card: HTMLButtonElement) {
-    // Animate the illustration, not the hit box or hover transform.
-    const art = card.querySelector<HTMLElement>('.card-art, svg');
+    // Move a visual copy of the whole face; the actual button stays hittable.
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (art && !reduced) {
-      const press = art.animate([{ scale: '1' }, { scale: '.93', offset: .28 }, { scale: '1' }], { duration: 190, easing: 'ease-out' });
-      press.id = 'card-confirmed';
-    }
-    const flash = card.animate([{ borderColor: '#ad691c' }, { borderColor: '#ffe8a2', offset: .28 }, { borderColor: '#ad691c' }], { duration: reduced ? 120 : 230, easing: 'ease-out' });
-    flash.id = 'card-confirmed';
+    if (reduced) return;
+    const face = document.createElement('span');
+    face.className = 'card-confirm-face';
+    face.setAttribute('aria-hidden', 'true');
+    const style = getComputedStyle(card);
+    const shadow = style.boxShadow;
+    for (const property of ['background', 'border', 'border-radius', 'padding', 'box-shadow']) face.style.setProperty(property, style.getPropertyValue(property));
+    face.append(...Array.from(card.childNodes).map(node => node.cloneNode(true)));
+    card.append(face);
+    card.classList.add('confirming');
+    const press = face.animate([
+      { transform: 'translateY(0) scale(1)', boxShadow: shadow },
+      { transform: 'translateY(7px) scale(.97)', boxShadow: 'inset 0 0 0 3px #e7ac43, inset 0 0 0 5px #fff3d4, 0 1px 0 #825019, 0 3px 6px #171c1644', offset: .3 },
+      { transform: 'translateY(0) scale(1)', boxShadow: shadow }
+    ], { duration: 220, easing: 'ease-out' });
+    press.id = 'card-confirmed';
+    void press.finished.catch(() => {}).finally(() => { face.remove(); card.classList.remove('confirming'); });
   }
   function showUltimateHint() {
     const charge = journey.ultimateCharge;

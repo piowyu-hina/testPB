@@ -142,6 +142,10 @@
   filter: drop-shadow(0 2px 3px #13417688);
   transform: translateX(-50%);
 }
+.game .hand .card.confirming { background: transparent; border-color: transparent; box-shadow: none; }
+.card.confirming > :not(.card-confirm-face) { visibility: hidden; }
+.card-confirm-face { position: absolute; inset: -2px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+.card-confirm-face > .engraving-badge { position: absolute; top: 9px; left: 8px; width: 42px; height: 42px; }
 .card-cost[data-cost="0"] { display: none; }
 .card.card-unavailable { cursor: help; }
 .growth-trigger { position: absolute; z-index: 85; width: 60px; height: 60px; pointer-events: none; filter: drop-shadow(0 0 7px #ffe4a2); }
