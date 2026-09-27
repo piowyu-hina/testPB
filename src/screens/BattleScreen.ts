@@ -87,34 +87,47 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   function showBattleReward() {
     if (!journey.pendingBattleReward) return;
     rewardPage.replaceChildren();
+    rewardPage.classList.remove('revealing');
+    rewardPage.style.setProperty('--reward-column', '0');
     const title = document.createElement('h2'); title.textContent = '強化一張牌';
     rewardPage.append(title);
     const choices = document.createElement('div'); choices.className = 'battle-reward-choices';
+    const detail = document.createElement('p'); detail.className = 'battle-reward-detail';
+    detail.setAttribute('aria-live', 'polite');
     const confirm = document.createElement('button'); confirm.className = 'battle-reward-confirm'; confirm.textContent = '強化這張'; confirm.disabled = true;
+    confirm.hidden = true;
     let chosen: (typeof journey.battleRewardOptions)[number] | undefined;
+    const previewReward = (id = chosen) => {
+      detail.textContent = id ? battleRewards[id].description : '';
+      confirm.hidden = !chosen || id !== chosen;
+    };
     for (const id of journey.battleRewardOptions) {
       const reward = battleRewards[id], button = document.createElement('button');
       button.type = 'button'; button.className = 'battle-reward-choice'; button.dataset.reward = id;
       button.setAttribute('aria-pressed', 'false');
       const face = document.createElement('span'); face.className = 'battle-reward-card'; rewardFace(face, id);
       const art = document.createElement('img'); art.src = cardArt[reward.card]!; art.alt = '';
-      const text = document.createElement('span'); text.className = 'battle-reward-copy';
-      const name = document.createElement('strong'); name.textContent = `${reward.name}${data.cards[reward.card].name}`;
-      const desc = document.createElement('span'); desc.className = 'battle-reward-description'; desc.textContent = reward.description;
-      text.append(name, desc); face.append(art); button.append(face, text);
+      const name = document.createElement('strong'); name.textContent = reward.name;
+      button.setAttribute('aria-label', `${reward.name}${data.cards[reward.card].name}：${reward.description}`);
+      face.append(art); button.append(face, name);
+      button.addEventListener('pointerenter', () => previewReward(id));
       onClick(button, () => {
         chosen = id; confirm.disabled = false;
+        rewardPage.style.setProperty('--reward-column', String([...choices.children].indexOf(button)));
+        previewReward(id);
         for (const other of choices.querySelectorAll('button')) other.setAttribute('aria-pressed', String(other === button));
         confirm.setAttribute('aria-label', `強化一張${data.cards[reward.card].name}為${reward.name}${data.cards[reward.card].name}`);
       });
       choices.append(button);
     }
-    rewardPage.append(choices, confirm);
+    choices.addEventListener('pointerleave', () => previewReward());
+    rewardPage.append(choices, detail, confirm);
     onClick(confirm, async () => {
       if (!chosen || !journey.chooseBattleReward(chosen)) return;
       for (const button of rewardPage.querySelectorAll('button')) button.disabled = true;
       const reward = battleRewards[chosen];
       const reveal = document.createElement('div'); reveal.className = 'battle-reward-reveal';
+      rewardPage.classList.add('revealing');
       const face = document.createElement('div'); face.className = 'battle-reward-card';
       const art = document.createElement('img'); art.src = cardArt[reward.card]!; art.alt = '';
       face.append(art);

@@ -1,24 +1,25 @@
 .settings-dialog.battle-help { width: 720px; height: 1280px; max-width: none; max-height: none; overflow: hidden; padding: 52px 54px; border: 0; border-radius: 0; box-shadow: none; }
 .battle-screen { position: relative; }
-.battle-reward-page { position: absolute; inset: 0; z-index: 100; padding: 64px 58px 36px; background: radial-gradient(ellipse at 28% 25%, #faf7f0, #e9e2d6); color: #342f2a; display: flex; flex-direction: column; gap: 28px; overflow: hidden; font-family: 'Microsoft JhengHei UI', 'Microsoft JhengHei', system-ui, sans-serif; }
+.battle-reward-page { position: absolute; inset: 0; z-index: 100; background: #100e0c66; color: #fff9ef; overflow: hidden; font-family: 'Microsoft JhengHei UI', 'Microsoft JhengHei', system-ui, sans-serif; }
 .battle-reward-page[hidden] { display: none; }
-.battle-reward-page h2 { font-size: 42px; font-weight: 600; margin: 0 0 10px; letter-spacing: .06em; }
-.battle-reward-choices { display: grid; grid-template-columns: 1fr; gap: 30px; }
-.battle-reward-choice { position: relative; display: flex; align-items: center; gap: 40px; min-height: 250px; padding: 6px 0; border: 0; background: transparent; color: inherit; text-align: left; }
+.battle-reward-page h2 { position: absolute; top: 278px; left: 48px; right: 48px; text-align: center; font-size: 36px; font-weight: 500; margin: 0; text-shadow: 0 2px 8px #000; }
+.battle-reward-choices { position: absolute; top: 360px; left: 48px; right: 48px; display: grid; grid-template-columns: repeat(3, 176px); justify-content: space-between; }
+.battle-reward-choice { position: relative; display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 0; border: 0; background: transparent; color: inherit; }
 .battle-reward-card { display: block; flex: 0 0 auto; position: relative; width: 176px; height: 228px; padding: 20px 12px; border: 1px solid #b6a58f; border-radius: 8px; background: #fffaf1; box-shadow: 0 3px 0 #c5b9a7, 0 10px 18px #47372620; transition: transform .15s, box-shadow .15s; }
 .battle-reward-card img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .battle-reward-choice:hover .battle-reward-card { transform: translateY(-6px); }
-.battle-reward-choice[aria-pressed='true'] .battle-reward-card { transform: translateY(-6px); outline: 3px solid #665242; outline-offset: 5px; box-shadow: 0 12px 24px #47372630; }
-.battle-reward-copy { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-.battle-reward-choice strong { font-size: 34px; line-height: 1.4; font-weight: 600; }
-.battle-reward-description { font-size: 28px; line-height: 1.6; color: #5e554b; }
-.battle-reward-confirm { align-self: center; min-width: 280px; margin-top: auto; padding: 20px 36px; border: 0; border-radius: 6px; font-size: 30px; background: #514438; color: #fffaf1; }
-.battle-reward-confirm:not(:disabled):hover { background: #382e25; }
+.battle-reward-choice[aria-pressed='true'] .battle-reward-card { transform: translateY(-6px); outline: 3px solid #f5d49a; outline-offset: 5px; box-shadow: 0 12px 24px #0005; }
+.battle-reward-choice strong { font-size: 32px; line-height: 1.4; font-weight: 500; text-shadow: 0 2px 8px #000; }
+.battle-reward-detail { position: absolute; top: 654px; left: 48px; right: 48px; min-height: 100px; margin: 0; padding: 16px 22px; font-size: 28px; line-height: 1.5; color: #fff9ef; background: #171411e8; border-radius: 6px; }
+.battle-reward-detail:empty { visibility: hidden; }
+.battle-reward-confirm { position: absolute; top: 780px; left: calc(48px + var(--reward-column) * 224px); width: 176px; padding: 14px 12px; border: 0; border-radius: 6px; font-size: 28px; background: #f1e7d3; color: #3b3025; }
+.battle-reward-confirm:not(:disabled):hover { background: #fff8eb; }
 .battle-reward-confirm:disabled { opacity: .4; }
-.battle-reward-reveal { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, #faf7f0, #e9e2d6); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 50px; }
-.battle-reward-reveal .battle-reward-card { width: 280px; height: 364px; padding: 28px 18px; }
-.battle-reward-reveal h3 { font-size: 38px; font-weight: 500; color: #342f2a; margin: 0; }
-.battle-reward-page > .quiet-button { align-self: center; padding: 12px 24px; font-size: 27px; color: #665b50; }
+.battle-reward-page.revealing > :not(.battle-reward-reveal) { visibility: hidden; }
+.battle-reward-reveal { position: absolute; top: 350px; left: 48px; right: 48px; display: flex; flex-direction: column; align-items: center; gap: 30px; }
+.battle-reward-reveal .battle-reward-card { width: 220px; height: 286px; padding: 22px 14px; }
+.battle-reward-reveal h3 { font-size: 34px; font-weight: 500; color: #fff9ef; margin: 0; text-shadow: 0 2px 8px #000; }
+.battle-reward-page > .quiet-button { position: absolute; top: 160px; right: 48px; padding: 12px 16px; font-size: 27px; color: #fff9ef; text-shadow: 0 2px 8px #000; }
 .settings-dialog.battle-help::backdrop { background: #101514; backdrop-filter: none; }
 .battle-help .settings-heading h2 { font-size: 36px; }
 .battle-help .settings-heading .quiet-button { font-size: 26px; padding: 12px 16px; }
