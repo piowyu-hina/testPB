@@ -1,9 +1,9 @@
 import type { Room } from '../battle/Room';
-import { cards, type CardId } from '../data/cards';
+import { cards } from '../data/cards';
 import type { CardDefinition } from '../types/game';
 import { cardArt } from '../data/cardArt';
-import { engravingInfo, relicInfo } from '../battle/Growth';
-import { engravingBadge } from './engravingBadge';
+import { engravingInfo, relicInfo, cardKind, type CardRef } from '../battle/Growth';
+import { engravingBadge, engravingLabel } from './engravingBadge';
 
 /** Full-screen collection view. Counts are grouped; hidden draw order stays hidden. */
 export function mountDeckViewer(root: HTMLElement, game: HTMLElement, getRoom: () => Room) {
@@ -14,7 +14,7 @@ export function mountDeckViewer(root: HTMLElement, game: HTMLElement, getRoom: (
   root.append(panel);
   let pile: 'all' | 'hand' | 'deck' | 'discard' = 'all';
   let page = 0;
-  let selected: CardId | undefined;
+  let selected: string | undefined;
   const pageSize = 6;
   let opener: HTMLElement | null = null;
   const close = () => { panel.hidden = true; game.inert = false; opener?.focus({ preventScroll: true }); };
@@ -36,10 +36,16 @@ export function mountDeckViewer(root: HTMLElement, game: HTMLElement, getRoom: (
     const growth = panel.querySelector<HTMLElement>('.deck-growth')!;
     growth.textContent = owned.join(' · ');
     growth.hidden = !owned.length;
-    const counts = new Map<CardId, number>();
-    for (const id of pile === 'all' ? all : room[pile]) counts.set(id, (counts.get(id) ?? 0) + 1);
+    const counts = new Map<string, { ref: CardRef; count: number }>();
+    for (const ref of pile === 'all' ? all : room[pile]) {
+      const key = `${cardKind(ref)}:${room.build.engravings[ref] ?? 'normal'}`;
+      const group = counts.get(key);
+      if (group) group.count++;
+      else counts.set(key, { ref, count: 1 });
+    }
     const list = panel.querySelector<HTMLElement>('.deck-list')!;
-    const entries = [...counts].sort(([a], [b]) => Object.keys(cards).indexOf(a) - Object.keys(cards).indexOf(b));
+    const variants = ['normal', 'draw', 'refund', 'discount'];
+    const entries = [...counts].sort(([, a], [, b]) => Object.keys(cards).indexOf(cardKind(a.ref)) - Object.keys(cards).indexOf(cardKind(b.ref)) || variants.indexOf(room.build.engravings[a.ref] ?? 'normal') - variants.indexOf(room.build.engravings[b.ref] ?? 'normal'));
     const pages = Math.max(1, Math.ceil(entries.length / pageSize));
     page = Math.max(0, Math.min(page, pages - 1));
     const visible = entries.slice(page * pageSize, (page + 1) * pageSize);
@@ -48,32 +54,34 @@ export function mountDeckViewer(root: HTMLElement, game: HTMLElement, getRoom: (
     panel.querySelector('.deck-page')!.textContent = `${page + 1} / ${pages}`;
     panel.querySelector<HTMLButtonElement>('.deck-prev')!.disabled = page === 0;
     panel.querySelector<HTMLButtonElement>('.deck-next')!.disabled = page === pages - 1;
-    list.replaceChildren(...visible.map(([id, count]) => {
+    list.replaceChildren(...visible.map(([key, { ref, count }]) => {
+      const id = cardKind(ref), engraving = room.build.engravings[ref];
       const entry = document.createElement('button'); entry.type = 'button'; entry.className = 'deck-entry'; entry.dataset.card = id;
-      entry.setAttribute('aria-pressed', String(selected === id));
-      entry.setAttribute('aria-label', `${cards[id].name}，${count}張，查看說明`);
+      entry.dataset.engraving = engraving ?? 'normal';
+      entry.setAttribute('aria-pressed', String(selected === key));
+      entry.setAttribute('aria-label', `${cards[id].name}，${engraving ? engravingLabel[engraving] : '普通'}，${count}張，查看說明`);
       const face = document.createElement('span'); face.className = 'deck-card-face';
       const picture = document.createElement('img'); picture.src = cardArt[id] ?? ''; picture.alt = ''; picture.draggable = false;
       const quantity = document.createElement('span'); quantity.className = 'deck-quantity'; quantity.textContent = `×${count}`;
       const name = document.createElement('span'); name.className = 'deck-card-name'; name.textContent = cards[id].name;
       face.append(picture, quantity); entry.append(face, name);
-      const engraving = room.build.engravings[id];
       if (engraving) face.append(engravingBadge(engraving));
-      entry.onclick = () => { selected = id; render(); };
+      entry.onclick = () => { selected = key; render(); };
       return entry;
     }));
     if (!counts.size) { const empty = document.createElement('p'); empty.className = 'deck-empty'; empty.textContent = '這裡暫時沒有牌'; list.append(empty); }
     const detail = panel.querySelector<HTMLElement>('.deck-detail')!;
     detail.replaceChildren(); detail.hidden = !selected;
     if (selected) {
-      const definition = cards[selected] as CardDefinition;
+      const ref = counts.get(selected)!.ref, id = cardKind(ref);
+      const engraving = room.build.engravings[ref];
+      const definition = cards[id] as CardDefinition;
       const heading = document.createElement('div'); heading.className = 'deck-detail-heading';
-      const name = document.createElement('h3'); name.textContent = definition.name;
-      const cost = document.createElement('span'); cost.className = 'deck-cost'; cost.textContent = `${definition.cost ?? 1} 魂火${selected === 'knife' ? ' · 本回合限定' : ''}`;
+      const name = document.createElement('h3'); name.textContent = `${definition.name} · ${engraving ? engravingLabel[engraving] : '普通'}`;
+      const cost = document.createElement('span'); cost.className = 'deck-cost'; cost.textContent = `${definition.cost ?? 1} 魂火${id === 'knife' ? ' · 本回合限定' : ''}`;
       heading.append(name, cost);
       const description = document.createElement('p'); description.textContent = definition.hint ?? '';
       detail.append(heading, description);
-      const engraving = room.build.engravings[selected];
       if (engraving) {
         const effect = document.createElement('p'); effect.className = 'deck-engraving';
         const text = document.createElement('span'); text.textContent = engravingInfo[engraving].description;

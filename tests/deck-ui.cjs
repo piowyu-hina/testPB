@@ -23,10 +23,14 @@ const assert = require('node:assert/strict');
     await page.locator('[data-test-action="cycle"]').click();await idle();
     assert.equal(await page.locator('#hand [data-card="sidestep"] .engraving-draw').count(),1);
     await page.locator('#open-deck').click();
-    assert.equal(await page.locator('.deck-entry').count(),5);
+    assert.equal(await page.locator('.deck-entry').count(),6);
+    assert.equal(await page.locator('.deck-entry[data-card="sidestep"][data-engraving="normal"] .deck-quantity').textContent(),'×3');
+    assert.equal(await page.locator('.deck-entry[data-card="sidestep"][data-engraving="draw"] .deck-quantity').textContent(),'×1');
+    await page.locator('.deck-entry[data-card="sidestep"][data-engraving="normal"]').click();
+    assert.equal(await page.locator('.deck-detail .deck-engraving').count(),0);
     assert.equal(await page.locator('.deck-pagination').isHidden(),true);
     for(const id of ['thrust','repel','sidestep']){
-      await page.locator(`.deck-entry[data-card="${id}"]`).click();
+      await page.locator(`.deck-entry[data-card="${id}"][data-engraving="${id==='sidestep'?'draw':'normal'}"]`).click();
       assert.equal(await page.locator('.deck-entry[aria-pressed="true"]').getAttribute('data-card'),id);
       await fit('.deck-viewer','.deck-card-face,.deck-card-name,.deck-detail,.deck-growth');
     }
@@ -39,12 +43,13 @@ const assert = require('node:assert/strict');
     // A future larger catalogue must page without shrinking cards or adding a scroll area.
     await page.evaluate(async()=>{
       const {mountDeckViewer}=await import('/src/ui/deckViewer.ts');const {Room}=await import('/src/battle/Room.ts');
-      const room=new Room(1,undefined,5,'qinghe');room.hand=[];room.discard=[];room.deck=['thrust','advance','sweep','sidestep','repel','throw','shadow','lunge','recall'];room.build.engravings={thrust:'draw',advance:'refund',sweep:'discount'};
+      const room=new Room(1,undefined,5,'qinghe');room.hand=[];room.discard=[];room.deck=['thrust#0','advance#0','advance#1','sweep#0','sidestep','repel','throw','shadow','lunge','recall'];room.build.engravings={'thrust#0':'draw','advance#0':'refund','advance#1':'refund','sweep#0':'discount'};
       const root=document.createElement('div');root.id='future-deck-test';root.className='screen-root battle-screen';Object.assign(root.style,{position:'absolute',inset:'0',zIndex:'999'});document.querySelector('#app').append(root);
       const game=document.createElement('main');root.append(game);mountDeckViewer(root,game,()=>room).open();
     });
     const future=page.locator('#future-deck-test');
     assert.equal(await future.locator('.deck-entry').count(),6);
+    assert.equal(await future.locator('.deck-entry[data-card="advance"] .deck-quantity').textContent(),'×2');
     const width=await future.locator('.deck-card-face').first().evaluate(el=>el.getBoundingClientRect().width);
     await future.locator('.deck-next').click();assert.equal(await future.locator('.deck-entry').count(),3);
     assert.equal(await future.locator('.deck-card-face').first().evaluate(el=>el.getBoundingClientRect().width),width);

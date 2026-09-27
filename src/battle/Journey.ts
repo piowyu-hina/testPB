@@ -4,7 +4,7 @@ import type { Point, RoomDefinition } from '../types/game.ts';
 import { dungeons } from '../data/dungeons/index.ts';
 import type { DungeonId } from '../data/dungeons/index.ts';
 import type { CardId } from '../data/cards.ts';
-import { freshBuild, canEngrave, engravingInfo, relicInfo, type Engraving } from './Growth.ts';
+import { freshBuild, canEngrave, engravingInfo, relicInfo, type Engraving, type CardRef } from './Growth.ts';
 
 export class Journey {
   readonly exit: Point = [2, 4];
@@ -26,8 +26,16 @@ export class Journey {
     this.rewardedStages.add(this.stage); this.coins += amount; return amount;
   }
   buyEngraving(id: CardId, kind: Engraving) {
-    if (this.finished || !canEngrave(this.loadout, id, kind) || this.build.engravings[id] || this.coins < engravingInfo[kind].price) return false;
-    this.coins -= engravingInfo[kind].price; this.build.engravings[id] = kind; return true;
+    if (this.finished || !canEngrave(this.loadout, id, kind) || this.coins < engravingInfo[kind].price) return false;
+    const pile = [this.room.hand, this.room.deck, this.room.discard].find(pile => pile.includes(id));
+    if (!pile) return false;
+    let index = 0;
+    while (this.build.engravings[`${id}#${index}`]) index++;
+    const ref: CardRef = `${id}#${index}`;
+    pile[pile.indexOf(id)] = ref;
+    this.build.engravings[ref] = kind;
+    this.coins -= engravingInfo[kind].price;
+    return true;
   }
   buyRelic() {
     const price = relicInfo(this.loadout).price;
@@ -52,8 +60,8 @@ export class Journey {
       this.dawnCharge = 0;
     }
     this.loadout = next;
-    this.room.setLoadout(next);
     this.room.build = this.build;
+    this.room.setLoadout(next);
   }
   gainAssassination(elite = false) {
     if (this.loadout !== 'rogue') return this.assassination;

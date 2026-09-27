@@ -1,20 +1,20 @@
-import { cards, loadouts } from '../data/cards.ts';
+import { cards } from '../data/cards.ts';
 import type { CardId, Loadout } from '../data/cards.ts';
 import { enemies } from '../data/enemies.ts';
 import { forestRuins } from '../data/dungeons/forest.ts';
 import type { Point, Enemy, MovePreview, EnemyMotion, TurnOutcome, CardDefinition, RoomDefinition } from '../types/game.ts';
 import { attackOffsets, blocksAttack, enemySkill, faceToward } from './EnemyRules.ts';
-import { freshBuild, type Build } from './Growth.ts';
+import { freshBuild, cardKind, deckForBuild, type Build, type CardRef } from './Growth.ts';
 export const data = { cards, enemies };
 export const HAND_LIMIT = 5;
 export interface MoveAction {
   hitId?: number;
   hits?: { id: number; position: Point; blocked: boolean; removed: boolean; elite: boolean }[];
   pickedKnife?: boolean;
-  drawn?: CardId;
-  overflowed?: CardId;
-  drawnCards?: CardId[];
-  overflowedCards?: CardId[];
+  drawn?: CardRef;
+  overflowed?: CardRef;
+  drawnCards?: CardRef[];
+  overflowedCards?: CardRef[];
   pushed?: { id: number; from: Point; to: Point };
   from: Point;
   to: Point;
@@ -27,10 +27,10 @@ export interface UltimateAction {
   hitId: number;
   removedId: number;
   pickedKnife?: boolean;
-  drawn?: CardId;
-  overflowed?: CardId;
-  drawnCards?: CardId[];
-  overflowedCards?: CardId[];
+  drawn?: CardRef;
+  overflowed?: CardRef;
+  drawnCards?: CardRef[];
+  overflowedCards?: CardRef[];
 }
 
 const cardinal: Point[] = [
@@ -60,9 +60,9 @@ export class Room {
   actions: number;
   turn: number;
   enemies: Enemy[];
-  hand: CardId[];
-  deck: CardId[];
-  discard: CardId[];
+  hand: CardRef[];
+  deck: CardRef[];
+  discard: CardRef[];
   knives: Point[] = [];
   loadout: Loadout;
   build: Build;
@@ -80,10 +80,7 @@ export class Room {
     this.deck = [];
     this.discard = [];
     this.random = rng(seed);
-    for (const id of loadouts[loadout]) {
-      const card = data.cards[id];
-      for (let i = 0; i < card.copies; i++) this.deck.push(id as CardId);
-    }
+    this.deck = deckForBuild(loadout, build);
     this.shuffle(this.deck);
     for (let i = 0; i < (build.opening ? 4 : 3); i++) this.draw();
   }
@@ -100,6 +97,9 @@ export class Room {
     return this.enemies.find((e) => equal(e.position, tile));
   }
   get availableCards(): readonly CardId[] {
+    return this.availableCardRefs.map(cardKind);
+  }
+  get availableCardRefs(): readonly CardRef[] {
     return this.won && !this.lost ? ['forward'] : this.hand;
   }
   canExplore(index: number, destination: Point) {
@@ -116,7 +116,7 @@ export class Room {
     this.hero = [...destination];
     return action;
   }
-  private draw(): CardId {
+  private draw(): CardRef {
     if (!this.deck.length) {
       this.deck.push(...this.discard);
       this.discard = [];
@@ -127,14 +127,14 @@ export class Room {
     this.hand.push(drawn);
     return drawn;
   }
-  drawOverflow(): CardId | undefined {
+  drawOverflow(): CardRef | undefined {
     if (this.hand.length < HAND_LIMIT || (!this.deck.length && !this.discard.length)) return undefined;
     const drawn = this.draw();
     this.hand.pop();
     this.discard.push(drawn);
     return drawn;
   }
-  shuffle(cards: CardId[]) {
+  shuffle(cards: CardRef[]) {
     for (let i = cards.length - 1; i > 0; i--) {
       const j = Math.floor(this.random() * (i + 1));
       [cards[i], cards[j]] = [cards[j], cards[i]];
@@ -143,11 +143,12 @@ export class Room {
   cardCost(index: number) {
     const id = this.availableCards[index];
     const base = (data.cards[id] as CardDefinition | undefined)?.cost ?? 1;
-    return Math.max(0, base - Number(this.build.engravings[id] === 'discount' && !this.usedGrowth.has(`card:${id}`)));
+    const ref = this.availableCardRefs[index];
+    return Math.max(0, base - Number(this.build.engravings[ref] === 'discount' && this.growthReady(ref)));
   }
-  growthReady(id: CardId) { return !this.usedGrowth.has(`card:${id}`); }
-  drawCards(count: number): { drawn: CardId[]; overflowed: CardId[] } {
-    const result: { drawn: CardId[]; overflowed: CardId[] } = { drawn: [], overflowed: [] };
+  growthReady(ref: CardRef) { return !this.usedGrowth.has(`card:${ref}`); }
+  drawCards(count: number): { drawn: CardRef[]; overflowed: CardRef[] } {
+    const result: { drawn: CardRef[]; overflowed: CardRef[] } = { drawn: [], overflowed: [] };
     for (let i = 0; i < count && this.deck.length + this.discard.length > 0; i++) {
       if (this.hand.length < HAND_LIMIT) result.drawn.push(this.draw());
       else { const card = this.drawOverflow(); if (card) result.overflowed.push(card); }
@@ -171,8 +172,8 @@ export class Room {
       this.usedGrowth.add('relic'); this.rewardDraw(action, 1);
     }
   }
-  private applyGrowth(action: MoveAction, paid: number) {
-    const key = `card:${action.kind}`, effect = this.build.engravings[action.kind];
+  private applyGrowth(action: MoveAction, paid: number, ref: CardRef) {
+    const key = `card:${ref}`, effect = this.build.engravings[ref];
     if (effect && !this.usedGrowth.has(key) && (effect !== 'refund' || paid > 0)) {
       this.usedGrowth.add(key);
       if (effect === 'draw') this.rewardDraw(action, 1);
@@ -191,7 +192,7 @@ export class Room {
   setLoadout(next: Loadout) {
     if (next === this.loadout) return;
     const count = Math.min(HAND_LIMIT, this.hand.filter(id => id !== 'knife').length);
-    this.deck = loadouts[next].flatMap(id => Array<CardId>(data.cards[id].copies).fill(id));
+    this.deck = deckForBuild(next, this.build);
     this.shuffle(this.deck);
     this.hand = []; this.discard = [];
     for (let index = 0; index < count; index++) this.draw();
@@ -200,7 +201,7 @@ export class Room {
   }
   canMove(index: number, destination: Point) {
     if (this.finished || this.actions < this.cardCost(index) || !inside(destination)) return false;
-    const card = data.cards[this.hand[index]] as CardDefinition | undefined;
+    const card = data.cards[cardKind(this.hand[index])] as CardDefinition | undefined;
     if (!card) return false;
     if (card.effect === 'sweep')
       return (equal(destination, this.hero) || card.offsets.some(offset => equal(destination, [this.hero[0] + offset[0], this.hero[1] + offset[1]]))) && this.enemies.some(enemy =>
@@ -247,7 +248,7 @@ export class Room {
   }
   preview(index: number, destination: Point): MovePreview | null {
     if (!this.canMove(index, destination)) return null;
-    if (this.hand[index] === 'sweep') {
+    if (cardKind(this.hand[index]) === 'sweep') {
       const victims = this.enemies.filter(enemy => data.cards.sweep.offsets.some(offset => equal(enemy.position, [this.hero[0] + offset[0], this.hero[1] + offset[1]])));
       const removedIds = victims.filter(enemy => !blocksAttack(enemy, this.hero) && (enemy.health ?? 1) <= 1).map(enemy => enemy.id);
       return {
@@ -261,11 +262,11 @@ export class Room {
     const victim = this.at(destination);
     const blocked = victim ? blocksAttack(victim, this.hero) : false;
     const survives = victim && (blocked || (victim.health ?? 1) > 1);
-    const stationary = ['throw', 'knife', 'thrust', 'repel', 'recall'].includes(this.hand[index]);
+    const stationary = ['throw', 'knife', 'thrust', 'repel', 'recall'].includes(cardKind(this.hand[index]));
     const landing = survives || stationary ? this.hero : destination;
     let pushed: MovePreview['pushed'];
     let pushBlocked = false;
-    if (this.hand[index] === 'repel' && victim && survives) {
+    if (cardKind(this.hand[index]) === 'repel' && victim && survives) {
       const to: Point = [destination[0] + Math.sign(destination[0] - this.hero[0]), destination[1] + Math.sign(destination[1] - this.hero[1])];
       pushBlocked = blocked || Boolean(victim.elite) || enemySkill(victim).id === 'roots' || !inside(to) || Boolean(this.at(to));
       if (!pushBlocked) pushed = { id: victim.id, from: [...destination], to };
@@ -276,13 +277,14 @@ export class Room {
       hitId: victim?.id,
       removedId: victim && !survives ? victim.id : -1,
       pushed, pushBlocked,
-      damage: this.damageAt(landing, victim && !survives ? victim.id : -1, this.hand[index] === 'throw' ? destination : undefined, pushed)
+      damage: this.damageAt(landing, victim && !survives ? victim.id : -1, cardKind(this.hand[index]) === 'throw' ? destination : undefined, pushed)
     };
   }
   move(index: number, destination: Point): MoveAction | null {
     const preview = this.preview(index, destination);
     if (!preview) return null;
-    if (this.hand[index] === 'sweep') {
+    const ref = this.hand[index];
+    if (cardKind(ref) === 'sweep') {
       const cost = this.cardCost(index);
       const hits = this.enemies
         .filter(enemy => data.cards.sweep.offsets.some(offset => equal(enemy.position, [this.hero[0] + offset[0], this.hero[1] + offset[1]])))
@@ -304,14 +306,14 @@ export class Room {
       this.actions -= cost;
       if (this.won) this.knives = [];
       const action: MoveAction = { from: this.hero.slice() as Point, to: this.hero.slice() as Point, kind: 'sweep', removedId: -1, hits };
-      this.applyGrowth(action, cost);
+      this.applyGrowth(action, cost, ref);
       return action;
     }
     const cost = this.cardCost(index);
     const action: MoveAction = {
       from: this.hero.slice() as Point,
       to: destination.slice() as Point,
-      kind: this.hand[index],
+      kind: cardKind(ref),
       removedId: preview.removedId,
       hitId: preview.hitId
     };
@@ -323,10 +325,10 @@ export class Room {
     const used = this.hand.splice(index, 1)[0];
     if (used !== 'knife') this.discard.push(used);
     this.actions -= cost;
-    if (used === 'throw') {
+    if (cardKind(used) === 'throw') {
       if (!this.hasKnife(destination)) this.knives.push([...destination]);
-    } else if ((used === 'recall' || equal(this.hero, destination)) && this.hasKnife(destination)) this.pickup(action, destination);
-    this.applyGrowth(action, cost);
+    } else if ((cardKind(used) === 'recall' || equal(this.hero, destination)) && this.hasKnife(destination)) this.pickup(action, destination);
+    this.applyGrowth(action, cost, ref);
     if (this.won) this.knives = [];
     return action;
   }

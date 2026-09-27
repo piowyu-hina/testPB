@@ -2,7 +2,6 @@ import { Room, data, equal, HAND_LIMIT, type MoveAction, type UltimateAction } f
 import type { Journey } from '../battle/Journey';
 import { characters, enemyArt } from '../data/art';
 import type { Point, CardDefinition, MovePreview } from '../types/game';
-import type { CardId } from '../data/cards';
 import qingheChargeArt from '../../assets/characters/qinghe/UltimateCharge.png';
 import rogueChargeArt from '../../assets/ui/ultimate-charge.png';
 import { element, mountScreenRoot, onClick } from '../ui/dom';
@@ -20,6 +19,7 @@ import { playSound, setSoundEnabled, soundEnabled } from '../ui/sound';
 import { mountDeckViewer } from '../ui/deckViewer';
 import { engravingBadge, engravingLabel, engravingShort } from '../ui/engravingBadge';
 import { loadouts } from '../data/cards';
+import { cardKind, deckForBuild, type CardRef } from '../battle/Growth';
 import '../enemy.css';
 import '../battleBoard.css';
 import '../battleHud.css';
@@ -110,17 +110,16 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       render();
     });
   }
-  function showCardHint(card: CardDefinition, reason = '') {
+  function showCardHint(card: CardDefinition, reason = '', ref?: CardRef) {
     const name = document.createElement('strong');
     name.textContent = card.name;
     const description = document.createElement('span');
     description.textContent = card.hint ?? '';
-    const id = (Object.keys(data.cards) as CardId[]).find(id => data.cards[id] === card);
-    const engraving = id && room?.build.engravings[id];
+    const engraving = ref && room?.build.engravings[ref];
     if (engraving) {
-      name.textContent += ` · ${engravingLabel[engraving]}${room.growthReady(id!) ? '' : '（已用）'}`;
+      name.textContent += ` · ${engravingLabel[engraving]}${room.growthReady(ref!) ? '' : '（已用）'}`;
       const extra = document.createElement('span'); extra.className = 'hint-engraving';
-      extra.textContent = room.growthReady(id!) ? engravingShort[engraving] : '強化下回合恢復';
+      extra.textContent = room.growthReady(ref!) ? engravingShort[engraving] : '強化下回合恢復';
       if (!hoveredTile || !room.preview(selected, hoveredTile)) description.append(extra);
     }
     if (reason) {
@@ -143,7 +142,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       : '普通擊殺 +1，菁英擊殺 +2。集滿後點圖案播放演出，再選任意怪物造成 2 點無視格擋的傷害。';
     elements.hint.replaceChildren(name, description);
   }
-  function openCardDetails(id: keyof typeof data.cards) {
+  function openCardDetails(id: keyof typeof data.cards, ref?: CardRef) {
     const definition = data.cards[id];
     elements.cardDetails.replaceChildren();
     const name = document.createElement('strong');
@@ -153,6 +152,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const cost = document.createElement('small');
     cost.textContent = id === 'forward' ? '清場後使用 · 不消耗行動' : `${(definition as CardDefinition).cost ?? 1} 行動${id === 'knife' ? ' · 使用後消失' : ''}`;
     elements.cardDetails.append(name, effect, cost);
+    const engraving = ref && room.build.engravings[ref];
+    if (engraving) {
+      const extra = document.createElement('p');
+      extra.textContent = `${engravingLabel[engraving]} · ${room.growthReady(ref!) ? engravingShort[engraving] : '強化下回合恢復'}`;
+      elements.cardDetails.append(extra);
+    }
     elements.cardDetails.hidden = false;
   }
   const tiles: { tile: HTMLButtonElement; point: Point }[] = [];
@@ -250,7 +255,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       }
   }
   function syncHand() {
-    const nextHand = [...room.availableCards];
+    const nextHand = [...room.availableCardRefs];
     const signature = nextHand.join(',');
     if (signature !== handSignature) {
       const remaining = new Map<string, number>();
@@ -264,7 +269,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       });
       handSignature = signature;
       elements.hand.replaceChildren();
-      nextHand.forEach((id, index) => {
+      nextHand.forEach((ref, index) => {
+        const id = cardKind(ref);
         const definition: CardDefinition = data.cards[id],
           card = document.createElement('button');
         card.type = 'button';
@@ -307,7 +313,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         card.addEventListener('pointerenter', () => {
           if (touchLayout()) return;
           if (!busy) {
-            showCardHint(definition, id === 'shadow' ? shadowRequirement(index) : '');
+            showCardHint(definition, id === 'shadow' ? shadowRequirement(index) : '', ref);
           }
         });
         card.addEventListener('pointerleave', () => {
@@ -333,7 +339,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           card.addEventListener('pointercancel', stop);
           cardHoldTimer = window.setTimeout(() => {
             heldCard = card;
-            openCardDetails(id);
+            openCardDetails(id, ref);
           }, 420);
         });
         card.addEventListener('click', (event) => {
@@ -360,7 +366,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
               hoveredTile = null;
               hoveredEnemy = -1;
               render();
-              showCardHint(definition, shadowRequirement(index));
+              showCardHint(definition, shadowRequirement(index), ref);
               if (touchLayout()) elements.touchInfo.replaceChildren(...Array.from(elements.hint.childNodes).map(node => node.cloneNode(true)));
             }
             return;
@@ -396,10 +402,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         costNode.dataset.cost = String(cost);
         costNode.innerHTML = Array.from({ length: cost }, (_, i) => `<span class="cost-flame" style="z-index:${cost - i}"></span>`).join('');
       }
-      card.classList.toggle('engraved', Boolean(room.build.engravings[room.availableCards[index]]));
+      card.classList.toggle('engraved', Boolean(room.build.engravings[room.availableCardRefs[index]]));
       card.querySelector('.engraving-badge')?.remove();
-      const engraving = room.build.engravings[room.availableCards[index]];
-      if (engraving) card.append(engravingBadge(engraving, !room.growthReady(room.availableCards[index])));
+      const engraving = room.build.engravings[room.availableCardRefs[index]];
+      if (engraving) card.append(engravingBadge(engraving, !room.growthReady(room.availableCardRefs[index])));
       card.classList.toggle('shadow-unavailable', shadowUnavailable);
       card.classList.toggle('energy-unavailable', !isUltimate && !exploring() && room.actions < cost);
       card.setAttribute('aria-label', reason ? `追影，${reason}` : `${data.cards[room.availableCards[index]].name}，消耗 ${cost} 行動`);
@@ -564,10 +570,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (!busy) {
       if (ultimateTargeting) showCardHint(data.cards[journey.loadout === 'qinghe' ? 'dawnSpear' : 'absoluteShadow']);
       else if (cleared) {
-        if (chosen) showCardHint(chosen);
+        if (chosen) showCardHint(chosen, '', room.availableCardRefs[selected]);
         else elements.hint.textContent = '';
       }
-      else if (chosen) showCardHint(chosen);
+      else if (chosen) showCardHint(chosen, '', room.availableCardRefs[selected]);
       else elements.hint.textContent = '';
     }
     $('room-exit').toggleAttribute('hidden', !cleared);
@@ -1220,7 +1226,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     render();
     if (room.finished) showResult();
   }
-  function showOverflowFeedback(card: CardId) {
+  function showOverflowFeedback(ref: CardRef) {
+    const card = cardKind(ref);
+    const face = elements.overflowFeedback.querySelector('.overflow-card')!;
+    face.querySelector('.engraving-badge')?.remove();
+    const engraving = room.build.engravings[ref];
+    if (engraving) face.append(engravingBadge(engraving));
     clearTimeout(overflowTimer);
     const art = cardArt[card];
     const image = $<HTMLImageElement>('overflow-card-art');
@@ -1260,9 +1271,14 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
             { id: 2, kind: 'stump', position: [1, 2], health: 2, maxHealth: 2, facing: 'south', skillIndex: 1 },
             { id: 3, kind: 'stump', position: [4, 4], health: 3, maxHealth: 3, facing: 'south', elite: true }
           ];
-          room.hand = [...loadouts[room.loadout]];
+          const pool = deckForBuild(room.loadout, room.build);
+          room.hand = loadouts[room.loadout].map(id => {
+            let index = pool.findIndex(ref => cardKind(ref) === id && Boolean(room.build.engravings[ref]));
+            if (index < 0) index = pool.indexOf(id);
+            return pool.splice(index, 1)[0];
+          });
           if (room.loadout === 'rogue') room.hand.push('knife');
-          room.deck = loadouts[room.loadout].flatMap(id => Array<CardId>(data.cards[id].copies - 1).fill(id));
+          room.deck = pool;
           room.shuffle(room.deck); room.discard = [];
           room.knives = room.loadout === 'rogue' ? [[0, 1], [2, 2]] : [];
           loadRoom();
