@@ -278,7 +278,16 @@ export class Room {
     }
     const victim = this.at(destination);
     const blocked = victim ? blocksAttack(victim, this.hero) : false;
-    const survives = victim && (blocked || (victim.health ?? 1) > 1);
+    const kind = cardKind(this.hand[index]);
+    let attackDamage = 1;
+    if (this.loadout === 'qinghe' && victim && !blocked) {
+      if (this.build.battleReward === 'reach' && kind === 'thrust' && Math.abs(destination[0]-this.hero[0])+Math.abs(destination[1]-this.hero[1]) === 2) attackDamage++;
+      if (this.build.battleReward === 'collision' && kind === 'repel' && !victim.elite && !enemies[victim.kind].boss && !enemies[victim.kind].rooted && enemySkill(victim).id !== 'roots') {
+        const beyond: Point = [destination[0]+Math.sign(destination[0]-this.hero[0]), destination[1]+Math.sign(destination[1]-this.hero[1])];
+        if (!inside(beyond) || this.at(beyond)) attackDamage++;
+      }
+    }
+    const survives = victim && (blocked || (victim.health ?? 1) > attackDamage);
     const stationary = ['throw', 'knife', 'recall'].includes(cardKind(this.hand[index])) || ['thrust', 'repel'].includes(cardKind(this.hand[index])) && Boolean(victim);
     const landing = survives || stationary ? this.hero : destination;
     let pushed: MovePreview['pushed'];
@@ -290,6 +299,7 @@ export class Room {
     }
     return {
       blocked,
+      attackDamage: blocked ? 0 : attackDamage,
       destination: landing.slice() as Point,
       hitId: victim?.id,
       removedId: victim && !survives ? victim.id : -1,
@@ -323,6 +333,10 @@ export class Room {
       this.actions -= cost;
       if (this.won) this.knives = [];
       const action: MoveAction = { from: this.hero.slice() as Point, to: this.hero.slice() as Point, kind: 'sweep', removedId: -1, hits };
+      if (this.loadout === 'qinghe' && this.build.battleReward === 'whirlwind' && hits.filter(h=>!h.blocked).length >= 2 && !this.usedGrowth.has('battle-whirlwind')) {
+        this.usedGrowth.add('battle-whirlwind'); this.actions++;
+        action.growth = ['refund'];
+      }
       this.applyGrowth(action, cost, ref);
       return action;
     }
@@ -335,7 +349,7 @@ export class Room {
       hitId: preview.hitId
     };
     const victim = this.at(destination);
-    if (victim && !preview.blocked) victim.health = (victim.health ?? 1) - 1;
+    if (victim && !preview.blocked) victim.health = (victim.health ?? 1) - (preview.attackDamage ?? 1);
     this.enemies = this.enemies.filter((e) => e.id !== preview.removedId);
     if (preview.pushed && victim) { victim.position = [...preview.pushed.to]; action.pushed = preview.pushed; }
     this.hero = preview.destination.slice() as Point;
@@ -346,6 +360,7 @@ export class Room {
       if (!this.hasKnife(destination)) this.knives.push([...destination]);
     } else if ((cardKind(used) === 'recall' || equal(this.hero, destination)) && this.hasKnife(destination)) this.pickup(action, destination);
     if (cardKind(used) === 'repel' && !victim) this.rewardDraw(action, 1);
+    if (this.loadout === 'qinghe' && this.build.battleReward === 'pursuit' && cardKind(used) === 'thrust' && preview.removedId >= 0 && !this.won) this.rewardDraw(action, 1);
     this.applyGrowth(action, cost, ref);
     if (this.won) this.knives = [];
     return action;

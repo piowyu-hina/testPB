@@ -21,6 +21,7 @@ import { engravingBadge, engravingLabel, engravingShort } from '../ui/engravingB
 import { loadouts } from '../data/cards';
 import { characterInfo } from '../data/characterInfo';
 import { cardKind, deckForBuild, type CardRef, type Engraving } from '../battle/Growth';
+import { battleRewards } from '../battle/BattleRewards';
 import '../enemy.css';
 import '../battleBoard.css';
 import '../battleHud.css';
@@ -78,6 +79,33 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     overflowTimer = 0;
   const touchLayout = () => matchMedia('(hover: none) and (pointer: coarse)').matches;
   const deckViewer = mountDeckViewer(root, elements.game, () => room);
+  const rewardPage = document.createElement('section');
+  rewardPage.className = 'battle-reward-page'; rewardPage.hidden = true;
+  rewardPage.setAttribute('role', 'dialog'); rewardPage.setAttribute('aria-modal', 'true');
+  rewardPage.setAttribute('aria-label', '選擇本趟強化'); root.append(rewardPage);
+  function showBattleReward() {
+    if (!journey.pendingBattleReward) return;
+    rewardPage.replaceChildren();
+    const title = document.createElement('h2'); title.textContent = '選擇本趟強化';
+    const subtitle = document.createElement('p'); subtitle.textContent = '選一項，這趟所有同名牌都生效';
+    rewardPage.append(title, subtitle);
+    for (const id of journey.battleRewardOptions) {
+      const reward = battleRewards[id], button = document.createElement('button');
+      button.type = 'button'; button.className = 'battle-reward-choice'; button.dataset.reward = id;
+      const art = document.createElement('img'); art.src = cardArt[reward.card]!; art.alt = '';
+      const text = document.createElement('span'), name = document.createElement('strong'), desc = document.createElement('span');
+      name.textContent = reward.name; desc.textContent = reward.description;
+      text.append(name, desc); button.append(art, text);
+      onClick(button, () => {
+        if (!journey.chooseBattleReward(id)) return;
+        rewardPage.hidden = true; elements.game.inert = false; render();
+      });
+      rewardPage.append(button);
+    }
+    const home = document.createElement('button'); home.type = 'button'; home.className = 'quiet-button'; home.textContent = '返回村莊';
+    onClick(home, () => { rewardPage.hidden = true; elements.game.inert = false; onHome(); });
+    rewardPage.append(home); rewardPage.hidden = false; elements.game.inert = true;
+  }
   onClick($('open-deck'), () => { if (!busy && !dealingHand) deckViewer.open(); });
   const soundToggle = $<HTMLButtonElement>('battle-sound-toggle');
   function renderSoundToggle() {
@@ -116,6 +144,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     name.textContent = card.name;
     const description = document.createElement('span');
     description.textContent = card.hint ?? '';
+    const reward = room?.build.battleReward && battleRewards[room.build.battleReward];
+    if (journey?.loadout === 'qinghe' && reward && data.cards[reward.card] === card) {
+      name.textContent += ` · ${reward.name}`;
+      description.textContent += ` ${reward.description}`;
+    }
     const engraving = ref && room?.build.engravings[ref];
     if (engraving) {
       name.textContent += ` · ${engravingLabel[engraving]}${room.growthReady(ref!) ? '' : '（已用）'}`;
@@ -601,7 +634,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const image = document.createElement('img'); image.src = enemyArt[enemy.kind]; image.alt = data.enemies[enemy.kind].name;
       const life = document.createElement('span'); life.className = 'enemy-life';
       const blocked = !ultimateTargeting && blocksAttack(enemy, room.hero);
-      const remaining = Math.max(0, (enemy.health ?? 1) - (blocked ? 0 : ultimateTargeting ? 2 : 1));
+      const remaining = Math.max(0, (enemy.health ?? 1) - (blocked ? 0 : ultimateTargeting ? 2 : preview?.attackDamage ?? 1));
       const current = enemy.health ?? 1, maximum = enemy.maxHealth ?? current;
       life.innerHTML = healthSegment.repeat(maximum);
       [...life.children].forEach((node, index) => { node.classList.toggle('empty', index >= current); node.classList.toggle('forecast', index >= remaining && index < current); });
@@ -825,6 +858,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     busy = false;
     render();
     void pause(320).then(() => elements.game.classList.remove('clearing-reveal'));
+    showBattleReward();
   }
   async function move(destination: Point) {
     if (busy || !room.canMove(selected, destination)) return;
@@ -1155,6 +1189,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   function showResult() {
     journey.claimClearReward();
+    if (journey.pendingBattleReward) { showBattleReward(); return; }
     if (exploring()) return;
     elements.resultTitle.textContent = room.lost ? '再試一次' : '森林遺跡・踏破';
     $('replay').textContent = '再來一局';
@@ -1166,6 +1201,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     loadRoom();
   }
   function loadRoom() {
+    rewardPage.hidden = true;
     inspectedEnemy = -1;
     inspectedTile = null;
     closeCardDetails();
@@ -1351,11 +1387,17 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   if (import.meta.env.DEV) {
     const tools = $('battle-test-tools');
     tools.hidden = false;
+    const rewardTest = document.createElement('button'); rewardTest.type = 'button'; rewardTest.dataset.testAction = 'reward';
+    rewardTest.setAttribute('aria-label', '測試戰鬥獎勵'); rewardTest.title = '測試戰鬥獎勵'; tools.append(rewardTest);
     for (const button of tools.querySelectorAll<HTMLButtonElement>('button[data-test-action]')) {
       onClick(button, () => {
         if (busy) return;
         const action = button.dataset.testAction;
-        if (action === 'cycle') {
+        if (action === 'reward') {
+          journey = session.startNewJourney();
+          journey.room.enemies = []; journey.room.hero = [...journey.exit]; journey.advance();
+          journey.room.enemies = []; journey.claimClearReward(); loadRoom(); showBattleReward();
+        } else if (action === 'cycle') {
           room = new Room(1, journey.definition, 5, journey.loadout, journey.build);
           journey.room = room;
           room.hero = [2, 1]; room.health = 5; room.actions = 5;
@@ -1382,6 +1424,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           for (let index = 0; index < stage; index++) {
             journey.room.enemies = [];
             journey.room.hero = [...journey.exit];
+            if (journey.pendingBattleReward) journey.chooseBattleReward(journey.battleRewardOptions[0]);
             journey.advance();
           }
           loadRoom();

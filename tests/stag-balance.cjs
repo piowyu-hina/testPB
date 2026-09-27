@@ -40,6 +40,7 @@ function run(seed){
   stages.push(m);add(total,m);
   if(!r.won)break;
   while(r.hero[0]!==2||r.hero[1]!==4)r.explore(0,[r.hero[0]+Math.sign(2-r.hero[0]),r.hero[1]+Math.sign(4-r.hero[1])]);
+  if(j.pendingBattleReward)j.chooseBattleReward(j.battleRewardOptions[0]);
   j.advance();
  }
  return{seed,won:j.won,dead:j.room.lost,timeout,total,stages,examples};

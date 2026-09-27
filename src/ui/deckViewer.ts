@@ -4,6 +4,7 @@ import type { CardDefinition } from '../types/game';
 import { cardArt } from '../data/cardArt';
 import { engravingInfo, relicInfo, cardKind, type CardRef } from '../battle/Growth';
 import { engravingBadge, engravingLabel } from './engravingBadge';
+import { battleRewards } from '../battle/BattleRewards';
 
 /** Full-screen collection view. Counts are grouped; hidden draw order stays hidden. */
 export function mountDeckViewer(root: HTMLElement, game: HTMLElement, getRoom: () => Room) {
@@ -33,6 +34,8 @@ export function mountDeckViewer(root: HTMLElement, game: HTMLElement, getRoom: (
       button.textContent = `${{all:'全部',hand:'手牌',deck:'抽牌堆',discard:'棄牌堆'}[key]} ${key === 'all' ? all.length : room[key].length}`;
     }
     const owned = [room.build.relic ? relicInfo(room.loadout).name : '', room.build.opening ? '行前整備' : ''].filter(Boolean);
+    const reward = room.loadout === 'qinghe' && room.build.battleReward ? battleRewards[room.build.battleReward] : undefined;
+    if (reward) owned.push(reward.name);
     const growth = panel.querySelector<HTMLElement>('.deck-growth')!;
     growth.textContent = owned.join(' · ');
     growth.hidden = !owned.length;
@@ -81,6 +84,7 @@ export function mountDeckViewer(root: HTMLElement, game: HTMLElement, getRoom: (
       const cost = document.createElement('span'); cost.className = 'deck-cost'; cost.textContent = `${definition.cost ?? 1} 魂火${id === 'knife' ? ' · 本回合限定' : ''}`;
       heading.append(name, cost);
       const description = document.createElement('p'); description.textContent = definition.hint ?? '';
+      if (reward?.card === id) description.textContent += ` ${reward.description}`;
       detail.append(heading, description);
       if (engraving) {
         const effect = document.createElement('p'); effect.className = 'deck-engraving';

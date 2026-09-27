@@ -1,5 +1,6 @@
 import { cards, loadouts, type CardId, type Loadout } from '../data/cards.ts';
 import type { CardDefinition } from '../types/game.ts';
+import type { BattleReward } from './BattleRewards.ts';
 
 export type Engraving = 'draw' | 'refund' | 'discount';
 // Ordinary copies are interchangeable. An engraved copy gets a stable identity
@@ -7,6 +8,7 @@ export type Engraving = 'draw' | 'refund' | 'discount';
 export type CardRef = CardId | `${CardId}#${number}`;
 export function cardKind(ref: CardRef): CardId { return ref?.split('#')[0] as CardId; }
 export interface Build {
+  battleReward?: BattleReward;
   engravings: Partial<Record<CardRef, Engraving>>;
   relic: boolean;
   opening: boolean;

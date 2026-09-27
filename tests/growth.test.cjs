@@ -4,6 +4,39 @@ const { Room, HAND_LIMIT } = require('../src/battle/Room.ts');
 const { Journey } = require('../src/battle/Journey.ts');
 const { freshBuild, cardKind } = require('../src/battle/Growth.ts');
 const { loadouts, cards } = require('../src/data/cards.ts');
+const { rewardOptions } = require('../src/battle/BattleRewards.ts');
+test('battle reward is stable, single-choice, journey-local and blocks the second-room exit',()=>{
+ const j=new Journey(987654,'qinghe');assert.equal(j.pendingBattleReward,false);
+ j.room.enemies=[];j.room.hero=[2,4];assert.equal(j.advance(),true);
+ j.room.enemies=[];j.room.hero=[2,4];assert.equal(j.pendingBattleReward,true);
+ const options=[...j.battleRewardOptions];assert.equal(new Set(options).size,3);
+ assert.equal(j.advance(),false);assert.deepEqual(j.battleRewardOptions,options);
+ j.setLoadout('rogue');assert.equal(j.pendingBattleReward,false);j.setLoadout('qinghe');assert.deepEqual(j.battleRewardOptions,options);
+ assert.equal(j.chooseBattleReward(options[0]),true);assert.equal(j.chooseBattleReward(options[1]),false);
+ assert.equal(j.advance(),true);assert.equal(j.room.build.battleReward,options[0]);
+ assert.equal(new Journey(987654,'qinghe').build.battleReward,undefined);
+ assert.ok(new Set(Array.from({length:30},(_,i)=>rewardOptions(i*145678901).slice().sort().join(','))).size>1);
+});
+test('pursuit draws on thrust kills only and respects five-card cap',()=>{
+ const r=setup();r.build.battleReward='pursuit';r.enemies[0].health=1;r.hand=['thrust','sweep','sweep','sweep','sweep'];r.deck=['repel'];
+ const a=r.move(0,[2,2]);assert.deepEqual(a.drawnCards,['repel']);assert.equal(r.hand.length,5);
+ const other=setup();other.build.battleReward='pursuit';other.hand=['thrust'];assert.equal(other.move(0,[2,2]).drawnCards,undefined);
+});
+test('reach and collision share committed and forecast damage, and never bypass guards or boss immunity',()=>{
+ for(const reward of ['reach','collision']){
+  const r=setup();r.build.battleReward=reward;r.hand=[reward==='reach'?'thrust':'repel'];
+  r.hero=reward==='reach'?[2,0]:[2,3];r.enemies[0].position=reward==='reach'?[2,2]:[2,4];r.enemies[0].health=2;
+  const p=r.preview(0,r.enemies[0].position);assert.equal(p.attackDamage,2);assert.equal(p.removedId,0);
+  r.move(0,r.enemies[0].position);assert.ok(!r.enemies.some(e=>e.id===0));assert.equal(r.damageAt(r.hero),p.damage);
+ }
+ const r=setup();r.build.battleReward='collision';r.hero=[2,3];r.hand=['repel'];r.enemies[0]={id:0,kind:'mossstag',position:[2,4],health:6};assert.equal(r.preview(0,[2,4]).attackDamage,1);
+ r.enemies[0]={id:0,kind:'stump',position:[2,4],health:2,facing:'south'};assert.equal(r.preview(0,[2,4]).attackDamage,0);
+});
+test('whirlwind refunds only for two actual hits, once per turn',()=>{
+ const r=setup();r.build.battleReward='whirlwind';r.enemies=[target({health:10}),target({id:1,position:[1,1],health:10})];r.hand=['sweep','sweep'];
+ r.move(0,[2,1]);assert.equal(r.actions,2);r.move(0,[2,1]);assert.equal(r.actions,1);
+ r.endTurn();r.hand=['sweep'];r.move(0,[2,1]);assert.equal(r.actions,2);
+});
 const target = (extra = {}) => ({ id: 0, kind: 'sprout', position: [2, 2], health: 3, maxHealth: 3, ...extra });
 function setup(loadout = 'qinghe', build = freshBuild()) {
   return new Room(4, { name: 'test', hero: [2, 1], enemies: [target(), target({ id: 9, position: [4, 4] })] }, 5, loadout, build);

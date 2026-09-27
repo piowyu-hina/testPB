@@ -32,6 +32,7 @@ function planJourney(seed=1) {
     rooms.push({name:journey.definition.name,won:room.won,health:room.health,turns:room.turn,steps});
     if(!room.won)break;
     while(room.hero[0]!==2||room.hero[1]!==4){room.explore(0,[room.hero[0]+Math.sign(2-room.hero[0]),room.hero[1]+Math.sign(4-room.hero[1])]);}
+    if(journey.pendingBattleReward)journey.chooseBattleReward(journey.battleRewardOptions[0]);
     journey.advance();
   }
   return {won:journey.won,rooms};

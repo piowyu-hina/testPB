@@ -5,6 +5,7 @@ import { dungeons } from '../data/dungeons/index.ts';
 import type { DungeonId } from '../data/dungeons/index.ts';
 import type { CardId } from '../data/cards.ts';
 import { freshBuild, canEngrave, engravingInfo, relicInfo, type Engraving, type CardRef } from './Growth.ts';
+import { rewardOptions, type BattleReward } from './BattleRewards.ts';
 
 export class Journey {
   readonly exit: Point = [2, 4];
@@ -19,6 +20,19 @@ export class Journey {
   coins = 4;
   readonly builds = { basic: freshBuild(), qinghe: freshBuild(), rogue: freshBuild() };
   private rewardedStages = new Set<number>();
+  private offeredRewards?: BattleReward[];
+  get pendingBattleReward() {
+    return this.loadout === 'qinghe' && this.stage === 1 && this.room.won && !this.build.battleReward;
+  }
+  get battleRewardOptions(): readonly BattleReward[] {
+    if (!this.pendingBattleReward) return [];
+    return this.offeredRewards ??= rewardOptions(this.seed);
+  }
+  chooseBattleReward(reward: BattleReward) {
+    if (!this.pendingBattleReward || !this.battleRewardOptions.includes(reward)) return false;
+    this.build.battleReward = reward;
+    return true;
+  }
   get build() { return this.builds[this.loadout]; }
   claimClearReward() {
     if (!this.room.won || this.room.lost || this.rewardedStages.has(this.stage)) return 0;
@@ -106,7 +120,7 @@ export class Journey {
     return next;
   }
   advance() {
-    if (!this.room.won || this.finished || !equal(this.room.hero, this.exit)) return false;
+    if (!this.room.won || this.finished || this.pendingBattleReward || !equal(this.room.hero, this.exit)) return false;
     const health = this.room.health + this.recovery;
     this.claimClearReward();
     this.stage++;

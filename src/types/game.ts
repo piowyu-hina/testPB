@@ -53,6 +53,7 @@ export interface Enemy {
   enraged?: boolean;
 }
 export interface MovePreview {
+  attackDamage?: number;
   blocked: boolean;
   hitId?: number;
   destination: Point;

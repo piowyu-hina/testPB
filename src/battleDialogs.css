@@ -1,4 +1,16 @@
 .settings-dialog.battle-help { width: 720px; height: 1280px; max-width: none; max-height: none; overflow: hidden; padding: 52px 54px; border: 0; border-radius: 0; box-shadow: none; }
+.battle-screen { position: relative; }
+.battle-reward-page { position: absolute; inset: 0; z-index: 100; padding: 64px 40px; background: #192e27; color: #f5eddb; display: flex; flex-direction: column; gap: 24px; overflow: hidden; }
+.battle-reward-page[hidden] { display: none; }
+.battle-reward-page h2 { font-size: 40px; margin: 0; }
+.battle-reward-page > p { font-size: 27px; margin: 0 0 12px; color: #ced2bd; }
+.battle-reward-choice { display: flex; align-items: center; gap: 28px; min-height: 240px; padding: 24px; border: 2px solid #8d9879; border-radius: 14px; background: #f2e8d4; color: #303c32; text-align: left; }
+.battle-reward-choice:hover { border-color: #e6b955; background: #fff3d8; }
+.battle-reward-choice img { width: 150px; height: 185px; object-fit: contain; flex-shrink: 0; }
+.battle-reward-choice > span { display: flex; flex-direction: column; gap: 14px; }
+.battle-reward-choice strong { font-size: 36px; }
+.battle-reward-choice span span { font-size: 28px; line-height: 1.5; }
+.battle-reward-page > .quiet-button { align-self: center; padding: 16px 24px; font-size: 27px; color: #ded9c7; }
 .settings-dialog.battle-help::backdrop { background: #101514; backdrop-filter: none; }
 .battle-help .settings-heading h2 { font-size: 36px; }
 .battle-help .settings-heading .quiet-button { font-size: 26px; padding: 12px 16px; }
