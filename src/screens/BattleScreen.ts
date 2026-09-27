@@ -19,7 +19,7 @@ import { playSound, setSoundEnabled, soundEnabled } from '../ui/sound';
 import { mountDeckViewer } from '../ui/deckViewer';
 import { engravingBadge, engravingLabel, engravingShort } from '../ui/engravingBadge';
 import { loadouts } from '../data/cards';
-import { cardKind, deckForBuild, type CardRef } from '../battle/Growth';
+import { cardKind, deckForBuild, type CardRef, type Engraving } from '../battle/Growth';
 import '../enemy.css';
 import '../battleBoard.css';
 import '../battleHud.css';
@@ -507,7 +507,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const title = enemy ? `${enemy.elite ? '精英・' : ''}${data.enemies[enemy.kind].name}` : isExit ? '出口' : hasKnife ? '地上小刀' : '危險地格';
     const lines: string[] = [];
     if (enemy) {
-      lines.push(data.enemies[enemy.kind].behavior);
+      const skill = enemySkill(enemy);
+      lines.push(`${skill.name}：${skill.hint}`);
       if (enemy.facing && enemySkill(enemy).guardsFront) lines.push(`面向：${{ north: '上', east: '右', south: '下', west: '左' }[enemy.facing]}`);
     }
     if (hasKnife) lines.push('撿刀：補 1 行動，可抽 1 張牌');
@@ -807,12 +808,15 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const action = room.move(selected, destination);
     if (!action) return;
     // Remove the played copy so drawing the same kind still gets a deal animation.
-    elements.hand.children[selected]?.remove();
+    const played = elements.hand.children[selected] as HTMLElement | undefined;
+    const playedBounds = played?.getBoundingClientRect();
+    played?.remove();
     renderedHand.splice(selected, 1);
     handSignature = '';
     if (journey.loadout === 'qinghe' && ['advance', 'thrust', 'sweep', 'sidestep', 'repel'].includes(action.kind)) journey.gainDawnCharge();
     lock();
     renderEnergy(paidEnergy);
+    if (action.growth?.includes('discount')) await growthFeedback('discount', playedBounds);
     if (action.hits) {
       elements.hint.textContent = '';
       playSound(action.hits.some(hit => hit.removed) ? 'kill' : 'hit');
@@ -835,6 +839,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         actors.delete(hit.id);
         journey.gainAssassination(hit.elite);
       }
+      if (action.growth?.some(kind => kind !== 'discount')) await growthFeedback(action.growth.find(kind => kind !== 'discount')!, playedBounds);
       renderEnergy();
       await rewardFeedback(action);
       if (room.won && !journey.finished) {
@@ -906,8 +911,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       victim.remove();
       actors.delete(action.removedId);
       journey.gainAssassination(targetWasElite);
-      renderEnergy();
+      if (!action.growth?.includes('refund')) renderEnergy();
     }
+    if (action.growth?.some(kind => kind !== 'discount')) await growthFeedback(action.growth.find(kind => kind !== 'discount')!, playedBounds);
+    renderEnergy();
     await rewardFeedback(action);
     if (room.won && !journey.finished) {
       await revealClearedRoom();
@@ -1045,6 +1052,16 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     lock();
     elements.endLabel.textContent = '敵方回合';
     await discardVisibleHand();
+    // Resolve the already-announced footprint even when the hero dodged it.
+    // Reuse the threat artwork instead of inventing a second warning language.
+    const cast = document.createElement('div'); cast.className = 'enemy-cast';
+    for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) {
+      if (!room.enemies.some(enemy => Room.threatens(enemy, [x, y]))) continue;
+      const mark = document.createElement('div'); mark.className = 'threat-mark'; place(mark, [x, y]); cast.append(mark);
+    }
+    elements.board.append(cast);
+    try { if (cast.childElementCount) await animate(cast, [{ opacity: 0 }, { opacity: .9, offset: .35 }, { opacity: 0 }], 260); }
+    finally { cast.remove(); }
     const outcome = room.endTurn();
     if (!outcome) {
       busy = false;
@@ -1103,7 +1120,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   function showResult() {
     journey.claimClearReward();
     if (exploring()) return;
-    elements.resultTitle.textContent = room.lost ? '再試一次' : '旅途完成！';
+    elements.resultTitle.textContent = room.lost ? '再試一次' : '森林遺跡・踏破';
     $('replay').textContent = '再來一局';
     elements.result.hidden = false;
     elements.game.inert = true;
@@ -1151,6 +1168,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         `${enemy.elite ? '精英・' : ''}${data.enemies[enemy.kind].name}`
       );
       sprite.dataset.kind = enemy.kind;
+      sprite.classList.toggle('boss', Boolean(data.enemies[enemy.kind].boss));
+      if (enemy.kind === 'sporecap' || enemy.kind === 'rootwarden') {
+        const intent = document.createElement('span'); intent.className = 'enemy-intent'; intent.setAttribute('aria-hidden', 'true'); sprite.append(intent);
+      }
       sprite.insertAdjacentHTML('beforeend', '<svg class="guard-shield" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 5 53 14v17c0 14-21 26-21 26S11 45 11 31V14Z"/></svg>');
       if (enemy.elite) {
         sprite.classList.add('elite');
@@ -1271,6 +1292,26 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       showOverflowFeedback(card); await pause(900);
     }
   }
+  async function growthFeedback(kind: Engraving, source?: DOMRect) {
+    if (!source) return;
+    const bounds = root.getBoundingClientRect(), scale = bounds.width / root.clientWidth;
+    const effect = engravingBadge(kind);
+    effect.classList.add('growth-trigger'); effect.dataset.trigger = kind;
+    effect.style.left = `${(source.x + source.width / 2 - bounds.x) / scale}px`;
+    effect.style.top = `${(source.y - bounds.y) / scale}px`;
+    root.append(effect);
+    const target = elements.energyCount.getBoundingClientRect();
+    const dx = kind === 'draw' ? 0 : (target.x + target.width / 2 - source.x - source.width / 2) / scale;
+    const dy = kind === 'draw' ? -24 : (target.y + target.height / 2 - source.y) / scale;
+    try {
+      await animate(effect, [
+        { opacity: 0, transform: 'translate(-50%, -50%) scale(.8)' },
+        { opacity: 1, transform: 'translate(-50%, -50%) scale(1.22)', offset: .25 },
+        { opacity: 1, transform: 'translate(-50%, -50%) scale(1.1)', offset: .55 },
+        { opacity: 0, transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.9)` }
+      ], 300, 'ease-out');
+    } finally { effect.remove(); }
+  }
   if (import.meta.env.DEV) {
     const tools = $('battle-test-tools');
     tools.hidden = false;
@@ -1299,9 +1340,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           room.shuffle(room.deck); room.discard = [];
           room.knives = room.loadout === 'rogue' ? [[0, 1], [2, 2]] : [];
           loadRoom();
-        } else if (action === 'opening' || action === 'guard' || action === 'elite') {
+        } else if (action === 'opening' || action === 'guard' || action === 'elite' || action === 'boss') {
           journey = session.startNewJourney();
-          const stage = action === 'opening' ? 0 : action === 'guard' ? 1 : 2;
+          const stage = action === 'opening' ? 0 : action === 'guard' ? 2 : action === 'elite' ? 4 : journey.total - 1;
           for (let index = 0; index < stage; index++) {
             journey.room.enemies = [];
             journey.room.hero = [...journey.exit];

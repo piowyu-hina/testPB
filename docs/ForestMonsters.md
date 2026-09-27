@@ -1,4 +1,22 @@
-# 森林遺跡：第一批怪物
+# 森林遺跡：六房間完整試玩版
+
+
+### 本次新增三張怪物圖（2026-09-27）
+
+內建 imagegen 生成，1254 × 1254 RGBA PNG，直接使用透明原圖，未做程式繪圖替代。噴孢菇參考原有團子／古木的線條；其餘使用下列獨立提示詞。已檢查原圖透明度及遊戲棋盤上的小尺寸辨識。
+
+#### assets/monsters/forest/Sporecap.png
+
+Use case: stylized-concept. Generate a NEW standalone 2D game monster token, using the two images ONLY as style references, not edit targets. A single cute squat mushroom monster: wide muted terracotta-red mushroom cap with ONLY three large cream spots, tiny cream stem-body, two stubby feet and two mitten-like arms, determined sleepy dark eyes. Distinct mushroom silhouette. No particles. Match their thick dark-brown outlines and chibi proportions; simplify to broad CLEAN FLAT COLOR regions and at most one hard-edged shadow per region. Full body centered with 8% empty margin, facing viewer with slight top-down game-token perspective. Entirely transparent alpha background, no ground, no tile, no cast shadow outside character, no frame, no text, no watermark. Square PNG. Must remain legible at 90px. Avoid gradients, texture, grain, tiny flecks, tiny details. Save-ready sprite for this game.
+
+#### assets/monsters/forest/BrambleMoth.png
+
+A transparent-background PNG sprite for a cute all-ages forest board game. A single cute forest moth monster: four broad moss-green and pale cream wings, short rounded plum-brown body, two simple curled antennae, large determined dark eyes. Wings spread symmetrically in a compact diamond silhouette, only one broad patch per wing. No fine veins, no particles. Thick dark brown cartoon outlines, broad simple flat colors, very sparse clean cel shadows, no texture or grain or realism. One full-body character centered with 8 percent margin on all sides, compact chibi proportions like a children's storybook mascot, legible at 90px. Warm tan, moss green, cream and plum palette. No words, background, ground, particle effects, frame or watermark. This is a friendly fantasy woodland creature illustration.
+
+#### assets/monsters/forest/Rootwarden.png
+
+A transparent-background PNG sprite for a cute all-ages forest board game. A single forest boss called Rootwarden: squat ancient living tree creature, broad tan wood trunk body with stern but cute dark eyes, two hefty root fists, short root feet, a forked antler-like branch crown bearing just four broad moss-green leaves, one large warm amber acorn-shaped heart set in its chest. More imposing than the stump reference but still very cute, not scary. Broad uncluttered silhouette, very few bark divisions. No crown jewelry, no particles. Thick dark brown cartoon outlines, broad simple flat colors, very sparse clean cel shadows, no texture or grain or realism. One full-body character centered with 8 percent margin on all sides, compact chibi proportions like a children's storybook mascot, legible at 90px. Warm tan, moss green, cream and plum palette. No words, background, ground, particle effects, frame or watermark. This is a friendly fantasy woodland creature illustration.
+
 
 ## 規則
 
@@ -7,14 +25,17 @@
 | 刺芽團子 | 刺擊：上下左右一格，1 傷害 | 結算後，未在攻擊距離內的團子靠近一格 |
 | 古木守衛・揮枝 | 正前方一格，1 傷害 | 正面同一直線來的攻擊被擋住；側面、背面、斜角可攻擊。結算後原地切換扎根 |
 | 古木守衛・扎根 | 四個斜角相鄰格，1 傷害 | 正面防護解除；結算後切換揮枝，必要時靠近一格，朝向玩家 |
+| 噴孢菇 | 周圍八格噴孢，1 傷害；之後休息一回合 | 不自行移動，可以推動；開場休息 |
+| 荊翅蛾 | 四條斜線各延伸兩格，1 傷害 | 攻擊後，未在射程內才靠近一格 |
+| 古根之心（Boss） | 十字長線 → 斜角長線 → 休息，攻擊各 2 傷害 | 8 生命，不移動、不能推動、沒有正面格擋；開場休息 |
 
 古木固定交替，玩家出牌期間不換招、不轉向。各怪物的已預告攻擊先一起結算，再移動及準備下次技能。
-第一間團子為 1 生命；第二間兩隻古木各 2 生命；第三間精英古木為 3 生命、前排兩隻團子各 2 生命。精英古木基本攻擊造成 2 傷害。怪物站在小刀格時攻擊傷害增加 1，離開便失效。
+團子及荊翅蛾為 1 生命，噴孢菇與普通古木為 2 生命，精英古木為 3 生命。精英古木基本攻擊造成 2 傷害。怪物站在小刀格時攻擊傷害增加 1，離開便失效。
 格擋仍消耗玩家的卡片及一次行動，但不傷害怪物，角色退回原位；預覽顯示該落點及接下來的傷害。
 非致死攻擊同樣會退回原位；擊殺才移入怪物所在格。
 
-第一間只出現刺芽團子；第二間介紹分別處於揮枝／扎根的兩隻古木；第三間為精英古木加刺芽團子。
-這是第一版規則與配置，並非已完成全部森林怪物或新頭目技能。
+路線依序為：林緣遭遇（團子）→ 孢霧石徑（噴孢菇＋團子）→ 古木伏擊（兩隻古木＋團子）→ 荊翅迴廊（兩隻蛾＋噴孢菇）→ 遺跡守衛（精英古木＋三種小怪）→ 古根之心（Boss＋團子）。
+保留清房後走出口、換房回血 1、生命上限 5、商店與逐張強化。全部房間開場安全，Boss 開場休息讓玩家有機會調整站位。這是可完整通關的首版配置，仍需真人試玩調整難度。
 
 ## 模組
 
@@ -24,7 +45,12 @@
 - `ui/enemyInfo.ts`：共用資訊行中的怪物名字與生命格式。
 - `enemy.css`：技能視覺標記與格擋預覽。
 
-未選牌時移入或點怪物，底部與卡片共用的資訊行顯示名字與目前／最大生命。點擊可固定顯示，點空格可清除。攻擊範圍仍由棋盤的危險格表示。
+滑鼠移入怪物時，上方資訊列顯示目前技能與規則，生命用愛心呈現；下方 HUD 不新增文字。攻擊範圍沿用棋盤紅色爪印，結算前也短暫顯示，避免落空時像沒有出招。噴孢菇／Boss 頭上使用小型技能形狀標記；休息顯示綠葉，Boss 攻擊分十字及斜十字。
+
+## 驗證
+
+`npm test` 包含全怪物技能階段的預告／實際傷害一致性、青禾五種卡片預覽一致性、Boss 不可推動與多種洗牌完整旅程測試。100 組固定種子自動策略通關 97 組，僅作回歸與基本可玩性檢查，不代表真人難度評分。
+`node tests/forest-browser.cjs` 使用滑鼠從第一房打到 Boss，驗證三階段、出口、勝利、死亡與重開。設定 `TESTPB_CHECK_SCRIPT=tests/forest-browser.cjs` 後執行 `node tests/qinghe-native.cjs` 可在真正 Tauri 視窗重跑。
 
 ## 美術
 

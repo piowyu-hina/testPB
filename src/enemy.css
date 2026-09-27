@@ -2,3 +2,14 @@
 .actor[data-skill='roots'] img { filter: drop-shadow(0 0 3px #8dd8a1); }
 .tile.blocked.capture { box-shadow: inset 0 0 0 999px #5276a033; }
 .tile.blocked.capture:after { --target-color: #5276a0; }
+.actor.boss { width: 20%; height: 20%; }
+.actor[data-skill='recover'] img { filter: saturate(.8) drop-shadow(0 0 5px #e7c26c); }
+.enemy-intent { position: absolute; z-index: 5; right: 2%; top: 0; width: 27px; height: 27px; border-radius: 50%; background: #30281f; box-shadow: 0 1px 3px #0009; pointer-events: none; }
+.enemy-intent::before, .enemy-intent::after { content: ''; position: absolute; background: #f6b190; border-radius: 2px; }
+.enemy-intent::before { width: 19px; height: 4px; left: 4px; top: 11px; }
+.enemy-intent::after { width: 4px; height: 19px; left: 11px; top: 4px; }
+.actor[data-skill='root-diagonal'] .enemy-intent { rotate: 45deg; }
+.actor[data-skill='spores'] .enemy-intent::before { inset: 5px; width: auto; height: auto; border: 3px solid #f6b190; border-radius: 50%; background: none; }
+.actor[data-skill='spores'] .enemy-intent::after { display: none; }
+.actor[data-skill='recover'] .enemy-intent::before { inset: 6px; width: auto; height: auto; border-radius: 12px 2px; background: #c3d58f; }
+.actor[data-skill='recover'] .enemy-intent::after { display: none; }

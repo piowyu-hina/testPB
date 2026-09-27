@@ -84,4 +84,8 @@
 
 ## 驗證入口
 
+2026-09-27：森林擴為六房間，新增噴孢菇、荊翅蛾與古根之心。Boss 固定扎根不可推；噴孢菇雖不自行移動仍可推動。配置與美術見 ForestMonsters.md。
+
+強化效果成功觸發才播放單一圖示回饋：降費在出招前，抽牌／回魂在出招後；回魂先顯示支出，再恢復能量，抽牌提示後才進行抽牌。沿用原本強化符號，不新增下方文字或整手牌閃光。`node tests/growth-feedback.cjs` 驗證順序、每次只觸發一次與實際收益；亦可用原生測試入口執行。
+
 `npm test` 含新循環與成長規則；`npm run typecheck`。`node tests/growth-browser.cjs` 驗證購買、兩隻所有新增技能、牌組、扣血／格擋／推擊預覽、滿手收刃及大招。PowerShell 設 `$env:TESTPB_CHECK_SCRIPT='tests/growth-browser.cjs'` 後執行 `node tests/qinghe-native.cjs` 可在真實開發 Tauri 視窗跑同套指標檢查；不是 release 封裝。

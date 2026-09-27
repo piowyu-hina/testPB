@@ -7,9 +7,8 @@ export const forestRuins: DungeonDefinition = {
   id: 'forest',
   name: '森林遺跡',
   subtitle: '第一章 · 林蔭深處',
-  description: '沿著被苔蘚覆蓋的石徑，穿過林間伏擊。古老遺跡的守衛，正等在旅途盡頭。',
-  // Keep the original introductory room in data for later restoration. The active route starts
-  // with a one-enemy encounter so combat and room-clear feedback are quick to test.
+  description: '穿越孢霧、繞過古木、避開荊翅。六段林間石徑的盡頭，古根之心正在甦醒。',
+  // Archived original introductory room stays at index 0; the six-room route starts at 1.
   startIndex: 1,
   rooms: [
     {
@@ -30,13 +29,29 @@ export const forestRuins: DungeonDefinition = {
       ]
     },
     {
+      name: '孢霧石徑',
+      hero: [2, 0],
+      enemies: [
+        { id: 0, kind: 'sporecap', position: [2, 3], health: 2, skillIndex: 1 },
+        { id: 1, kind: 'sprout', position: [0, 3] }
+      ]
+    },
+    {
       name: '古木伏擊',
       hero: [2, 0],
       enemies: [
         { id: 0, kind: 'sprout', position: [2, 2] },
         { id: 1, kind: 'stump', position: [1, 3], facing: 'south', health: 2 },
-        { id: 2, kind: 'stump', position: [3, 3], facing: 'south', skillIndex: 1, health: 2 },
-        { id: 3, kind: 'sprout', position: [2, 4] }
+        { id: 2, kind: 'stump', position: [3, 3], facing: 'south', skillIndex: 1, health: 2 }
+      ]
+    },
+    {
+      name: '荊翅迴廊',
+      hero: [2, 0],
+      enemies: [
+        { id: 0, kind: 'moth', position: [2, 3] },
+        { id: 1, kind: 'moth', position: [4, 3] },
+        { id: 2, kind: 'sporecap', position: [0, 3], health: 2, skillIndex: 1 }
       ]
     },
     {
@@ -44,9 +59,17 @@ export const forestRuins: DungeonDefinition = {
       hero: [2, 0],
       enemies: [
         { id: 0, kind: 'stump', position: [2, 3], elite: true, facing: 'south', health: 3 },
-        { id: 1, kind: 'sprout', position: [1, 2], health: 2 },
-        { id: 2, kind: 'sprout', position: [3, 2], health: 2 },
-        { id: 3, kind: 'sprout', position: [4, 4] }
+        { id: 1, kind: 'sprout', position: [1, 2] },
+        { id: 2, kind: 'moth', position: [3, 3] },
+        { id: 3, kind: 'sporecap', position: [4, 4], health: 2, skillIndex: 1 }
+      ]
+    },
+    {
+      name: '古根之心',
+      hero: [2, 0],
+      enemies: [
+        { id: 0, kind: 'rootwarden', position: [2, 3], health: 8, skillIndex: 2 },
+        { id: 1, kind: 'sprout', position: [0, 3] }
       ]
     }
   ]

@@ -22,13 +22,14 @@ export interface CardDefinition {
   cost?: number;
   effect?: 'throw' | 'shadow' | 'knife' | 'thrust' | 'sweep' | 'ultimate' | 'sidestep' | 'repel' | 'recall';
 }
-export type EnemyKind = 'sprout' | 'stump';
+export type EnemyKind = 'sprout' | 'stump' | 'sporecap' | 'moth' | 'rootwarden';
 export type Facing = 'north' | 'east' | 'south' | 'west';
 export interface EnemySkill {
-  id: 'thorns' | 'sweep' | 'roots';
+  id: 'thorns' | 'sweep' | 'roots' | 'spores' | 'flutter' | 'root-cross' | 'root-diagonal' | 'recover';
   name: string;
   hint: string;
-  pattern: 'adjacent' | 'front' | 'diagonal';
+  pattern: 'adjacent' | 'front' | 'diagonal' | 'ring' | 'diagonal-ray' | 'cross-ray' | 'none';
+  damage?: number;
   guardsFront: boolean;
   holdAfter: boolean;
 }
@@ -36,6 +37,8 @@ export interface EnemyDefinition {
   name: string;
   behavior: string;
   skills: readonly EnemySkill[];
+  boss?: boolean;
+  rooted?: boolean;
 }
 export interface Enemy {
   id: number;

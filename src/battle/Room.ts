@@ -3,11 +3,12 @@ import type { CardId, Loadout } from '../data/cards.ts';
 import { enemies } from '../data/enemies.ts';
 import { forestRuins } from '../data/dungeons/forest.ts';
 import type { Point, Enemy, MovePreview, EnemyMotion, TurnOutcome, CardDefinition, RoomDefinition } from '../types/game.ts';
-import { attackOffsets, blocksAttack, enemySkill, faceToward } from './EnemyRules.ts';
-import { freshBuild, cardKind, deckForBuild, type Build, type CardRef } from './Growth.ts';
+import { attackOffsets, blocksAttack, enemySkill, enemyDamage, faceToward } from './EnemyRules.ts';
+import { freshBuild, cardKind, deckForBuild, type Build, type CardRef, type Engraving } from './Growth.ts';
 export const data = { cards, enemies };
 export const HAND_LIMIT = 5;
 export interface MoveAction {
+  growth?: Engraving[];
   hitId?: number;
   hits?: { id: number; position: Point; blocked: boolean; removed: boolean; elite: boolean }[];
   pickedKnife?: boolean;
@@ -176,6 +177,7 @@ export class Room {
     const key = `card:${ref}`, effect = this.build.engravings[ref];
     if (effect && !this.usedGrowth.has(key) && (effect !== 'refund' || paid > 0)) {
       this.usedGrowth.add(key);
+      (action.growth ??= []).push(effect);
       if (effect === 'draw') this.rewardDraw(action, 1);
       if (effect === 'refund') this.actions = Math.min(9, this.actions + 1);
     }
@@ -256,7 +258,7 @@ export class Room {
     return this.enemies.reduce(
       (damage, enemy) =>
         damage +
-        (!removed.includes(enemy.id) && Room.threatens(pushed?.id === enemy.id ? { ...enemy, position: pushed.to } : enemy, tile) ? (enemy.elite ? 2 : 1) + Number(this.hasKnife(pushed?.id === enemy.id ? pushed.to : enemy.position) || Boolean(addedKnife && equal(enemy.position, addedKnife))) : 0),
+        (!removed.includes(enemy.id) && Room.threatens(pushed?.id === enemy.id ? { ...enemy, position: pushed.to } : enemy, tile) ? enemyDamage(enemy) + Number(this.hasKnife(pushed?.id === enemy.id ? pushed.to : enemy.position) || Boolean(addedKnife && equal(enemy.position, addedKnife))) : 0),
       0
     );
   }
@@ -282,7 +284,7 @@ export class Room {
     let pushBlocked = false;
     if (cardKind(this.hand[index]) === 'repel' && victim && survives) {
       const to: Point = [destination[0] + Math.sign(destination[0] - this.hero[0]), destination[1] + Math.sign(destination[1] - this.hero[1])];
-      pushBlocked = blocked || Boolean(victim.elite) || enemySkill(victim).id === 'roots' || !inside(to) || Boolean(this.at(to));
+      pushBlocked = blocked || Boolean(victim.elite) || Boolean(enemies[victim.kind].rooted) || enemySkill(victim).id === 'roots' || !inside(to) || Boolean(this.at(to));
       if (!pushBlocked) pushed = { id: victim.id, from: [...destination], to };
     }
     return {

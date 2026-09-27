@@ -11,6 +11,7 @@ const { chromium } = require('playwright');
   await new Promise(resolve => server.close(resolve));
   const endpoint = `http://127.0.0.1:${port}`;
   const app = spawn(path.resolve('src-tauri/target/debug/testpb.exe'), [], {
+    detached: process.env.TESTPB_KEEP_OPEN === '1',
     windowsHide: true,
     stdio: 'ignore',
     env: {
@@ -19,6 +20,7 @@ const { chromium } = require('playwright');
       WEBVIEW2_USER_DATA_FOLDER: path.resolve(`test-results/native-qinghe-${process.pid}`)
     }
   });
+  let completed = false;
   try {
     let ready = false;
     for (let attempt = 0; attempt < 40; attempt++) {
@@ -39,7 +41,10 @@ const { chromium } = require('playwright');
     const code = await new Promise(resolve => check.on('exit', resolve));
     if (code) throw new Error(`Native checks failed: ${code}`);
     console.log('Native Tauri pointer checks passed');
+    completed = true;
+    if (process.env.TESTPB_KEEP_OPEN === '1') console.log(`Preview PID=${app.pid} CDP=${endpoint}`);
   } finally {
-    app.kill();
+    if (completed && process.env.TESTPB_KEEP_OPEN === '1') app.unref();
+    else app.kill();
   }
 })().catch(error => { console.error(error); process.exitCode = 1; });

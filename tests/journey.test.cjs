@@ -89,6 +89,9 @@ test('only clearing advances; healing is capped and cannot be repeated', () => {
   run.advance();
   assert.equal(run.room.health, 5);
   run.room.enemies = [];
+  while (run.stage < run.total - 1) {
+    toExit(run.room, run.exit); assert.equal(run.advance(), true); run.room.enemies = [];
+  }
   assert.equal(run.won, true);
   assert.equal(run.finished, true);
   assert.equal(run.advance(), false);

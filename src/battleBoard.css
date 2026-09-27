@@ -110,6 +110,7 @@
   z-index: 6;
   pointer-events: none;
 }
+.enemy-cast { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
 .threat-mark {
   position: absolute;
   width: 20%;

@@ -28,7 +28,7 @@ export function mountDungeon(host: HTMLElement, session: GameSession, onBack: ()
       $('start-label').textContent = canResume ? '繼續旅途' : '出發';
       $('dungeon-state').textContent = canResume
         ? `第 ${journey.stage + 1} / ${journey.total} 間 · ${journey.room.won ? '已清場，前往出口' : journey.definition.name}`
-        : `${journey.total} 個房間 · 最深處的守衛`;
+        : `${journey.total} 個房間 · 首領：古根之心`;
       $('journey-note').textContent = canResume
         ? `生命 ${journey.room.health} / 5 · 返回村莊不會重置本次旅程。`
         : '清場後走向出口，進入下一間房並恢復 1 點生命。';

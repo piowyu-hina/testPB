@@ -12,8 +12,16 @@ export function enemySkill(enemy: Enemy) {
 }
 export function attackOffsets(enemy: Enemy): Point[] {
   const pattern = enemySkill(enemy).pattern;
+  if (pattern === 'none') return [];
+  if (pattern === 'ring') return [...adjacent, ...diagonal];
+  if (pattern === 'cross-ray' || pattern === 'diagonal-ray') {
+    const directions = pattern === 'cross-ray' ? adjacent : diagonal;
+    const length = enemy.kind === 'moth' ? 2 : 4;
+    return directions.flatMap(([x, y]) => Array.from({ length }, (_, i): Point => [x * (i + 1), y * (i + 1)]));
+  }
   return pattern === 'front' ? [facingOffsets[enemy.facing ?? 'south']] : pattern === 'diagonal' ? diagonal : adjacent;
 }
+export function enemyDamage(enemy: Enemy) { return enemySkill(enemy).damage ?? (enemy.elite ? 2 : 1); }
 export function blocksAttack(enemy: Enemy, from: Point): boolean {
   if (!enemySkill(enemy).guardsFront) return false;
   const [fx, fy] = facingOffsets[enemy.facing ?? 'south'];

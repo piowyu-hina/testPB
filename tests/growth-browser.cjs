@@ -56,7 +56,7 @@ const assert = require('node:assert/strict');
     await page.locator('[data-test-action="elite"]').click();await idle();await home();
     await page.locator('#open-shop').click();await page.locator('.screen-curtain').waitFor({state:'hidden'});
     await page.locator('[data-shop-tab="gear"]').click();await page.getByRole('button',{name:/購買回刃扣/}).click();
-    assert.equal(await page.locator('#shop-coins').textContent(),'5');
+    assert.equal(await page.locator('#shop-coins').textContent(),'11'); // Four cleared rooms before the elite test room, minus relic.
     await page.locator('#shop-home').click();await start();await cycle();
     await select('recall');await tile(0,1).hover();assert.equal(await page.locator('#ghost').isHidden(),true);
     assert.equal(await tile(2,2).evaluate(el=>el.classList.contains('legal')),false);await shot('recall-preview');

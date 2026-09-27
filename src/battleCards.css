@@ -132,6 +132,7 @@
 }
 .card-cost[data-cost="0"] { display: none; }
 .card.card-unavailable { cursor: help; }
+.growth-trigger { position: absolute; z-index: 85; width: 60px; height: 60px; pointer-events: none; filter: drop-shadow(0 0 7px #ffe4a2); }
 .cost-flame { position: relative; display: block; width: 38px; height: 43px; flex: none; background: url('../assets/ui/action-soulflame-v2.png') center / contain no-repeat; }
 .cost-flame + .cost-flame { margin-left: -14px; }
 .card:disabled {
