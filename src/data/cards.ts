@@ -7,7 +7,7 @@ const anywhere: Point[] = Array.from({ length: 81 }, (_, i) => [i % 9 - 4, Math.
 
 // Relative landing tiles; positive y points up. Shared by rules and card diagrams.
 export const cards = {
-  thrust: { name: '槍刺', hint: '原地攻擊上下左右距離 1～2 格的第一隻怪物', offsets: rays(cross, 2), canJump: false, copies: 5, cost: 1, effect: 'thrust' },
+  thrust: { name: '槍刺', hint: '刺擊十字兩格內第一隻怪物；或移到相鄰十字空格。二選一。', offsets: rays(cross, 2), canJump: false, copies: 5, cost: 1, effect: 'thrust' },
   advance: { name: '突進', hint: '移動到周圍 1 格；若落點有怪物則攻擊', offsets: around, canJump: false, copies: 3, cost: 1 },
   sweep: { name: '橫掃', hint: '點亮起的範圍，原地攻擊周圍八格的所有怪物', offsets: around, canJump: false, copies: 4, cost: 1, effect: 'sweep' },
   sidestep: { name: '側步', hint: '不消耗魂火，移到周圍一格空地；不攻擊。', offsets: around, canJump: false, copies: 4, cost: 0, effect: 'sidestep' },

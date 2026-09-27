@@ -688,7 +688,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const enemy = room.at(point);
       tile.setAttribute(
         'aria-label',
-        `${point[0] + 1},${point[1] + 1}${enemy ? ` ${enemySummary(enemy)}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? chosenId === 'sweep' ? '，施放周圍一圈橫掃' : chosenId === 'recall' ? '，回收飛刀' : ['throw', 'knife', 'thrust', 'repel'].includes(chosenId) ? '，可攻擊' : '，可移動' : ''}`
+        `${point[0] + 1},${point[1] + 1}${enemy ? ` ${enemySummary(enemy)}` : ''}${damage ? `，${damage} 傷害` : ''}${legal ? chosenId === 'sweep' ? '，施放周圍一圈橫掃' : chosenId === 'recall' ? '，回收飛刀' : enemy && ['throw', 'knife', 'thrust', 'repel'].includes(chosenId) ? '，可攻擊' : '，可移動' : ''}`
       );
       if (dawnTarget && direction)
         tile.setAttribute('aria-label', `${point[0] + 1},${point[1] + 1}，施放破曉一槍，直線命中 ${room.dawnRay(direction).length} 隻怪物`);
@@ -881,7 +881,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       $('ground-knives').querySelector(`[data-point="${action.to.join(',')}"]`)?.remove();
     // Keep the visible board stable until the movement and impact complete.
     const thrown = action.kind === 'throw';
-    const stationary = ['throw', 'knife', 'thrust', 'repel', 'recall'].includes(action.kind);
+    const stationary = ['throw', 'knife', 'repel', 'recall'].includes(action.kind) || action.kind === 'thrust' && action.hitId !== undefined;
     if (!stationary)
       playSound(action.kind === 'shadow' ? 'blink' : ['rush', 'leap', 'lunge'].includes(action.kind) ? 'dash' : 'step');
     const resisted = !stationary && action.hitId !== undefined && action.removedId < 0;

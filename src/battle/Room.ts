@@ -225,7 +225,7 @@ export class Room {
       );
     if (!this.matchesCard(index, destination)) return false;
     if (card.effect === 'throw') return Boolean(this.at(destination));
-    if (card.effect === 'thrust') return Boolean(this.at(destination));
+    if (card.effect === 'thrust') return Boolean(this.at(destination)) || Math.abs(destination[0] - this.hero[0]) + Math.abs(destination[1] - this.hero[1]) === 1;
     if (card.effect === 'shadow' && !this.hasKnife(destination)) return false;
     if (card.effect === 'knife') return Boolean(this.at(destination));
     if (card.effect === 'repel') return Boolean(this.at(destination));
@@ -278,7 +278,7 @@ export class Room {
     const victim = this.at(destination);
     const blocked = victim ? blocksAttack(victim, this.hero) : false;
     const survives = victim && (blocked || (victim.health ?? 1) > 1);
-    const stationary = ['throw', 'knife', 'thrust', 'repel', 'recall'].includes(cardKind(this.hand[index]));
+    const stationary = ['throw', 'knife', 'repel', 'recall'].includes(cardKind(this.hand[index])) || cardKind(this.hand[index]) === 'thrust' && Boolean(victim);
     const landing = survives || stationary ? this.hero : destination;
     let pushed: MovePreview['pushed'];
     let pushBlocked = false;

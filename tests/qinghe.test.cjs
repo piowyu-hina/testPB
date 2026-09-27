@@ -58,6 +58,21 @@ test('sweep damages all eight adjacent tiles but not distant monsters, with matc
   assert.deepEqual(result.hero, [2, 2]);
 });
 
+test('thrust can spend one soul on one empty cardinal step, never diagonal or two empty tiles', () => {
+  const result = room(); result.hand = ['thrust'];
+  assert.equal(result.canMove(0, [3, 2]), false);
+  assert.equal(result.canMove(0, [2, 3]), false);
+  for (const point of [[2, 2], [1, 1], [3, 1], [2, 0]]) assert.equal(result.canMove(0, point), true);
+  const preview = result.preview(0, [2, 2]);
+  assert.deepEqual(preview.destination, [2, 2]);
+  const action = result.move(0, [2, 2]);
+  assert.equal(action.hitId, undefined);
+  assert.deepEqual(result.hero, preview.destination);
+  assert.equal(result.actions, 1);
+  assert.equal(result.hand.length, 0);
+  assert.equal(result.enemies.length, 1);
+});
+
 test('sweep checks front guards for each neighboring monster independently', () => {
   const result = room();
   result.hero = [2, 2];

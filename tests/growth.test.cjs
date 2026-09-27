@@ -23,7 +23,8 @@ test('card unavailability distinguishes cost, target and empty destinations with
   assert.equal(room.cardUnavailableReason(3),'');
   assert.equal(JSON.stringify(room),before);
   room.actions=2;room.hero=[0,0];
-  for(const index of [0,1,2]) assert.equal(room.cardUnavailableReason(index),'enemy');
+  assert.equal(room.cardUnavailableReason(0),''); // Thrust can step into empty space.
+  for(const index of [1,2]) assert.equal(room.cardUnavailableReason(index),'enemy');
   room.enemies=[target({position:[0,1]}),target({id:1,position:[1,0]}),target({id:2,position:[1,1]})];
   assert.equal(room.cardUnavailableReason(3),'empty-tile');
   assert.equal(room.cardUnavailableReason(1),'');
