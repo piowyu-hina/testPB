@@ -10,8 +10,9 @@
   --muted: #72757b;
   --board: 680px;
 }
-html { scrollbar-width: none; }
-html::-webkit-scrollbar { display: none; }
+/* Product-wide rule: no visible scrollbars, including nested and modal UI. */
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; width: 0; height: 0; }
 * {
   box-sizing: border-box;
 }

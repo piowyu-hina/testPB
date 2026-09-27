@@ -6,7 +6,10 @@
 .battle-help .settings-row strong, .journey-settings-title strong { font-size: 24px; }
 .battle-help .settings-row p { font-size: 23px; }
 .battle-help .sound-toggle { min-width: 78px; padding: 10px 16px; font-size: 20px; }
-.battle-help ol { columns: 1; padding-left: 34px; line-height: 1.6; font-size: 25px; max-height: 1020px; overflow-y: auto; padding-right: 12px; }
+.battle-help ol { columns: 1; padding-left: 34px; line-height: 1.7; font-size: 28px; height: 820px; padding-right: 12px; }
+.rules-pagination { display: flex; justify-content: center; align-items: center; gap: 32px; font-size: 26px; }
+.rules-pagination button { padding: 8px 24px; background: transparent; color: inherit; border: 0; font-size: 42px; }
+.rules-pagination button:disabled { opacity: .25; }
 .battle-help li { margin-bottom: 18px; padding-left: 5px; }
 .battle-help > p { font-size: 22px; line-height: 1.6; }
 .journey-settings { margin-top: 34px; padding: 25px 26px; border: 1px solid #ab987655; border-radius: 12px; background: #fff9ec88; }
@@ -75,12 +78,22 @@
 .deck-viewer nav { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px solid #b8aa8655; }
 .deck-viewer nav button { padding: 16px 4px; border: 0; border-bottom: 4px solid transparent; color: #c3cbbd; background: transparent; font-size: 25px; }
 .deck-viewer nav button[aria-pressed='true'] { color: #f4cb79; border-bottom-color: #dfb25b; }
-.deck-growth { padding: 22px 0; font-size: 23px; line-height: 1.5; color: #d6d9c6; }
-.deck-list { overflow-y: auto; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; align-content: start; gap: 26px 28px; padding: 4px 8px 30px 0; scrollbar-color: #9d9d79 transparent; }
-.deck-entry { min-width: 0; border-bottom: 1px solid #b8aa8645; padding: 0 8px 22px; }
-.deck-entry img { display: block; width: 100%; height: 180px; object-fit: contain; margin-bottom: 14px; }
-.deck-entry h3 { font-size: 28px; margin: 0 0 8px; font-weight: 600; }
-.deck-cost { font-size: 23px; color: #ccb99a; }
-.deck-entry p { margin: 12px 0 0; line-height: 1.5; font-size: 24px; }
-.deck-entry .deck-engraving { color: #f4cd7c; }
+.deck-growth { margin-top: auto; padding-top: 18px; font-size: 24px; color: #d6d9c6; }
+.deck-list { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 260px); gap: 24px 22px; padding: 30px 0 0; flex: none; }
+.deck-entry { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 0; border: 0; background: none; color: #efe5d0; }
+.deck-card-face { position: relative; display: block; width: 164px; height: 210px; padding: 16px 10px 20px; border-radius: 12px; border: 2px solid #ab9978; background: linear-gradient(150deg, #fffdf4, #f0e5cf); box-shadow: inset 0 0 0 4px #fffaf0, 0 4px 0 #927e5d; }
+.deck-entry[aria-pressed='true'] .deck-card-face { border-color: #f0c777; box-shadow: inset 0 0 0 4px #fffaf0, 0 0 0 3px #e4b45b; transform: translateY(-4px); }
+.deck-entry:hover .deck-card-face { transform: translateY(-4px); }
+.deck-card-face > img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.deck-card-name { font-size: 27px; line-height: 1.3; }
+.deck-quantity { position: absolute; right: 12px; bottom: 8px; color: #493f2d; font-size: 26px; font-weight: 600; }
+.deck-pagination { display: flex; align-items: center; justify-content: center; gap: 32px; margin-top: 18px; font-size: 25px; }
+.deck-pagination button { border: 0; background: transparent; color: #f2ce87; width: 64px; height: 54px; font-size: 42px; line-height: 1; }
+.deck-pagination button:disabled { opacity: .25; }
+.deck-detail { margin-top: 28px; padding: 24px 8px 0; border-top: 1px solid #b8aa8660; }
+.deck-detail-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.deck-detail h3 { font-size: 34px; margin: 0; font-weight: 500; }
+.deck-cost { font-size: 25px; color: #d9c9a6; }
+.deck-detail p { margin: 16px 0 0; line-height: 1.55; font-size: 28px; }
+.deck-detail .deck-engraving { color: #f4cd7c; }
 .deck-empty { font-size: 28px; grid-column: 1 / -1; text-align: center; margin-top: 100px; }

@@ -138,8 +138,7 @@
 .battle-info { height: 175px; }
 .battle-info .hint { font-size: 24px; }
 .battle-info .hint strong { font-size: 28px; }
-.battle-info:has(.target-outcome:not([hidden])) .hint,
-.battle-info:has(.target-outcome:not([hidden])) .touch-info { max-height: 122px; overflow-y: auto; }
+.battle-info .hint-engraving { display: block; color: #efce83; }
 .battle-test-tools [data-test-action='cycle']::before { background-image: url('../assets/cards/qinghe/Sidestep.png'); }
 .target-health { display: inline-flex; align-items: center; gap: 4px; }
 .target-health > img { width: 42px; height: 42px; object-fit: contain; }

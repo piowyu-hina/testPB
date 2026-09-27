@@ -5,6 +5,7 @@ import { cardArt } from '../data/cardArt';
 import { characters } from '../data/art';
 import { canEngrave, engravingInfo, relicInfo, type Engraving } from '../battle/Growth';
 import { mountScreenRoot, element, onClick } from '../ui/dom';
+import { engravingBadge, engravingLabel } from '../ui/engravingBadge';
 import '../shop.css';
 
 export function mountShop(host: HTMLElement, session: GameSession, onHome: () => void): Screen {
@@ -27,10 +28,11 @@ export function mountShop(host: HTMLElement, session: GameSession, onHome: () =>
   function buy(action: () => boolean, label: string) {
     if (action()) { render(); $('shop-message').textContent = `${label}已裝備`; }
   }
-  function offer(name: string, description: string, price: number, owned: boolean, disabled: boolean, action: () => boolean) {
+  function offer(name: string, description: string, price: number, owned: boolean, disabled: boolean, action: () => boolean, engraving?: Engraving) {
     const row = document.createElement('div'); row.className = 'shop-offer';
     const detail = document.createElement('div');
-    const title = document.createElement('strong'); title.textContent = name;
+    const title = document.createElement('strong'); title.className = 'shop-offer-title'; title.textContent = name;
+    if (engraving) title.prepend(engravingBadge(engraving));
     const text = document.createElement('p'); text.textContent = description;
     detail.append(title, text);
     const button = document.createElement('button'); button.className = 'shop-buy';
@@ -60,7 +62,7 @@ export function mountShop(host: HTMLElement, session: GameSession, onHome: () =>
     const existing = build.engravings[selected];
     $('shop-engravings').replaceChildren(...(['draw', 'refund', 'discount'] as Engraving[]).filter(kind => canEngrave(journey.loadout, selected, kind)).map(kind => {
       const info = engravingInfo[kind];
-      return offer(info.name, info.description, info.price, existing === kind, Boolean(existing), () => journey.buyEngraving(selected, kind));
+      return offer(engravingLabel[kind], info.description, info.price, existing === kind, Boolean(existing), () => journey.buyEngraving(selected, kind), kind);
     }));
     const relic = relicInfo(journey.loadout);
     $('shop-gear').replaceChildren(

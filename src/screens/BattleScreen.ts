@@ -18,7 +18,7 @@ import { enemySkill, blocksAttack } from '../battle/EnemyRules';
 import { enemySummary } from '../ui/enemyInfo';
 import { playSound, setSoundEnabled, soundEnabled } from '../ui/sound';
 import { mountDeckViewer } from '../ui/deckViewer';
-import { engravingInfo } from '../battle/Growth';
+import { engravingBadge, engravingLabel, engravingShort } from '../ui/engravingBadge';
 import { loadouts } from '../data/cards';
 import '../enemy.css';
 import '../battleBoard.css';
@@ -118,8 +118,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const id = (Object.keys(data.cards) as CardId[]).find(id => data.cards[id] === card);
     const engraving = id && room?.build.engravings[id];
     if (engraving) {
-      name.textContent += ` · ${engravingInfo[engraving].name}`;
-      description.textContent += ` ${room.growthReady(id!) ? engravingInfo[engraving].description : '刻印本回合已觸發。'}`;
+      name.textContent += ` · ${engravingLabel[engraving]}${room.growthReady(id!) ? '' : '（已用）'}`;
+      const extra = document.createElement('span'); extra.className = 'hint-engraving';
+      extra.textContent = room.growthReady(id!) ? engravingShort[engraving] : '強化下回合恢復';
+      if (!hoveredTile || !room.preview(selected, hoveredTile)) description.append(extra);
     }
     if (reason) {
       const warning = document.createElement('em');
@@ -395,6 +397,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         costNode.innerHTML = Array.from({ length: cost }, (_, i) => `<span class="cost-flame" style="z-index:${cost - i}"></span>`).join('');
       }
       card.classList.toggle('engraved', Boolean(room.build.engravings[room.availableCards[index]]));
+      card.querySelector('.engraving-badge')?.remove();
+      const engraving = room.build.engravings[room.availableCards[index]];
+      if (engraving) card.append(engravingBadge(engraving, !room.growthReady(room.availableCards[index])));
       card.classList.toggle('shadow-unavailable', shadowUnavailable);
       card.classList.toggle('energy-unavailable', !isUltimate && !exploring() && room.actions < cost);
       card.setAttribute('aria-label', reason ? `追影，${reason}` : `${data.cards[room.availableCards[index]].name}，消耗 ${cost} 行動`);
@@ -1139,6 +1144,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
   }
   makeTiles();
   const help = $<HTMLDialogElement>('battle-help');
+  let rulesPage = 0;
+  onClick($('rules-prev'), () => { rulesPage--; renderBattleRules(); });
+  onClick($('rules-next'), () => { rulesPage++; renderBattleRules(); });
   function renderBattleRules() {
     const characterRules = journey.loadout === 'qinghe' ? [
       '突進：走向周圍一格。槍刺：原地刺向上下左右一至二格的第一隻怪物。橫掃：點亮起的範圍，原地攻擊周圍八格。側步：免費換到鄰近空地。槍柄推擊：近身攻擊並推開存活怪物，菁英、扎根與後方受阻不能推動。',
@@ -1155,7 +1163,13 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       '清場後用前進卡走到上方出口，不耗行動。進下一間恢復一點生命。',
       '村莊工坊強化同名卡與角色遺物，不增加普通牌種類；清場獲得旅途金幣。上方牌組圖示可查看各牌堆與已裝刻印。'
     ];
-    $('battle-rule-list').replaceChildren(...lines.map(text => {
+    const pages = Math.ceil(lines.length / 2);
+    rulesPage = Math.max(0, Math.min(rulesPage, pages - 1));
+    $('rules-page').textContent = `${rulesPage + 1} / ${pages}`;
+    $<HTMLButtonElement>('rules-prev').disabled = rulesPage === 0;
+    $<HTMLButtonElement>('rules-next').disabled = rulesPage === pages - 1;
+    $('battle-rule-list').setAttribute('start', String(rulesPage * 2 + 1));
+    $('battle-rule-list').replaceChildren(...lines.slice(rulesPage * 2, rulesPage * 2 + 2).map(text => {
       const item = document.createElement('li');
       item.textContent = text;
       return item;

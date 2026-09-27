@@ -11,6 +11,7 @@
     "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort",
     "test": "node --test tests/rules.test.cjs tests/journey.test.cjs tests/navigation.test.cjs tests/enemy-skills.test.cjs tests/rogue.test.cjs tests/qinghe.test.cjs tests/growth.test.cjs",
     "test:browser": "node tests/browser-check.cjs",
+    "test:deck": "node tests/deck-ui.cjs",
     "tauri": "tauri",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build --no-bundle",
