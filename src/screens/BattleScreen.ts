@@ -142,6 +142,17 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     animation.id = 'card-rejected';
   }
   function closeCardDetails() { elements.cardDetails.hidden = true; }
+  function confirmCard(card: HTMLButtonElement) {
+    // Animate the illustration, not the hit box or hover transform.
+    const art = card.querySelector<HTMLElement>('.card-art, svg');
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (art && !reduced) {
+      const press = art.animate([{ scale: '1' }, { scale: '.93', offset: .28 }, { scale: '1' }], { duration: 190, easing: 'ease-out' });
+      press.id = 'card-confirmed';
+    }
+    const flash = card.animate([{ borderColor: '#ad691c' }, { borderColor: '#ffe8a2', offset: .28 }, { borderColor: '#ad691c' }], { duration: reduced ? 120 : 230, easing: 'ease-out' });
+    flash.id = 'card-confirmed';
+  }
   function showUltimateHint() {
     const charge = journey.ultimateCharge;
     const nameText = journey.loadout === 'qinghe' ? '破曉一槍' : '絕影';
@@ -393,6 +404,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           hoveredTile = null;
           hoveredEnemy = -1;
           render();
+          if (selected === index) confirmCard(card);
         });
         elements.hand.append(card);
       });
@@ -425,6 +437,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       card.setAttribute('aria-label', `${data.cards[room.availableCards[index]].name}，${reason || `消耗 ${cost} 魂火`}`);
       const chosen = isUltimate ? ultimateTargeting : index === selected;
       card.classList.toggle('selected', chosen);
+      if (!chosen) card.getAnimations({ subtree: true }).filter(animation => animation.id === 'card-confirmed').forEach(animation => animation.cancel());
       card.setAttribute('aria-pressed', String(chosen));
       // Gameplay-unavailable cards remain inspectable. Only animation locks use
       // native disabled; the click handler still refuses invalid plays.
