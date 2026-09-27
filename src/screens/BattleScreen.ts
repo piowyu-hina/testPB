@@ -88,10 +88,8 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     if (!journey.pendingBattleReward) return;
     rewardPage.replaceChildren();
     const title = document.createElement('h2'); title.textContent = '強化一張牌';
-    const subtitle = document.createElement('p'); subtitle.textContent = '只改變一張，其餘同名牌保留';
-    rewardPage.append(title, subtitle);
+    rewardPage.append(title);
     const choices = document.createElement('div'); choices.className = 'battle-reward-choices';
-    const detail = document.createElement('section'); detail.className = 'battle-reward-detail';
     const confirm = document.createElement('button'); confirm.className = 'battle-reward-confirm'; confirm.textContent = '強化這張'; confirm.disabled = true;
     let chosen: (typeof journey.battleRewardOptions)[number] | undefined;
     for (const id of journey.battleRewardOptions) {
@@ -100,19 +98,18 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       button.setAttribute('aria-pressed', 'false');
       const face = document.createElement('span'); face.className = 'battle-reward-card'; rewardFace(face, id);
       const art = document.createElement('img'); art.src = cardArt[reward.card]!; art.alt = '';
-      const name = document.createElement('strong'); name.textContent = `${data.cards[reward.card].name}・${reward.name}`;
-      face.append(art); button.append(face, name);
+      const text = document.createElement('span'); text.className = 'battle-reward-copy';
+      const name = document.createElement('strong'); name.textContent = `${reward.name}${data.cards[reward.card].name}`;
+      const desc = document.createElement('span'); desc.className = 'battle-reward-description'; desc.textContent = reward.description;
+      text.append(name, desc); face.append(art); button.append(face, text);
       onClick(button, () => {
         chosen = id; confirm.disabled = false;
         for (const other of choices.querySelectorAll('button')) other.setAttribute('aria-pressed', String(other === button));
-        const heading = document.createElement('h3'); heading.textContent = `${data.cards[reward.card].name} → ${reward.name}${data.cards[reward.card].name}`;
-        const desc = document.createElement('p'); desc.textContent = reward.description;
-        detail.replaceChildren(heading, desc);
+        confirm.setAttribute('aria-label', `強化一張${data.cards[reward.card].name}為${reward.name}${data.cards[reward.card].name}`);
       });
       choices.append(button);
     }
-    detail.textContent = '選一張，查看強化效果';
-    rewardPage.append(choices, detail, confirm);
+    rewardPage.append(choices, confirm);
     onClick(confirm, async () => {
       if (!chosen || !journey.chooseBattleReward(chosen)) return;
       for (const button of rewardPage.querySelectorAll('button')) button.disabled = true;
@@ -125,7 +122,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       reveal.append(face, name); rewardPage.append(reveal);
       await pause(250);
       rewardFace(face, chosen); name.textContent = `${reward.name}${data.cards[reward.card].name}`;
-      await animate(face, [{ boxShadow: '0 0 0 0 #f8d17b00' }, { boxShadow: '0 0 60px 20px #f8d17b99', offset: .35 }, { boxShadow: '0 0 22px 4px #f8d17b44' }], 650);
+      await animate(face, [{ transform: 'translateY(0)', filter: 'brightness(1)' }, { transform: 'translateY(-14px)', filter: 'brightness(1.15)', offset: .35 }, { transform: 'translateY(0)', filter: 'brightness(1)' }], 650);
       await pause(350);
       rewardPage.hidden = true; elements.game.inert = false; render();
     });
