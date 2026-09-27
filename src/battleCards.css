@@ -131,6 +131,7 @@
   transform: translateX(-50%);
 }
 .card-cost[data-cost="0"] { display: none; }
+.card.card-unavailable { cursor: help; }
 .cost-flame { position: relative; display: block; width: 38px; height: 43px; flex: none; background: url('../assets/ui/action-soulflame-v2.png') center / contain no-repeat; }
 .cost-flame + .cost-flame { margin-left: -14px; }
 .card:disabled {

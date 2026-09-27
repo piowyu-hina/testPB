@@ -188,6 +188,20 @@ export class Room {
     for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) if (this.canMove(index, [x, y])) return true;
     return false;
   }
+  cardUnavailableReason(index: number) {
+    const id = this.availableCards[index];
+    if (!id || this.lost) return 'finished';
+    if (this.won) return '';
+    if (this.actions < this.cardCost(index)) return 'energy';
+    if (this.canUseCard(index)) return '';
+    if (id === 'shadow' || id === 'recall') {
+      if (!this.knives.length) return 'knife';
+      return id === 'recall' ? 'empty-knife' : 'destination';
+    }
+    if (id === 'sidestep') return 'empty-tile';
+    if (['thrust', 'sweep', 'repel', 'throw', 'knife'].includes(id)) return 'enemy';
+    return 'destination';
+  }
   hasPlayableCard() { return this.hand.some((id, i) => id === 'absoluteShadow' || id === 'dawnSpear' || this.canUseCard(i)); }
   setLoadout(next: Loadout) {
     if (next === this.loadout) return;

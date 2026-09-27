@@ -15,6 +15,25 @@ test('sidestep is zero cost and empty-ground-only, including diagonal movement',
   assert.deepEqual(room.preview(0, [1, 2]).destination, [1, 2]);
   room.move(0, [1, 2]); assert.deepEqual(room.hero, [1, 2]); assert.equal(room.actions, 0);
 });
+
+test('card unavailability distinguishes cost, target and empty destinations without changing state', () => {
+  const room=setup();room.hand=['thrust','sweep','repel','sidestep','advance'];room.actions=0;
+  const before=JSON.stringify(room);
+  assert.equal(room.cardUnavailableReason(0),'energy');
+  assert.equal(room.cardUnavailableReason(3),'');
+  assert.equal(JSON.stringify(room),before);
+  room.actions=2;room.hero=[0,0];
+  for(const index of [0,1,2]) assert.equal(room.cardUnavailableReason(index),'enemy');
+  room.enemies=[target({position:[0,1]}),target({id:1,position:[1,0]}),target({id:2,position:[1,1]})];
+  assert.equal(room.cardUnavailableReason(3),'empty-tile');
+  assert.equal(room.cardUnavailableReason(1),'');
+  room.hand=['thrust#0'];room.build.engravings['thrust#0']='discount';room.actions=0;
+  assert.equal(room.cardUnavailableReason(0),'');
+  const rogue=setup('rogue');rogue.hand=['shadow','recall'];
+  assert.equal(rogue.cardUnavailableReason(0),'knife');
+  rogue.knives=[[2,2]];assert.equal(rogue.cardUnavailableReason(0),'');
+  assert.equal(rogue.cardUnavailableReason(1),'empty-knife');
+});
 test('repel attacks then pushes a survivor without moving hero or rotating intent; forecast follows new tile', () => {
   const room = setup(); room.hand = ['repel']; room.enemies[0].facing = 'east';
   const before = JSON.stringify(room);

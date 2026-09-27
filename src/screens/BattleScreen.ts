@@ -120,12 +120,12 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       name.textContent += ` · ${engravingLabel[engraving]}${room.growthReady(ref!) ? '' : '（已用）'}`;
       const extra = document.createElement('span'); extra.className = 'hint-engraving';
       extra.textContent = room.growthReady(ref!) ? engravingShort[engraving] : '強化下回合恢復';
-      if (!hoveredTile || !room.preview(selected, hoveredTile)) description.append(extra);
+      if (!reason && (!hoveredTile || !room.preview(selected, hoveredTile))) description.append(extra);
     }
     if (reason) {
       const warning = document.createElement('em');
       warning.className = 'hint-warning';
-      warning.textContent = ` · ${reason}`;
+      warning.textContent = reason;
       description.append(warning);
     }
     elements.hint.replaceChildren(name, description);
@@ -313,7 +313,10 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         card.addEventListener('pointerenter', () => {
           if (touchLayout()) return;
           if (!busy) {
-            showCardHint(definition, id === 'shadow' ? shadowRequirement(index) : '', ref);
+            elements.tileInfo.hidden = true;
+            elements.hint.hidden = false;
+            $('target-outcome').hidden = true;
+            showCardHint(definition, cardRequirement(index), ref);
           }
         });
         card.addEventListener('pointerleave', () => {
@@ -360,15 +363,15 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
           }
           ultimateTargeting = false;
           if (!exploring() && !room.canUseCard(index)) {
-            if (id === 'shadow') {
-              selected = -1;
-              inspectedTile = null;
-              hoveredTile = null;
-              hoveredEnemy = -1;
-              render();
-              showCardHint(definition, shadowRequirement(index), ref);
-              if (touchLayout()) elements.touchInfo.replaceChildren(...Array.from(elements.hint.childNodes).map(node => node.cloneNode(true)));
-            }
+            selected = -1;
+            inspectedTile = null;
+            hoveredTile = null;
+            hoveredEnemy = -1;
+            render();
+            elements.tileInfo.hidden = true;
+            elements.hint.hidden = false;
+            showCardHint(definition, cardRequirement(index), ref);
+            if (touchLayout()) elements.touchInfo.replaceChildren(...Array.from(elements.hint.childNodes).map(node => node.cloneNode(true)));
             return;
           }
           closeCardDetails();
@@ -394,8 +397,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     [...root.querySelectorAll<HTMLButtonElement>('.card')].forEach((card) => {
       const index = Number(card.dataset.index);
       const isUltimate = card.dataset.card === 'absoluteShadow' || card.dataset.card === 'dawnSpear';
-      const reason = card.dataset.card === 'shadow' ? shadowRequirement(index) : '';
-      const shadowUnavailable = Boolean(reason);
+      const reason = isUltimate ? '' : cardRequirement(index);
       const cost = card.dataset.card === 'forward' ? 0 : room.cardCost(index);
       const costNode = card.querySelector<HTMLElement>('.card-cost')!;
       if (costNode.dataset.cost !== String(cost)) {
@@ -406,15 +408,16 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       card.querySelector('.engraving-badge')?.remove();
       const engraving = room.build.engravings[room.availableCardRefs[index]];
       if (engraving) card.append(engravingBadge(engraving, !room.growthReady(room.availableCardRefs[index])));
-      card.classList.toggle('shadow-unavailable', shadowUnavailable);
+      card.classList.toggle('card-unavailable', Boolean(reason));
       card.classList.toggle('energy-unavailable', !isUltimate && !exploring() && room.actions < cost);
-      card.setAttribute('aria-label', reason ? `追影，${reason}` : `${data.cards[room.availableCards[index]].name}，消耗 ${cost} 行動`);
+      card.setAttribute('aria-label', `${data.cards[room.availableCards[index]].name}，${reason || `消耗 ${cost} 魂火`}`);
       const chosen = isUltimate ? ultimateTargeting : index === selected;
       card.classList.toggle('selected', chosen);
       card.setAttribute('aria-pressed', String(chosen));
-      const unusable = !isUltimate && !exploring() && !room.canUseCard(index) && card.dataset.card !== 'shadow';
-      card.disabled = busy || unusable;
-      card.setAttribute('aria-disabled', String(card.disabled));
+      // Gameplay-unavailable cards remain inspectable. Only animation locks use
+      // native disabled; the click handler still refuses invalid plays.
+      card.disabled = busy;
+      card.setAttribute('aria-disabled', String(busy || Boolean(reason)));
     });
   }
   function renderHealth(incoming = 0) {
@@ -463,11 +466,13 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       elements.energyCount.classList.add(energy > previousActions ? 'energy-gain' : 'energy-spend');
     }
   }
-  function shadowRequirement(index: number): string {
-    if (exploring() || room.canUseCard(index)) return '';
-    if (room.knives.length === 0) return '需要場上小刀';
-    if (room.actions < room.cardCost(index)) return '行動不足';
-    return '無可到達刀格';
+  function cardRequirement(index: number): string {
+    const reason = room.cardUnavailableReason(index);
+    return reason ? {
+      finished: '戰鬥已結束', energy: '魂火不足', enemy: '範圍內沒有怪物',
+      'empty-tile': '周圍沒有可移動的空格', knife: '需要場上小刀',
+      'empty-knife': '沒有位於空地的飛刀', destination: '沒有可到達的位置'
+    }[reason] : '';
   }
   function renderTileInfo(preview: ReturnType<Room['preview']>) {
     const panel = elements.tileInfo;
