@@ -881,7 +881,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       $('ground-knives').querySelector(`[data-point="${action.to.join(',')}"]`)?.remove();
     // Keep the visible board stable until the movement and impact complete.
     const thrown = action.kind === 'throw';
-    const stationary = ['throw', 'knife', 'repel', 'recall'].includes(action.kind) || action.kind === 'thrust' && action.hitId !== undefined;
+    const stationary = ['throw', 'knife', 'recall'].includes(action.kind) || ['thrust', 'repel'].includes(action.kind) && action.hitId !== undefined;
     if (!stationary)
       playSound(action.kind === 'shadow' ? 'blink' : ['rush', 'leap', 'lunge'].includes(action.kind) ? 'dash' : 'step');
     const resisted = !stationary && action.hitId !== undefined && action.removedId < 0;

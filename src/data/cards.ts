@@ -11,7 +11,7 @@ export const cards = {
   advance: { name: '突進', hint: '移動到周圍 1 格；若落點有怪物則攻擊', offsets: around, canJump: false, copies: 3, cost: 1 },
   sweep: { name: '橫掃', hint: '點亮起的範圍，原地攻擊周圍八格的所有怪物', offsets: around, canJump: false, copies: 4, cost: 1, effect: 'sweep' },
   sidestep: { name: '側步', hint: '不消耗魂火，移到周圍一格空地；不攻擊。', offsets: around, canJump: false, copies: 4, cost: 0, effect: 'sidestep' },
-  repel: { name: '槍柄推擊', hint: '攻擊相鄰十字一格並推後一格；菁英、扎根或後方受阻時只造成傷害。', offsets: cross, canJump: false, copies: 2, cost: 1, effect: 'repel' },
+  repel: { name: '槍柄推擊', hint: '十字相鄰：攻擊並推怪，或走到空格抽 1 張。菁英、扎根、受阻不可推。', offsets: cross, canJump: false, copies: 2, cost: 1, effect: 'repel' },
   recall: { name: '收刃', hint: '不消耗魂火，回收任意空地上的一把飛刀；原地獲得小刀、補一點魂火並抽一張牌。', offsets: anywhere, canJump: true, copies: 3, cost: 0, effect: 'recall' },
   dawnSpear: { name: '破曉一槍', hint: '點選亮起的直線，貫穿整條線上的怪物，各造成 2 點無視格擋傷害；不移動', offsets: cross, canJump: true, copies: 0, cost: 0, effect: 'ultimate' },
   throw: { name: '飛刀', hint: '原地攻擊十字方向第一隻怪物，刀留在命中格', offsets: rays(cross), canJump: false, copies: 5, cost: 1, effect: 'throw' },

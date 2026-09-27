@@ -24,7 +24,8 @@ test('card unavailability distinguishes cost, target and empty destinations with
   assert.equal(JSON.stringify(room),before);
   room.actions=2;room.hero=[0,0];
   assert.equal(room.cardUnavailableReason(0),''); // Thrust can step into empty space.
-  for(const index of [1,2]) assert.equal(room.cardUnavailableReason(index),'enemy');
+  assert.equal(room.cardUnavailableReason(1),'enemy');
+  assert.equal(room.cardUnavailableReason(2),'');
   room.enemies=[target({position:[0,1]}),target({id:1,position:[1,0]}),target({id:2,position:[1,1]})];
   assert.equal(room.cardUnavailableReason(3),'empty-tile');
   assert.equal(room.cardUnavailableReason(1),'');
@@ -45,6 +46,35 @@ test('repel attacks then pushes a survivor without moving hero or rotating inten
   assert.deepEqual(action.pushed, preview.pushed); assert.deepEqual(room.hero, [2, 1]);
   assert.equal(room.enemies[0].facing, 'east'); assert.equal(room.enemies[0].health, 2);
   assert.equal(room.endTurn().damage, preview.damage);
+});
+
+test('repel empty step spends a soul, draws once, and preview follows the landing', () => {
+  const room=setup();room.hand=['repel'];room.deck=['sweep'];room.discard=[];
+  assert.equal(room.canMove(0,[1,2]),false);
+  assert.equal(room.canMove(0,[0,1]),false);
+  const preview=room.preview(0,[1,1]);
+  const action=room.move(0,[1,1]);
+  assert.deepEqual(room.hero,[1,1]);assert.deepEqual(room.hero,preview.destination);
+  assert.equal(room.actions,1);assert.equal(action.hitId,undefined);
+  assert.deepEqual(action.drawnCards,['sweep']);assert.deepEqual(room.hand,['sweep']);
+  assert.equal(room.enemies[0].health,3);
+});
+
+test('repel attack never grants its movement draw, including block and unpushable target', () => {
+  for(const extra of [{},{kind:'stump',facing:'south'},{elite:true}]){
+    const room=setup();room.enemies[0]={...room.enemies[0],...extra};room.hand=['repel'];room.deck=['sweep'];
+    const action=room.move(0,[2,2]);assert.deepEqual(room.hero,[2,1]);
+    assert.equal(action.drawnCards,undefined);assert.equal(room.hand.length,0);assert.equal(room.deck.length,1);
+  }
+});
+
+test('repel step plus draw engraving and relic respects five cards and reports overflow', () => {
+  const build=freshBuild();build.relic=true;build.engravings['repel#0']='draw';
+  const room=setup('qinghe',build);room.hand=['repel#0','thrust','sweep','advance','sidestep'];
+  room.deck=['thrust','sweep','advance'];room.discard=[];
+  const action=room.move(0,[1,1]);
+  assert.equal(room.hand.length,5);assert.deepEqual(action.drawnCards,['advance']);
+  assert.deepEqual(action.overflowedCards,['sweep','thrust']);assert.equal(room.actions,1);
 });
 test('repel respects front block, roots, elite, wall and occupied destination independently', () => {
   const cases = [
