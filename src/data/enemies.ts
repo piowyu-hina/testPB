@@ -3,10 +3,10 @@ import type { EnemyDefinition, EnemyKind } from '../types/game.ts';
 export const enemies: Record<EnemyKind, EnemyDefinition> = {
   mossstag: {
     name: '苔角鹿靈', boss: true,
-    behavior: '衝撞 → 喘息 → 角掃；衝撞沿亮起直線移位，角掃可繞到背後。',
+    behavior: '近身角掃，遠處對齊後衝撞；衝撞後才喘息。方向在回合開始鎖定。',
     skills: [
       { id: 'charge', name: '衝撞', hint: '沿亮起直線衝至遠端，造成 2 傷害；方向已鎖定，下一回合喘息。', pattern: 'charge-ray', damage: 2, guardsFront: false, holdAfter: true },
-      { id: 'recover', name: '喘息', hint: '本回合不攻擊、不移動；趁機追上出招，下一回合角掃。', pattern: 'none', guardsFront: false, holdAfter: true },
+      { id: 'recover', name: '喘息', hint: '本回合不攻擊；之後近身角掃，遠處會移位對齊，預告衝撞。', pattern: 'none', guardsFront: false, holdAfter: true },
       { id: 'antler', name: '角掃', hint: '橫掃前方與兩側相鄰五格，造成 1 傷害；背後三格安全。', pattern: 'front-fan', damage: 1, guardsFront: false, holdAfter: true }
     ]
   },

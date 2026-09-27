@@ -25,6 +25,9 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
   await page.locator('#end-turn').click();await idle();await hoverBoss();
   assert.equal(await page.locator('[data-kind="mossstag"]').getAttribute('data-skill'),'antler');
   await page.screenshot({path:'test-results/stag-antler.png'});
+  await page.locator('#end-turn').click();await idle();
+  assert.equal(await page.locator('[data-kind="mossstag"]').getAttribute('data-skill'),'antler');
+  assert.equal(await page.evaluate(()=>window.testRoom.health),4);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollHeight>innerHeight||document.documentElement.scrollWidth>innerWidth),false);
   assert.deepEqual(errors,[]);console.log('Stag pointer inspection, charge travel, rest, antler and viewport passed');
  }finally{await browser.close();}

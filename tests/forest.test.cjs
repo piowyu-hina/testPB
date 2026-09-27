@@ -9,7 +9,7 @@ test('forest monsters resolve their announced patterns before changing phase',()
     if(x===2&&y===2)continue;
     const room=setup(kind,phase,[x,y]);const before=room.damageAt(room.hero),enemy=room.enemies[0];
     assert.equal(room.endTurn().damage,before);
-    if(!room.lost)assert.equal(enemy.skillIndex,(phase+1)%enemies[kind].skills.length);
+    if(!room.lost&&kind!=='mossstag')assert.equal(enemy.skillIndex,(phase+1)%enemies[kind].skills.length);
     if(kind!=='moth'&&kind!=='mossstag')assert.deepEqual(enemy.position,[2,2]);
   }
 });
@@ -32,10 +32,10 @@ test('stag locks charge, travels on a miss, rests, then sweeps with a rear openi
   room.hand=['sidestep'];room.move(0,[0,0]);assert.equal(e.facing,'south');
   const out=room.endTurn();assert.equal(out.damage,0);assert.deepEqual(e.position,[2,0]);
   assert.deepEqual(out.motions,[{id:0,from:[2,2],to:[2,0]}]);assert.equal(enemySkill(e).id,'recover');
-  assert.equal(room.damageAt([1,0]),0);room.endTurn();assert.equal(enemySkill(e).id,'antler');
+  assert.equal(room.damageAt([1,0]),0);room.hero=[1,0];room.endTurn();assert.equal(enemySkill(e).id,'antler');
   assert.equal(e.facing,'west');assert.equal(room.damageAt([1,0]),1);assert.equal(room.damageAt([3,0]),0);
   const facing=e.facing;room.hero=[3,0];assert.equal(e.facing,facing);
-  room.endTurn();assert.equal(enemySkill(e).id,'charge');assert.equal(e.facing,'east');
+  room.endTurn();assert.equal(enemySkill(e).id,'antler');assert.equal(e.facing,'east');
 });
 test('stag charge crosses its locked lane without overlapping player or monsters; boss resists push',()=>{
   const room=setup('mossstag',0,[2,0]),e=room.enemies[0];e.facing='south';
@@ -57,4 +57,33 @@ test('stag forecasts match damage in every facing, phase and tile',()=>{
 test('six-room Qinghe route is winnable across shuffled starts without shop or debug rewards',()=>{
   let wins=0;for(let seed=1;seed<=50;seed++){const run=planJourney(seed);if(run.won)wins++;}
   console.log(`Qinghe full route: ${wins}/50`);assert.ok(wins>=35);
+});
+test('no stationary safe tile survives stag targeting in any position, facing or initial phase',()=>{
+  let cases=0;
+  for(let bx=0;bx<5;bx++)for(let by=0;by<5;by++)for(let x=0;x<5;x++)for(let y=0;y<5;y++){
+    if(x===bx&&y===by)continue;
+    for(const facing of ['north','east','south','west'])for(let phase=0;phase<3;phase++){
+      const r=setup('mossstag',phase,[x,y]);r.enemies[0].position=[bx,by];r.enemies[0].facing=facing;
+      let hit=false;
+      for(let turn=0;turn<6;turn++){if(r.endTurn().damage){hit=true;break;}}
+      assert.ok(hit,JSON.stringify({boss:[bx,by],hero:[x,y],facing,phase}));cases++;
+    }
+  }
+  console.log(`Stationary exploit checks: ${cases} positions/phases/facings`);
+});
+test('camping the same adjacent side cannot farm recurring free rests',()=>{
+  for(const offset of [[0,1],[0,-1],[1,0],[-1,0],[1,1],[-1,1],[1,-1],[-1,-1]]){
+    const r=setup('mossstag',1,[2+offset[0],2+offset[1]]),e=r.enemies[0];
+    r.endTurn();assert.equal(enemySkill(e).id,'antler');
+    for(let n=0;n<3;n++){
+      r.health=5;assert.equal(r.endTurn().damage,1);assert.equal(enemySkill(e).id,'antler');
+      assert.deepEqual(e.position,[2,2]);
+    }
+  }
+});
+test('distant diagonal player causes alignment before the next locked charge, without surprise damage',()=>{
+  const r=setup('mossstag',1,[4,4]),e=r.enemies[0];e.position=[0,0];
+  const out=r.endTurn();assert.equal(out.damage,0);assert.equal(enemySkill(e).id,'charge');
+  assert.equal(r.damageAt(r.hero),2);assert.equal(out.motions.length,1);
+  const face=e.facing;r.hero=[3,3];assert.equal(e.facing,face);assert.equal(r.damageAt(r.hero),0);
 });

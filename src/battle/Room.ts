@@ -425,7 +425,24 @@ export class Room {
             enemy.position = chargeLanding(enemy, [this.hero, ...this.enemies.filter(e => e.id !== enemy.id).map(e => e.position)]);
             if (!equal(from, enemy.position)) motions.push({ id: enemy.id, from, to: [...enemy.position] });
           }
-          enemy.skillIndex = ((enemy.skillIndex ?? 0) + 1) % data.enemies[enemy.kind].skills.length;
+          if (enemySkill(enemy).id === 'charge') {
+            enemy.skillIndex = 1;
+          } else {
+            const dx = this.hero[0] - enemy.position[0], dy = this.hero[1] - enemy.position[1];
+            if (Math.max(Math.abs(dx), Math.abs(dy)) > 1 && dx !== 0 && dy !== 0) {
+              // Reposition before announcing the next attack, never during player input.
+              const candidates: Point[] = Math.abs(dx) <= Math.abs(dy)
+                ? [[this.hero[0], enemy.position[1]], [enemy.position[0], this.hero[1]]]
+                : [[enemy.position[0], this.hero[1]], [this.hero[0], enemy.position[1]]];
+              const aligned = candidates.find(p => !this.at(p));
+              if (aligned) {
+                const start = enemy.position.slice() as Point;
+                enemy.position = aligned;
+                motions.push({ id: enemy.id, from: start, to: [...aligned] });
+              }
+            }
+            enemy.skillIndex = Math.max(Math.abs(this.hero[0] - enemy.position[0]), Math.abs(this.hero[1] - enemy.position[1])) <= 1 ? 2 : 0;
+          }
           // Lock the next intent now; never retarget during the player's actions.
           enemy.facing = faceToward(enemy, this.hero);
           continue;
