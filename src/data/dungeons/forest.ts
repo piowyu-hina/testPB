@@ -7,7 +7,7 @@ export const forestRuins: DungeonDefinition = {
   id: 'forest',
   name: '森林遺跡',
   subtitle: '第一章 · 林蔭深處',
-  description: '穿越孢霧、繞過古木、避開荊翅。六段林間石徑的盡頭，古根之心正在甦醒。',
+  description: '穿越孢霧、繞過古木、避開荊翅。六段林間石徑的盡頭，苔角鹿靈守著古老聖所。',
   // Archived original introductory room stays at index 0; the six-room route starts at 1.
   startIndex: 1,
   rooms: [
@@ -65,11 +65,10 @@ export const forestRuins: DungeonDefinition = {
       ]
     },
     {
-      name: '古根之心',
+      name: '苔角聖所',
       hero: [2, 0],
       enemies: [
-        { id: 0, kind: 'rootwarden', position: [2, 3], health: 8, skillIndex: 2 },
-        { id: 1, kind: 'sprout', position: [0, 3] }
+        { id: 0, kind: 'mossstag', position: [1, 4], health: 8, facing: 'south', skillIndex: 0 }
       ]
     }
   ]

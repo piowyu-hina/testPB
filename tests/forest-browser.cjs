@@ -29,7 +29,7 @@ const {planJourney}=require('./forest-planner.cjs');
       const seenPhases=new Set();
       for(const step of plan.rooms[stage].steps){
         await idle();
-        if(stage===5){const boss=page.locator('.actor[data-kind="rootwarden"]');if(await boss.count()){
+        if(stage===5){const boss=page.locator('.actor[data-kind="mossstag"]');if(await boss.count()){
           const phase=await boss.getAttribute('data-skill');if(!seenPhases.has(phase)){seenPhases.add(phase);await hoverActor(boss);await screenshot(`boss-${phase}`);}
         }}
         if(step.ultimate){
@@ -54,7 +54,8 @@ const {planJourney}=require('./forest-planner.cjs');
     await page.locator('#replay').click();await idle();assert.equal(await page.locator('#journey-progress-label').textContent(),'1 / 6');
     await page.locator('[data-test-action="boss"]').click();await idle();
     await page.locator('[data-test-action="health"]').click();
-    await page.locator('#end-turn').click();await idle(); // Rest -> cross.
+    await page.locator('#end-turn').click();await idle(); // Charge -> rest.
+    await page.locator('#end-turn').click();await idle(); // Rest -> antler.
     await page.locator('#end-turn').click();await idle();
     assert.match(await page.locator('#result-title').textContent(),/再試一次/);await screenshot('defeat');
     await page.locator('#replay').click();await idle();assert.equal(await page.locator('#journey-progress-label').textContent(),'1 / 6');

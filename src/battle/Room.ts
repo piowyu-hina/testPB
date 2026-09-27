@@ -3,7 +3,7 @@ import type { CardId, Loadout } from '../data/cards.ts';
 import { enemies } from '../data/enemies.ts';
 import { forestRuins } from '../data/dungeons/forest.ts';
 import type { Point, Enemy, MovePreview, EnemyMotion, TurnOutcome, CardDefinition, RoomDefinition } from '../types/game.ts';
-import { attackOffsets, blocksAttack, enemySkill, enemyDamage, faceToward } from './EnemyRules.ts';
+import { attackOffsets, blocksAttack, enemySkill, enemyDamage, faceToward, chargeLanding } from './EnemyRules.ts';
 import { freshBuild, cardKind, deckForBuild, type Build, type CardRef, type Engraving } from './Growth.ts';
 export const data = { cards, enemies };
 export const HAND_LIMIT = 5;
@@ -284,7 +284,7 @@ export class Room {
     let pushBlocked = false;
     if (cardKind(this.hand[index]) === 'repel' && victim && survives) {
       const to: Point = [destination[0] + Math.sign(destination[0] - this.hero[0]), destination[1] + Math.sign(destination[1] - this.hero[1])];
-      pushBlocked = blocked || Boolean(victim.elite) || Boolean(enemies[victim.kind].rooted) || enemySkill(victim).id === 'roots' || !inside(to) || Boolean(this.at(to));
+      pushBlocked = blocked || Boolean(victim.elite) || Boolean(enemies[victim.kind].boss) || Boolean(enemies[victim.kind].rooted) || enemySkill(victim).id === 'roots' || !inside(to) || Boolean(this.at(to));
       if (!pushBlocked) pushed = { id: victim.id, from: [...destination], to };
     }
     return {
@@ -419,6 +419,17 @@ export class Room {
           ? -100
           : distanceSquared(position, this.hero);
       for (const enemy of ordered) {
+        if (enemy.kind === 'mossstag') {
+          const from = enemy.position.slice() as Point;
+          if (enemySkill(enemy).id === 'charge') {
+            enemy.position = chargeLanding(enemy, [this.hero, ...this.enemies.filter(e => e.id !== enemy.id).map(e => e.position)]);
+            if (!equal(from, enemy.position)) motions.push({ id: enemy.id, from, to: [...enemy.position] });
+          }
+          enemy.skillIndex = ((enemy.skillIndex ?? 0) + 1) % data.enemies[enemy.kind].skills.length;
+          // Lock the next intent now; never retarget during the player's actions.
+          enemy.facing = faceToward(enemy, this.hero);
+          continue;
+        }
         const hold = enemySkill(enemy).holdAfter;
         enemy.skillIndex = ((enemy.skillIndex ?? 0) + 1) % data.enemies[enemy.kind].skills.length;
         if (hold) continue;

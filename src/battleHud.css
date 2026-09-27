@@ -36,7 +36,7 @@
 .battle-test-tools button:focus-visible { outline: 2px solid #ebcb7c; outline-offset: 2px; }
 .battle-test-tools button::before { content: ''; display: block; width: 100%; height: 100%; background: center / contain no-repeat; }
 .battle-test-tools [data-test-action='opening']::before { background-image: url('../assets/monsters/forest/ThornSprout.png'); }
-.battle-test-tools [data-test-action='boss']::before { background-image: url('../assets/monsters/forest/Rootwarden.png'); }
+.battle-test-tools [data-test-action='boss']::before { background-image: url('../assets/monsters/forest/Mossstag.png'); }
 .battle-test-tools [data-test-action='guard']::before,
 .battle-test-tools [data-test-action='elite']::before { background-image: url('../assets/monsters/forest/StumpGuard.png'); }
 .battle-test-tools [data-test-action='charge']::before { background-image: url('../assets/ui/ultimate-charge.png'); }

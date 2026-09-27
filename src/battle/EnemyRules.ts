@@ -13,6 +13,14 @@ export function enemySkill(enemy: Enemy) {
 export function attackOffsets(enemy: Enemy): Point[] {
   const pattern = enemySkill(enemy).pattern;
   if (pattern === 'none') return [];
+  if (pattern === 'charge-ray') {
+    const [x, y] = facingOffsets[enemy.facing ?? 'south'];
+    return Array.from({ length: 4 }, (_, i): Point => [x * (i + 1), y * (i + 1)]);
+  }
+  if (pattern === 'front-fan') {
+    const [x, y] = facingOffsets[enemy.facing ?? 'south'];
+    return [...adjacent, ...diagonal].filter(([dx, dy]) => dx * x + dy * y >= 0);
+  }
   if (pattern === 'ring') return [...adjacent, ...diagonal];
   if (pattern === 'cross-ray' || pattern === 'diagonal-ray') {
     const directions = pattern === 'cross-ray' ? adjacent : diagonal;
@@ -22,6 +30,12 @@ export function attackOffsets(enemy: Enemy): Point[] {
   return pattern === 'front' ? [facingOffsets[enemy.facing ?? 'south']] : pattern === 'diagonal' ? diagonal : adjacent;
 }
 export function enemyDamage(enemy: Enemy) { return enemySkill(enemy).damage ?? (enemy.elite ? 2 : 1); }
+/** Charge crosses its announced lane, landing on its farthest unoccupied tile. */
+export function chargeLanding(enemy: Enemy, occupied: Point[]): Point {
+  return attackOffsets(enemy).map(([x, y]): Point => [enemy.position[0] + x, enemy.position[1] + y])
+    .filter(p => p.every(v => v >= 0 && v < 5) && !occupied.some(q => q[0] === p[0] && q[1] === p[1]))
+    .at(-1) ?? [...enemy.position];
+}
 export function blocksAttack(enemy: Enemy, from: Point): boolean {
   if (!enemySkill(enemy).guardsFront) return false;
   const [fx, fy] = facingOffsets[enemy.facing ?? 'south'];

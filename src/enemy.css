@@ -13,3 +13,4 @@
 .actor[data-skill='spores'] .enemy-intent::after { display: none; }
 .actor[data-skill='recover'] .enemy-intent::before { inset: 6px; width: auto; height: auto; border-radius: 12px 2px; background: #c3d58f; }
 .actor[data-skill='recover'] .enemy-intent::after { display: none; }
+.actor[data-kind='mossstag']:not([data-skill='recover']) .enemy-intent { display: none; }

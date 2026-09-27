@@ -1,5 +1,17 @@
 # 森林遺跡：六房間完整試玩版
 
+## 苔角鹿靈試作（2026-09-27，取代最後一房古根之心）
+
+最終房改為「苔角聖所」，單隻 8 生命鹿靈，不加小怪。衝撞（2 傷害直線）→ 喘息（不動、不攻擊）→ 角掃（1 傷害，前方及兩側相鄰五格、後方三格安全）。下回合方向只在敵方階段鎖定，玩家走動不追蹤。衝撞穿越亮起的直線並落在最遠未被佔用格，不與角色重疊；攻擊預告與實際傷害共用 EnemyRules。Boss 不可推動。起點不在首回合危險格，舊古根資料與素材保留但不再出場。
+
+演出沿用紅色爪痕，不增加新箭頭、裝飾框或下方文字；衝撞實際平移，喘息保留綠葉提示。`tests/stag-browser.cjs` 檢查三階段、移位、圖片及視窗，`tests/stag-balance.cjs` 重現改版前後各 1,000 次完整六房模擬。相同策略與青禾牌組、不買強化：兩版均 1,000 次通關；Boss 平均回合 4.677 → 5.369、平均移動 6.322 → 8.799、平均受傷 0.010 → 0.172。只是節奏試作，仍偏容易，不代表真人難度合格。
+
+新圖：`assets/monsters/forest/Mossstag.png`，內建 imagegen 生成，保留透明 PNG，未用 CLI。完整提示詞：
+
+> Use case: stylized-concept. Asset type: transparent PNG enemy battle token for a cute 2D grid dungeon game. Draw ONE moss-antler deer spirit boss, entire body visible, centered in square canvas with 5% padding. Cute stout chibi quadruped deer, oversized head, short sturdy four legs, two broad branching wooden antlers with only a few large moss-green leaf clumps, cream muzzle and chest, warm taupe body, dark brown thick clean outlines, calm determined dark eyes. Slight three-quarter front view facing toward viewer. One simple vine around shoulder. Very simplified broad flat clean color regions and one cel-shadow tone per material, almost no texture. Clear powerful deer silhouette readable at 85px. Genuinely transparent background, no ground or shadow, no scenery, no text, no borders, no particles, no glowing aura, no tiny hair strands or scratches. Polished cute hand-drawn mobile boardgame sprite, not realistic, not 3D.
+
+以下為舊六房版本紀錄，Boss 以本節為準。
+
 
 ### 本次新增三張怪物圖（2026-09-27）
 

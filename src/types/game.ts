@@ -22,13 +22,13 @@ export interface CardDefinition {
   cost?: number;
   effect?: 'throw' | 'shadow' | 'knife' | 'thrust' | 'sweep' | 'ultimate' | 'sidestep' | 'repel' | 'recall';
 }
-export type EnemyKind = 'sprout' | 'stump' | 'sporecap' | 'moth' | 'rootwarden';
+export type EnemyKind = 'sprout' | 'stump' | 'sporecap' | 'moth' | 'rootwarden' | 'mossstag';
 export type Facing = 'north' | 'east' | 'south' | 'west';
 export interface EnemySkill {
-  id: 'thorns' | 'sweep' | 'roots' | 'spores' | 'flutter' | 'root-cross' | 'root-diagonal' | 'recover';
+  id: 'thorns' | 'sweep' | 'roots' | 'spores' | 'flutter' | 'root-cross' | 'root-diagonal' | 'recover' | 'charge' | 'antler';
   name: string;
   hint: string;
-  pattern: 'adjacent' | 'front' | 'diagonal' | 'ring' | 'diagonal-ray' | 'cross-ray' | 'none';
+  pattern: 'adjacent' | 'front' | 'diagonal' | 'ring' | 'diagonal-ray' | 'cross-ray' | 'none' | 'charge-ray' | 'front-fan';
   damage?: number;
   guardsFront: boolean;
   holdAfter: boolean;
