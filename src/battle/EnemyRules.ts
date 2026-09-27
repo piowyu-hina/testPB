@@ -1,4 +1,4 @@
-import { enemies, eliteStumpSweep } from '../data/enemies.ts';
+import { enemies, eliteStumpSweep, eliteStumpRoots } from '../data/enemies.ts';
 import type { Enemy, Facing, Point } from '../types/game.ts';
 
 export const facingOffsets: Record<Facing, Point> = {
@@ -12,6 +12,7 @@ export function enemySkill(enemy: Enemy) {
   if (enemy.kind === 'stump' && enemy.elite && skill.id === 'sweep') {
     return eliteStumpSweep;
   }
+  if (enemy.kind === 'stump' && enemy.elite && skill.id === 'roots') return eliteStumpRoots;
   return enemy.kind === 'mossstag' && enemy.enraged && skill.id === 'rocks'
     ? { ...skill, name: '暴走落石', hint: '紅格將落石，造成 1 傷害；暴走增加落石格，鹿靈原地不動。' }
     : skill;

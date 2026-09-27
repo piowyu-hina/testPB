@@ -4,7 +4,13 @@ import type { EnemyDefinition, EnemyKind, EnemySkill } from '../types/game.ts';
 export const eliteStumpSweep: EnemySkill = {
   id: 'sweep', name: '橫枝掃擊',
   hint: '掃前方與兩側五格；背後安全，正面格擋。',
-  pattern: 'front-fan', guardsFront: true, holdAfter: true
+  pattern: 'front-fan', damage: 1, guardsFront: true, holdAfter: true
+};
+
+export const eliteStumpRoots: EnemySkill = {
+  id: 'roots', name: '根震',
+  hint: '攻擊周圍八格；正面格擋解除，退開或趁機擊倒。',
+  pattern: 'ring', damage: 1, guardsFront: false, holdAfter: false
 };
 
 export const enemies: Record<EnemyKind, EnemyDefinition> = {
