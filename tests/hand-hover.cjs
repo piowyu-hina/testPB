@@ -54,8 +54,7 @@ const assert = require('node:assert/strict');
     await page.mouse.move(10, 100); await page.waitForTimeout(180);
     const selected = (await snapshot())[2]; assert.ok(Math.abs(selected.y - raised.y) < 1, 'Click and pointer leave preserve hover height');
     const arranged = await snapshot();
-    assert.ok(arranged[1].x + arranged[1].width < selected.x, 'Left cards leave selected face clear');
-    assert.ok(selected.x + selected.width < arranged[3].x, 'Right cards leave selected face clear');
+    arranged.forEach((card, index) => assert.ok(Math.abs(card.x - baseline[index].x) < 1, 'Selection must not move any card sideways'));
     for (const [index, neighbour] of (await snapshot()).entries()) if (index !== 2) assert.ok(selected.z > neighbour.z);
     const persistentY = selected.y;
     await page.mouse.move(250, 300); await page.waitForTimeout(180);
@@ -64,16 +63,17 @@ const assert = require('node:assert/strict');
     await page.waitForTimeout(180);
     for (const index of [0, 4, 1, 3, 2]) {
       await page.mouse.move(10, 100); await page.waitForTimeout(220);
-      const target = (await snapshot())[index];
-      await page.mouse.move(target.x + 12, target.y + 65); await page.waitForTimeout(180);
-      const hovered = (await snapshot())[index];
-      await page.mouse.click(hovered.x + 12, hovered.y + 65);
-      await page.mouse.move(10, 100); await page.waitForTimeout(220);
+      const target = baseline[index];
+      const x = target.x + target.width * .45, y = target.y + 65;
+      await page.mouse.move(x, y); await page.waitForTimeout(180);
+      await page.mouse.click(x, y); await page.waitForTimeout(220);
       assert.equal(await page.locator('#hand .card').nth(index).getAttribute('aria-pressed'), 'true');
       const fan = await snapshot();
-      if (index) assert.ok(fan[index - 1].x + fan[index - 1].width < fan[index].x);
-      if (index < 4) assert.ok(fan[index].x + fan[index].width < fan[index + 1].x);
+      fan.forEach((card, n) => assert.ok(Math.abs(card.x - baseline[n].x) < 1));
       assert.ok(fan[0].x >= 0 && fan[4].x + fan[4].width <= page.viewportSize()?.width || native);
+      // Do not relocate by locator: the original physical point must cancel.
+      await page.mouse.click(x, y); await page.waitForTimeout(180);
+      assert.equal(await page.locator('#hand .selected').count(), 0, 'Same-point second click cancels');
     }
     await page.screenshot({ path: `test-results/hand-hover-${native ? 'native' : 'browser'}.png` });
     assert.deepEqual(errors, []);

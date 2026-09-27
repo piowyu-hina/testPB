@@ -45,7 +45,6 @@
     0 9px 14px #62573f20;
   position: relative;
   transition:
-    margin-left 0.18s ease-out,
     transform 0.13s,
     border-color 0.13s,
     opacity 0.12s;
