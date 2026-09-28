@@ -12,7 +12,7 @@ fs.mkdirSync(output, { recursive: true });
 
 (async () => {
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, locale: 'zh-TW' });
   const errors = [],
     external = [];
   page.on('pageerror', (error) => errors.push(error.message));
@@ -153,6 +153,7 @@ fs.mkdirSync(output, { recursive: true });
     assert.ok(box.x >= 0 && box.x + box.width <= 390 && box.y + box.height <= 844);
     await page.screenshot({ path: path.join(output, 'mobile.png'), fullPage: true });
     const phone = await browser.newPage({
+      locale: 'zh-TW',
       viewport: { width: 390, height: 844 },
       hasTouch: true,
       isMobile: true,
@@ -211,7 +212,7 @@ fs.mkdirSync(output, { recursive: true });
     assert.equal(await phone.locator('.card.selected').count(), 0);
     await phone.screenshot({ path: path.join(output, 'rogue-shadow-warning-mobile.png') });
     await phone.close();
-    const portrait = await browser.newPage({ viewport: { width: 720, height: 1280 }, hasTouch: true, isMobile: true });
+    const portrait = await browser.newPage({ viewport: { width: 720, height: 1280 }, hasTouch: true, isMobile: true, locale: 'zh-TW' });
     await portrait.goto(process.env.TESTPB_URL || 'http://127.0.0.1:4173');
     assert.deepEqual(await portrait.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.scrollHeight]), [720, 1280]);
     await openDungeon(portrait, true);
@@ -226,7 +227,7 @@ fs.mkdirSync(output, { recursive: true });
     assert.ok(Math.abs(portraitCard.y + portraitCard.height - (portraitEnd.y + portraitEnd.height)) <= 2, 'portrait controls should align along the bottom');
     await portrait.screenshot({ path: path.join(output, 'battle-720x1280.png') });
     await portrait.close();
-    const landscape = await browser.newPage({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true });
+    const landscape = await browser.newPage({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true, locale: 'zh-TW' });
     await landscape.goto(process.env.TESTPB_URL || 'http://127.0.0.1:4173');
     await openDungeon(landscape, true);
     await startGame(landscape, true);

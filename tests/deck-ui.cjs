@@ -2,7 +2,7 @@ const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 (async () => {
   const browser = process.env.TESTPB_CDP ? await chromium.connectOverCDP(process.env.TESTPB_CDP) : await chromium.launch({channel:'chrome',headless:true});
-  const page = process.env.TESTPB_CDP ? browser.contexts()[0].pages()[0] : await browser.newPage({viewport:{width:506,height:900}});
+  const page = process.env.TESTPB_CDP ? browser.contexts()[0].pages()[0] : await browser.newPage({viewport:{width:506,height:900},locale:'zh-TW'});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   const idle=()=>page.waitForFunction(()=>document.querySelector('#game')?.getAttribute('aria-busy')==='false'&&!document.querySelector('#game')?.classList.contains('dealing-hand'));
   const fit=async(selector,child)=>{

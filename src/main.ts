@@ -10,9 +10,11 @@ import { GameSession } from './app/GameSession';
 import { ScreenManager } from './app/ScreenManager';
 import { animate, pause } from './ui/animations';
 import { initSound } from './ui/sound';
+import { mountLocalization } from './i18n';
 
 document.addEventListener('contextmenu', (event) => event.preventDefault());
 initSound();
+mountLocalization();
 const session = new GameSession();
 const host = element('app');
 const stage = element('stage');

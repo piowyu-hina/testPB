@@ -4,7 +4,7 @@ const {planJourney}=require('./forest-planner.cjs');
 (async()=>{
   const native=process.env.TESTPB_CDP;
   const browser=native?await chromium.connectOverCDP(native):await chromium.launch({channel:'chrome',headless:true});
-  const page=native?browser.contexts()[0].pages()[0]:await browser.newPage({viewport:{width:506,height:900}});
+  const page=native?browser.contexts()[0].pages()[0]:await browser.newPage({viewport:{width:506,height:900},locale:'zh-TW'});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   const idle=()=>page.waitForFunction(()=>document.querySelector('#game')?.getAttribute('aria-busy')==='false'&&!document.querySelector('#game')?.classList.contains('dealing-hand'));
   const tile=(x,y)=>page.locator(`.tile[data-x="${x}"][data-y="${y}"]`);

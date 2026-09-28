@@ -1,6 +1,7 @@
 import { Room, data, equal, HAND_LIMIT, type MoveAction, type UltimateAction } from '../battle/Room';
 import type { Journey } from '../battle/Journey';
 import { characters, enemyArt } from '../data/art';
+import { cloneLocalized } from '../i18n';
 import type { Point, CardDefinition, MovePreview } from '../types/game';
 import qingheChargeArt from '../../assets/characters/qinghe/UltimateCharge.png';
 import rogueChargeArt from '../../assets/ui/ultimate-charge.png';
@@ -220,7 +221,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const style = getComputedStyle(card);
     const shadow = style.boxShadow;
     for (const property of ['background', 'border', 'border-radius', 'padding', 'box-shadow']) face.style.setProperty(property, style.getPropertyValue(property));
-    face.append(...Array.from(card.childNodes).map(node => node.cloneNode(true)));
+    face.append(...Array.from(card.childNodes).map(cloneLocalized));
     card.append(face);
     card.classList.add('confirming');
     const press = face.animate([
@@ -477,7 +478,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
             elements.hint.hidden = false;
             showCardHint(definition, cardRequirement(index), ref);
             rejectCard(card);
-            if (touchLayout()) elements.touchInfo.replaceChildren(...Array.from(elements.hint.childNodes).map(node => node.cloneNode(true)));
+            if (touchLayout()) elements.touchInfo.replaceChildren(...Array.from(elements.hint.childNodes).map(cloneLocalized));
             return;
           }
           closeCardDetails();
@@ -638,7 +639,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       panel.append(detail);
     }
     if (touchLayout()) {
-      elements.touchInfo.replaceChildren(...Array.from(panel.childNodes).map(node => node.cloneNode(true)));
+      elements.touchInfo.replaceChildren(...Array.from(panel.childNodes).map(cloneLocalized));
       panel.hidden = true;
     }
   }
@@ -838,7 +839,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     const showingSkill = selected >= 0 || ultimateTargeting;
     elements.touchInfo.dataset.mode = inspectedTile && !showingSkill ? 'tile' : 'hint';
     if (touchLayout() && (!inspectedTile || showingSkill))
-      elements.touchInfo.replaceChildren(...Array.from(elements.hint.childNodes).map(node => node.cloneNode(true)));
+      elements.touchInfo.replaceChildren(...Array.from(elements.hint.childNodes).map(cloneLocalized));
   }
   function lock(preserveSelection = false) {
     busy = true;
