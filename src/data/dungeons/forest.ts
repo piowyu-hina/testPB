@@ -58,12 +58,12 @@ export const forestRuins: DungeonDefinition = {
       name: '遺跡守衛',
       hero: [2, 0],
       enemies: [
-        // Opposite elite phases: front/side sweep and unarmored eight-cell roots.
-        // Keep four enemies / seven total HP; pressure comes from timing, not bulk.
-        { id: 0, kind: 'stump', position: [1, 2], elite: true, facing: 'south', health: 3 },
+        // Break the nearby ward, push its source away, or lure the guard out.
+        // Still four enemies / seven total HP, with an exposed non-attacking source.
+        { id: 0, kind: 'stump', position: [2, 2], elite: true, facing: 'south', health: 3 },
         { id: 1, kind: 'sprout', position: [1, 1] },
-        { id: 2, kind: 'moth', position: [2, 4] },
-        { id: 3, kind: 'stump', position: [3, 2], elite: true, facing: 'south', health: 2, skillIndex: 1 }
+        { id: 2, kind: 'moth', position: [3, 3] },
+        { id: 3, kind: 'sporecap', position: [2, 3], ward: true, health: 2 }
       ]
     },
     {

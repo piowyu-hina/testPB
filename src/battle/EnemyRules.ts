@@ -8,6 +8,9 @@ const adjacent: Point[] = [[0, 1], [1, 0], [0, -1], [-1, 0]];
 const diagonal: Point[] = [[1, 1], [1, -1], [-1, -1], [-1, 1]];
 
 export function enemySkill(enemy: Enemy) {
+  if (enemy.ward) return { id: 'recover' as const, name: '護根',
+    hint: '周圍一格護罩，跟進同伴；推離／擊倒可破盾。',
+    pattern: 'none' as const, guardsFront: false, holdAfter: true };
   const skill = enemies[enemy.kind].skills[enemy.skillIndex ?? 0];
   if (enemy.kind === 'stump' && enemy.elite && skill.id === 'sweep') {
     return eliteStumpSweep;
@@ -48,7 +51,32 @@ export function chargeLanding(enemy: Enemy, occupied: Point[]): Point {
   }
   return landing;
 }
-export function blocksAttack(enemy: Enemy, from: Point): boolean {
+export function enemyName(enemy: Enemy): string { return enemy.ward ? '護根菇' : enemies[enemy.kind].name; }
+export function wardSource(enemy: Enemy, allies: readonly Enemy[]): Enemy | undefined {
+  if (enemy.ward) return undefined; // Sources never protect themselves or each other.
+  return allies.find(source => source.ward && source.id !== enemy.id && (source.health ?? 1) > 0
+    && Math.max(Math.abs(source.position[0] - enemy.position[0]), Math.abs(source.position[1] - enemy.position[1])) <= 1);
+}
+/** Follow a guard only after all attackers have moved; never jump through an occupant. */
+export function wardStep(source: Enemy, allies: readonly Enemy[], hero: Point): Point {
+  const distance = (a: Point, b: Point) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
+  const targets = allies.filter(e => !e.ward && e.id !== source.id).sort((a, b) =>
+    Number(b.kind === 'stump') - Number(a.kind === 'stump') || distance(a.position, source.position) - distance(b.position, source.position) || a.id - b.id);
+  const target = targets[0];
+  if (!target || distance(source.position, target.position) <= 1) return [...source.position];
+  const scoreAt = (p: Point) => distance(p, target.position) * 10 + Math.abs(p[0] - target.position[0]) + Math.abs(p[1] - target.position[1]);
+  let best: Point = [...source.position], score = scoreAt(best);
+  for (const [dx, dy] of adjacent) {
+    const p: Point = [source.position[0] + dx, source.position[1] + dy];
+    if (p.some(v => v < 0 || v >= 5) || p.toString() === hero.toString()
+      || allies.some(e => e.id !== source.id && p.toString() === e.position.toString())) continue;
+    const next = scoreAt(p);
+    if (next < score) { best = p; score = next; }
+  }
+  return best;
+}
+export function blocksAttack(enemy: Enemy, from: Point, allies: readonly Enemy[] = []): boolean {
+  if (wardSource(enemy, allies)) return true;
   if (!enemySkill(enemy).guardsFront) return false;
   const [fx, fy] = facingOffsets[enemy.facing ?? 'south'];
   const dx = from[0] - enemy.position[0], dy = from[1] - enemy.position[1];

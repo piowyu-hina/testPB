@@ -3,7 +3,7 @@ import type { CardId, Loadout } from '../data/cards.ts';
 import { enemies } from '../data/enemies.ts';
 import { forestRuins } from '../data/dungeons/forest.ts';
 import type { Point, Enemy, MovePreview, EnemyMotion, TurnOutcome, CardDefinition, RoomDefinition } from '../types/game.ts';
-import { attackOffsets, blocksAttack, enemySkill, enemyDamage, faceToward, chargeLanding } from './EnemyRules.ts';
+import { attackOffsets, blocksAttack, enemySkill, enemyDamage, faceToward, chargeLanding, wardStep } from './EnemyRules.ts';
 import { stagSteps, rockWarnings } from './StagRules.ts';
 import { freshBuild, cardKind, deckForBuild, type Build, type CardRef, type Engraving } from './Growth.ts';
 export const data = { cards, enemies };
@@ -99,6 +99,7 @@ export class Room {
   at(tile: Point) {
     return this.enemies.find((e) => equal(e.position, tile));
   }
+  blocksAttack(enemy: Enemy, from: Point = this.hero) { return blocksAttack(enemy, from, this.enemies); }
   get availableCards(): readonly CardId[] {
     return this.availableCardRefs.map(cardKind);
   }
@@ -268,7 +269,7 @@ export class Room {
     if (!this.canMove(index, destination)) return null;
     if (cardKind(this.hand[index]) === 'sweep') {
       const victims = this.enemies.filter(enemy => data.cards.sweep.offsets.some(offset => equal(enemy.position, [this.hero[0] + offset[0], this.hero[1] + offset[1]])));
-      const removedIds = victims.filter(enemy => !blocksAttack(enemy, this.hero) && (enemy.health ?? 1) <= 1).map(enemy => enemy.id);
+      const removedIds = victims.filter(enemy => !this.blocksAttack(enemy) && (enemy.health ?? 1) <= 1).map(enemy => enemy.id);
       return {
         blocked: false,
         destination: this.hero.slice() as Point,
@@ -278,7 +279,7 @@ export class Room {
       };
     }
     const victim = this.at(destination);
-    const blocked = victim ? blocksAttack(victim, this.hero) : false;
+    const blocked = victim ? this.blocksAttack(victim) : false;
     const kind = cardKind(this.hand[index]);
     let attackDamage = 1;
     if (this.loadout === 'qinghe' && victim && !blocked) {
@@ -316,7 +317,7 @@ export class Room {
         .map(enemy => ({
           id: enemy.id,
           position: enemy.position.slice() as Point,
-          blocked: blocksAttack(enemy, this.hero),
+          blocked: this.blocksAttack(enemy),
           removed: preview.removedIds!.includes(enemy.id),
           elite: Boolean(enemy.elite)
         }));
@@ -432,12 +433,18 @@ export class Room {
     if (!this.lost) {
       const ordered = this.enemies
         .slice()
-        .sort((a, b) => b.position[1] - a.position[1] || a.position[0] - b.position[0]);
+        .sort((a, b) => Number(Boolean(a.ward)) - Number(Boolean(b.ward)) || b.position[1] - a.position[1] || a.position[0] - b.position[0]);
       const score = (enemy: Enemy, position: Point) =>
         Room.threatens({ ...enemy, position }, this.hero)
           ? -100
           : distanceSquared(position, this.hero);
       for (const enemy of ordered) {
+        if (enemy.ward) {
+          const from: Point = [...enemy.position];
+          enemy.position = wardStep(enemy, this.enemies, this.hero);
+          if (!equal(from, enemy.position)) motions.push({ id: enemy.id, from, to: [...enemy.position] });
+          continue;
+        }
         if (enemy.kind === 'mossstag') {
           const occupied = () => this.enemies.filter(e => e.id !== enemy.id).map(e => e.position);
           if (enemySkill(enemy).id === 'charge') {

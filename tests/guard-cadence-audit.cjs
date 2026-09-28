@@ -1,6 +1,7 @@
 // Paired whole-journey diagnostic. No policy tuning between the two encounters.
 const { forestRuins } = require('../src/data/dungeons/forest.ts');
 const { audit } = require('./fun-audit.cjs');
+const { pairedGuards } = require('./fixtures/guard-encounters.cjs');
 const { eliteStumpSweep, eliteStumpRoots } = require('../src/data/enemies.ts');
 const currentPattern = eliteStumpSweep.pattern;
 const currentRoots = eliteStumpRoots.pattern;
@@ -17,7 +18,7 @@ try {
   eliteStumpSweep.pattern = 'front';
   eliteStumpRoots.pattern = 'diagonal';
   eliteStumpSweep.damage = eliteStumpRoots.damage = undefined;
-  const staggered = current.map(e => e.id === 3 ? { ...e, elite: false } : e);
+  const staggered = pairedGuards(false);
   for (const [version, enemies] of [['previous', previous], ['staggered', staggered]]) {
     room.enemies = enemies;
     const { runs, wins, noDamage, avg } = audit(1000);

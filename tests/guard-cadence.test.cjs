@@ -21,12 +21,13 @@ test('every ordinary Qinghe card can answer the fifth-room opening without damag
   }
 });
 
-test('paired guards alternate openings, lock previews and resolve before moving', () => {
+test('guard and mobile ward lock previews and resolve before sequential movement', () => {
   const room = new Room(1, definition, 5, 'qinghe');
   room.health = 100;
   for (let turn = 0; turn < 6; turn++) {
     const guards = room.enemies.filter(e => e.kind === 'stump');
-    assert.equal(guards.filter(e => enemySkill(e).guardsFront).length, 1);
+    assert.equal(guards.length, 1);
+    assert.equal(enemySkill(guards[0]).guardsFront, turn % 2 === 0);
     const before = JSON.stringify(room.enemies);
     room.hand = ['sidestep', 'thrust', 'sweep'];
     for (let card = 0; card < 3; card++) for (let x = 0; x < 5; x++) for (let y = 0; y < 5; y++) room.preview(card, [x, y]);

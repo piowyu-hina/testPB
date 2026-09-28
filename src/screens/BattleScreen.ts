@@ -13,7 +13,7 @@ import { diagram } from '../ui/cardDiagram';
 import { cardArt, qingheForwardArt } from '../data/cardArt';
 import { daggerIcon, groundDaggerIcon } from '../ui/dagger';
 import { approach, contactPoint, shield, impact, recoil, heartBurst } from '../ui/battleFeedback';
-import { enemySkill, blocksAttack } from '../battle/EnemyRules';
+import { enemySkill, enemyName, wardSource } from '../battle/EnemyRules';
 import { enemySummary } from '../ui/enemyInfo';
 import { playSound, setSoundEnabled, soundEnabled } from '../ui/sound';
 import { mountDeckViewer } from '../ui/deckViewer';
@@ -602,13 +602,15 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       if (touchLayout() && inspectedTile) elements.touchInfo.replaceChildren();
       return;
     }
-    const title = isHero ? characterInfo[room.loadout].name : enemy ? `${enemy.elite ? '精英・' : ''}${data.enemies[enemy.kind].name}` : isExit ? '出口' : hasKnife ? '地上小刀' : '危險地格';
+    const title = isHero ? characterInfo[room.loadout].name : enemy ? `${enemy.elite ? '精英・' : ''}${enemyName(enemy)}` : isExit ? '出口' : hasKnife ? '地上小刀' : '危險地格';
     const lines: string[] = [];
     if (isHero) lines.push(characterInfo[room.loadout].introduction);
     if (enemy) {
       const skill = enemySkill(enemy);
       lines.push(`${skill.name}：${skill.hint}`);
-      if (enemy.facing && enemySkill(enemy).guardsFront) lines.push(`面向：${{ north: '上', east: '右', south: '下', west: '左' }[enemy.facing]}`);
+      const protection = wardSource(enemy, room.enemies);
+      if (protection) lines.push('護根菇護罩：推離或擊倒源頭可破盾。');
+      if (enemy.facing && enemySkill(enemy).guardsFront && !protection) lines.push(`面向：${{ north: '上', east: '右', south: '下', west: '左' }[enemy.facing]}`);
     }
     if (hasKnife) lines.push('撿刀：補 1 行動，可抽 1 張牌');
     if (danger) lines.push(`回合結束時，站在此格受${danger}點傷害`);
@@ -671,14 +673,14 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
     outcome.hidden = !hits.length;
     outcome.replaceChildren(...hits.map(enemy => {
       const row = document.createElement('span'); row.className = 'target-health';
-      const image = document.createElement('img'); image.src = enemyArt[enemy.kind]; image.alt = data.enemies[enemy.kind].name;
+      const image = document.createElement('img'); image.src = enemyArt[enemy.kind]; image.alt = enemyName(enemy);
       const life = document.createElement('span'); life.className = 'enemy-life';
-      const blocked = !ultimateTargeting && blocksAttack(enemy, room.hero);
+      const blocked = !ultimateTargeting && room.blocksAttack(enemy);
       const remaining = Math.max(0, (enemy.health ?? 1) - (blocked ? 0 : ultimateTargeting ? 2 : preview?.attackDamage ?? 1));
       const current = enemy.health ?? 1, maximum = enemy.maxHealth ?? current;
       life.innerHTML = healthSegment.repeat(maximum);
       [...life.children].forEach((node, index) => { node.classList.toggle('empty', index >= current); node.classList.toggle('forecast', index >= remaining && index < current); });
-      row.setAttribute('aria-label', `${data.enemies[enemy.kind].name}，生命 ${current} → ${remaining}${blocked ? '，格擋' : preview?.pushBlocked ? '，無法推動' : ''}`);
+      row.setAttribute('aria-label', `${enemyName(enemy)}，生命 ${current} → ${remaining}${blocked ? '，格擋' : preview?.pushBlocked ? '，無法推動' : ''}`);
       row.append(image, life);
       if (blocked) { const shieldMark = document.createElement('span'); shieldMark.className = 'forecast-shield'; shieldMark.innerHTML = '<svg viewBox="0 0 64 64"><path d="M32 5 53 14v17c0 14-21 26-21 26S11 45 11 31V14Z"/></svg>'; row.append(shieldMark); }
       return row;
@@ -739,7 +741,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       tile.classList.toggle('ultimate-target', ultimateTargeting && journey.loadout === 'rogue' && Boolean(room.at(point)));
       tile.classList.toggle('dawn-range', dawnTarget);
       tile.classList.toggle('dawn-active', dawnTarget && Boolean(direction && dawnDirection && equal(direction, dawnDirection)));
-      tile.classList.toggle('blocked', legal && !sweepTargeting && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
+      tile.classList.toggle('blocked', legal && !sweepTargeting && Boolean(room.at(point) && room.blocksAttack(room.at(point)!)));
       tile.classList.toggle('landing', !sweepTargeting && Boolean(preview && equal(point, ['throw', 'knife', 'thrust', 'repel', 'recall'].includes(chosenId) ? hoveredTile! : preview.destination)));
       tile.classList.toggle('focus-threat', threatened);
       if (threatened) {
@@ -752,7 +754,7 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
         const mark = document.createElement('div');
         mark.className = 'target-mark';
         mark.classList.toggle('hovered', Boolean(hoveredTile && equal(hoveredTile, point)));
-        mark.classList.toggle('blocked', !ultimateTargeting && Boolean(room.at(point) && blocksAttack(room.at(point)!, room.hero)));
+        mark.classList.toggle('blocked', !ultimateTargeting && Boolean(room.at(point) && room.blocksAttack(room.at(point)!)));
         place(mark, point);
         targetMarks.append(mark);
       }
@@ -785,6 +787,18 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       place(token, point);
       $('ground-knives').append(token);
     }
+    const wardPreviewEnemies = room.enemies.filter(enemy => !removedIds.includes(enemy.id)).map(enemy =>
+      preview?.pushed?.id === enemy.id ? { ...enemy, position: preview.pushed.to } : enemy);
+    const links = document.createDocumentFragment();
+    for (const enemy of wardPreviewEnemies) {
+      const source = wardSource(enemy, wardPreviewEnemies);
+      if (!source) continue;
+      const link = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      link.setAttribute('x1', String(source.position[0] * 20 + 10)); link.setAttribute('y1', String((4 - source.position[1]) * 20 + 10));
+      link.setAttribute('x2', String(enemy.position[0] * 20 + 10)); link.setAttribute('y2', String((4 - enemy.position[1]) * 20 + 10));
+      link.dataset.source = String(source.id); link.dataset.target = String(enemy.id); links.append(link);
+    }
+    $('ward-links').replaceChildren(links);
     for (const enemy of room.enemies) {
       const sprite = actor(enemy.id);
       place(sprite, enemy.position);
@@ -795,7 +809,9 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       sprite.dataset.skill = skill.id;
       sprite.dataset.facing = enemy.facing ?? 'south';
       sprite.classList.toggle('guarding', Boolean(skill.guardsFront));
-      sprite.classList.toggle('block-preview', hits.some(hit => hit.id === enemy.id) && !ultimateTargeting && blocksAttack(enemy, room.hero));
+      sprite.classList.toggle('ward-source', Boolean(enemy.ward));
+      sprite.classList.toggle('warded', !removedIds.includes(enemy.id) && Boolean(wardSource(enemy, wardPreviewEnemies)));
+      sprite.classList.toggle('block-preview', hits.some(hit => hit.id === enemy.id) && !ultimateTargeting && room.blocksAttack(enemy));
       sprite.classList.toggle('push-origin', preview?.pushed?.id === enemy.id);
       sprite.classList.toggle('push-resistant', preview?.hitId === enemy.id && Boolean(preview.pushBlocked) && !preview.blocked);
     }
@@ -1277,11 +1293,11 @@ export function mountBattle(host: HTMLElement, session: GameSession, onHome: () 
       const sprite = makeActor(
         enemy.id,
         enemyArt[enemy.kind],
-        `${enemy.elite ? '精英・' : ''}${data.enemies[enemy.kind].name}`
+        `${enemy.elite ? '精英・' : ''}${enemyName(enemy)}`
       );
       sprite.dataset.kind = enemy.kind;
       sprite.classList.toggle('boss', Boolean(data.enemies[enemy.kind].boss));
-      if (enemy.kind === 'sporecap' || enemy.kind === 'rootwarden') {
+      if ((enemy.kind === 'sporecap' && !enemy.ward) || enemy.kind === 'rootwarden') {
         const intent = document.createElement('span'); intent.className = 'enemy-intent'; intent.setAttribute('aria-hidden', 'true'); sprite.append(intent);
       }
       sprite.insertAdjacentHTML('beforeend', '<svg class="guard-shield" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 5 53 14v17c0 14-21 26-21 26S11 45 11 31V14Z"/></svg>');

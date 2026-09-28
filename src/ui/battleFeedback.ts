@@ -47,12 +47,14 @@ export async function heartBurst(board: HTMLElement, point: Point): Promise<void
 export async function shield(target: HTMLElement): Promise<void> {
   const marker = target.querySelector<SVGElement>('.guard-shield');
   if (!marker) return;
-  await animate(marker, [
+  const display = marker.style.display;
+  marker.style.display = 'block';
+  try { await animate(marker, [
     { transform: 'translate(-50%, -50%) scale(1)', filter: 'brightness(1)' },
     { transform: 'translate(-50%, -50%) scale(1.8)', filter: 'brightness(1.7)', offset: .22 },
     { transform: 'translate(-50%, -50%) scale(1.8)', filter: 'brightness(1.7)', offset: .7 },
     { transform: 'translate(-50%, -50%) scale(1)', filter: 'brightness(1)' }
-  ], 420, 'ease-out');
+  ], 420, 'ease-out'); } finally { marker.style.display = display; }
 }
 
 export async function recoil(node: HTMLElement, from: Point, to: Point, hurt = false): Promise<void> {

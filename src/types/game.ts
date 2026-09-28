@@ -41,6 +41,7 @@ export interface EnemyDefinition {
   rooted?: boolean;
 }
 export interface Enemy {
+  ward?: boolean;
   id: number;
   kind: EnemyKind;
   position: Point;
